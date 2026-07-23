@@ -1,0 +1,15 @@
+{
+  "version": 4,
+  "title": "E2E Loaded Script",
+  "cover": {
+    "title": "E2E Loaded Script",
+    "author": "Automation"
+  },
+  "notes": [],
+  "lines": [
+    { "type": "scene", "text": "INT. AUTOMATION LAB - DAY" },
+    { "type": "action", "text": "A status light turns green." },
+    { "type": "character", "text": "MAYA" },
+    { "type": "dialogue", "text": "The test is running." }
+  ]
+}

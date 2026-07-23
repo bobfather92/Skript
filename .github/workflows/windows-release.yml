@@ -1,0 +1,208 @@
+name: Windows release build
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: windows-2025
+    timeout-minutes: 40
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v5
+
+      - name: Read version and check signing configuration
+        id: release
+        shell: pwsh
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          SIGNING_ENDPOINT: ${{ vars.AZURE_ARTIFACT_SIGNING_ENDPOINT }}
+          SIGNING_ACCOUNT: ${{ vars.AZURE_ARTIFACT_SIGNING_ACCOUNT }}
+          SIGNING_PROFILE: ${{ vars.AZURE_ARTIFACT_SIGNING_PROFILE }}
+          SIGNING_PUBLISHER: ${{ vars.AZURE_ARTIFACT_SIGNING_EXPECTED_PUBLISHER }}
+        run: |
+          $version = (Get-Content -LiteralPath VERSION.txt -Raw).Trim()
+          if ($version -notmatch '^\d+\.\d+\.\d+\.\d+$') {
+            throw "VERSION.txt is invalid: $version"
+          }
+          if ('${{ github.ref_type }}' -eq 'tag') {
+            $expectedTag = "v$version"
+            if ('${{ github.ref_name }}' -ne $expectedTag) {
+              throw "Release tag must be $expectedTag for VERSION.txt $version."
+            }
+          }
+          "SKRIPT_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+          $configured = @(
+            $env:AZURE_CLIENT_ID, $env:AZURE_TENANT_ID, $env:AZURE_SUBSCRIPTION_ID,
+            $env:SIGNING_ENDPOINT, $env:SIGNING_ACCOUNT, $env:SIGNING_PROFILE,
+            $env:SIGNING_PUBLISHER
+          ) | Where-Object { [string]::IsNullOrWhiteSpace($_) }
+          $signRelease = $configured.Count -eq 0
+          "SIGN_RELEASE=$($signRelease.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          $flavour = if ($signRelease) { 'signed' } else { 'UNSIGNED-TEST-BUILD' }
+          "RELEASE_FLAVOUR=$flavour" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+          if ('${{ github.ref_type }}' -eq 'tag' -and -not $signRelease) {
+            throw 'Tagged releases must be Authenticode-signed. Configure the Azure Artifact Signing secrets and variables documented in RELEASE_SECURITY.md.'
+          }
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install build and test dependencies
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          $env:PYINSTALLER_COMPILE_BOOTLOADER = '1'
+          python -m pip install --no-cache-dir --no-binary PyInstaller PyInstaller==6.21.0
+          corepack enable
+          pnpm install --frozen-lockfile
+
+      - name: Validate source
+        shell: pwsh
+        run: |
+          python tools/embed_html.py --check
+          python -m py_compile scriptforge.py installer/skript_installer.py
+          $failed = $false
+          Get-ChildItem tests -Filter '*.test.js' | ForEach-Object {
+            node $_.FullName
+            if ($LASTEXITCODE -ne 0) { $failed = $true }
+          }
+          Get-ChildItem tests -Filter '*.test.py' | ForEach-Object {
+            python $_.FullName
+            if ($LASTEXITCODE -ne 0) { $failed = $true }
+          }
+          if ($failed) { throw 'A source regression test failed.' }
+
+      - name: Run browser workflows
+        shell: pwsh
+        run: |
+          pnpm exec playwright install chromium
+          pnpm exec playwright test --config=playwright.config.cjs
+
+      - name: Build Skript without executable compression
+        shell: pwsh
+        run: pyinstaller --noconfirm --clean --noupx --distpath build_artifacts/app --workpath build_artifacts/work-app Skript.spec
+
+      - name: Sign in to Azure for Artifact Signing
+        if: env.SIGN_RELEASE == 'true'
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Sign application executable
+        if: env.SIGN_RELEASE == 'true'
+        uses: azure/artifact-signing-action@v2
+        with:
+          endpoint: ${{ vars.AZURE_ARTIFACT_SIGNING_ENDPOINT }}
+          signing-account-name: ${{ vars.AZURE_ARTIFACT_SIGNING_ACCOUNT }}
+          certificate-profile-name: ${{ vars.AZURE_ARTIFACT_SIGNING_PROFILE }}
+          files: ${{ github.workspace }}\build_artifacts\app\Skript\Skript.exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+          description: Skript Professional Screenwriting
+
+      - name: Verify application signature
+        if: env.SIGN_RELEASE == 'true'
+        shell: pwsh
+        env:
+          EXPECTED_PUBLISHER: ${{ vars.AZURE_ARTIFACT_SIGNING_EXPECTED_PUBLISHER }}
+        run: ./tools/Test-Authenticode.ps1 -Path 'build_artifacts/app/Skript/Skript.exe' -ExpectedPublisher $env:EXPECTED_PUBLISHER
+
+      - name: Build Windows setup around signed payload
+        shell: pwsh
+        run: pyinstaller --noconfirm --clean --noupx --distpath build_artifacts/installer --workpath build_artifacts/work-installer SkriptInstaller.spec
+
+      - name: Sign Windows setup
+        if: env.SIGN_RELEASE == 'true'
+        uses: azure/artifact-signing-action@v2
+        with:
+          endpoint: ${{ vars.AZURE_ARTIFACT_SIGNING_ENDPOINT }}
+          signing-account-name: ${{ vars.AZURE_ARTIFACT_SIGNING_ACCOUNT }}
+          certificate-profile-name: ${{ vars.AZURE_ARTIFACT_SIGNING_PROFILE }}
+          files: ${{ github.workspace }}\build_artifacts\installer\Skript-Setup-${{ env.SKRIPT_VERSION }}.exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+          description: Skript Professional Screenwriting Setup
+
+      - name: Verify setup signature
+        if: env.SIGN_RELEASE == 'true'
+        shell: pwsh
+        env:
+          EXPECTED_PUBLISHER: ${{ vars.AZURE_ARTIFACT_SIGNING_EXPECTED_PUBLISHER }}
+        run: ./tools/Test-Authenticode.ps1 -Path "build_artifacts/installer/Skript-Setup-$env:SKRIPT_VERSION.exe" -ExpectedPublisher $env:EXPECTED_PUBLISHER
+
+      - name: Run final installer lifecycle
+        shell: pwsh
+        run: ./tests/release-lifecycle.ps1 -SetupPath "build_artifacts/installer/Skript-Setup-$env:SKRIPT_VERSION.exe"
+
+      - name: Package portable application and create checksums
+        shell: pwsh
+        run: |
+          $setupName = "Skript-Setup-$env:SKRIPT_VERSION.exe"
+          $portableName = "Skript-$env:SKRIPT_VERSION-portable.zip"
+          $portablePath = Join-Path 'build_artifacts/installer' $portableName
+          Compress-Archive -Path 'build_artifacts/app/Skript' -DestinationPath $portablePath -CompressionLevel Optimal
+          $releaseFiles = @(
+            (Join-Path 'build_artifacts/installer' $setupName),
+            $portablePath
+          )
+          $checksums = foreach ($file in $releaseFiles) {
+            $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $file).Hash.ToLowerInvariant()
+            "$hash *$(Split-Path -Leaf $file)"
+          }
+          $checksums | Set-Content -Encoding ascii build_artifacts/installer/SHA256SUMS.txt
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: Skript-${{ env.SKRIPT_VERSION }}-${{ env.RELEASE_FLAVOUR }}-installer
+          path: |
+            build_artifacts/installer/Skript-Setup-${{ env.SKRIPT_VERSION }}.exe
+            build_artifacts/installer/SHA256SUMS.txt
+            RELEASE_NOTES_${{ env.SKRIPT_VERSION }}.md
+            RELEASE_SECURITY.md
+            LICENSE.txt
+
+      - name: Upload portable application
+        uses: actions/upload-artifact@v4
+        with:
+          name: Skript-${{ env.SKRIPT_VERSION }}-${{ env.RELEASE_FLAVOUR }}-portable
+          path: build_artifacts/installer/Skript-${{ env.SKRIPT_VERSION }}-portable.zip
+
+      - name: Create draft GitHub release
+        if: github.ref_type == 'tag' && env.SIGN_RELEASE == 'true'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" `
+            --draft `
+            --verify-tag `
+            --title "Skript 1.0 ($env:SKRIPT_VERSION)" `
+            --notes-file "RELEASE_NOTES_$env:SKRIPT_VERSION.md" `
+            "build_artifacts/installer/Skript-Setup-$env:SKRIPT_VERSION.exe" `
+            "build_artifacts/installer/Skript-$env:SKRIPT_VERSION-portable.zip" `
+            "build_artifacts/installer/SHA256SUMS.txt"

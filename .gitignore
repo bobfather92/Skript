@@ -1,0 +1,37 @@
+__pycache__/
+*.py[cod]
+node_modules/
+.pnpm-store/
+.release_tools/
+_build/
+build_artifacts/
+dist/
+release/
+packages/
+test-results/
+playwright-report/
+tmp/
+*.log
+*.out
+*.err
+*.exe
+*.msi
+*.zip
+SHA256SUMS.txt
+*.script
+!tests/e2e/fixtures/*.script
+
+# Local configuration and signing material
+.env
+.env.*
+!.env.example
+*.p12
+*.pfx
+*.pem
+*.key
+
+# Operating-system and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

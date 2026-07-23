@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<FinalDraft DocumentType="Script" Template="No" Version="5">
+  <Content>
+    <Paragraph Number="12A" Type="Scene Heading" StartsNewPage="Yes">
+      <SceneProperties Length="2/8" Page="7" Title="The signal">
+        <Summary><Paragraph Type="General"><Text>They make contact.</Text></Paragraph></Summary>
+      </SceneProperties>
+      <Text RevisionID="2" Style="Bold">INT. CONTROL ROOM - NIGHT</Text>
+      <ScriptNote><Paragraph Type="General"><Text Style="Italic">Check the monitor continuity.</Text></Paragraph></ScriptNote>
+    </Paragraph>
+    <Paragraph Type="Action"><Text>The console flashes </Text><Text Style="Bold+Italic">SIGNAL ACQUIRED</Text><Text>.</Text></Paragraph>
+    <Paragraph>
+      <DualDialogue>
+        <Paragraph Type="Character"><Text>MAYA</Text></Paragraph>
+        <Paragraph Type="Parenthetical"><Text>(into headset)</Text></Paragraph>
+        <Paragraph Type="Dialogue"><Text>We have them.</Text></Paragraph>
+        <Paragraph Type="Character"><Text>JO</Text></Paragraph>
+        <Paragraph Type="Dialogue"><Text>Hold the channel.</Text></Paragraph>
+      </DualDialogue>
+    </Paragraph>
+    <Paragraph Alignment="Right" Type="Transition"><Text>SMASH CUT TO:</Text></Paragraph>
+  </Content>
+  <TitlePage><Content>
+    <Paragraph Type="Title"><Text Style="Underline">FDX Advanced Conformance</Text></Paragraph>
+    <Paragraph Type="Author"><Text>Written by</Text></Paragraph>
+    <Paragraph Type="Author"><Text>Compatibility Suite</Text></Paragraph>
+    <Paragraph Type="DraftDate"><Text>Fourth Revision</Text></Paragraph>
+    <Paragraph Type="Contact"><Text>compat@example.test&#13;+44 0000 000000</Text></Paragraph>
+  </Content></TitlePage>
+  <Revisions ActiveSet="2"><Revision Color="#0000FFFF0000" FullRevision="No" ID="2" Mark="*" Name="Blue Revision" PageColor="#FFFFFFFFFFFF" Style=""/></Revisions>
+  <SceneNumberOptions LeftLocation="Header" RightLocation="Header" NumberingScheme="Standard"/>
+  <SpellCheckIgnoreLists><IgnoreList/></SpellCheckIgnoreLists>
+</FinalDraft>

@@ -1,0 +1,13 @@
+Bundled OCR runtime provenance
+
+Tesseract.js: 7.0.0
+Source package: https://www.npmjs.com/package/tesseract.js/v/7.0.0
+Licence: Apache-2.0 (LICENSE.md)
+
+Tesseract.js Core: 7.0.0
+Source package: https://www.npmjs.com/package/tesseract.js-core/v/7.0.0
+Licence: Apache-2.0 (core/LICENSE)
+
+English trained data: @tesseract.js-data/eng 1.0.0, best_int
+Source package: https://www.npmjs.com/package/@tesseract.js-data/eng/v/1.0.0
+Licence: MIT (lang/LICENSE.txt)

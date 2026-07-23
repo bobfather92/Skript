@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<FinalDraft DocumentType="Script" Template="No" Version="1">
+  <Content>
+    <Paragraph Type="Scene Heading"><Text>INT. EDIT SUITE - NIGHT</Text></Paragraph>
+    <Paragraph Type="Action"><Text>A monitor flickers to life.</Text></Paragraph>
+    <Paragraph Type="Character"><Text>MAYA</Text></Paragraph>
+    <Paragraph Type="Parenthetical"><Text>(quietly)</Text></Paragraph>
+    <Paragraph Type="Dialogue"><Text>We have a clean round trip.</Text></Paragraph>
+    <Paragraph Type="Transition"><Text>CUT TO:</Text></Paragraph>
+  </Content>
+  <TitlePage><Content>
+    <Paragraph Type="Title"><Text>FDX Interchange Test</Text></Paragraph>
+    <Paragraph Type="Author"><Text>Written by</Text></Paragraph>
+    <Paragraph Type="Author"><Text>Test Writer</Text></Paragraph>
+  </Content></TitlePage>
+  <SpellCheckIgnoreLists><IgnoreList/></SpellCheckIgnoreLists>
+</FinalDraft>
