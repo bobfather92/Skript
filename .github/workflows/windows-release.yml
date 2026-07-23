@@ -184,7 +184,7 @@ jobs:
             build_artifacts/installer/SHA256SUMS.txt
             RELEASE_NOTES_${{ env.SKRIPT_VERSION }}.md
             RELEASE_SECURITY.md
-            LICENSE.txt
+            LICENSE
 
       - name: Upload portable application
         uses: actions/upload-artifact@v4

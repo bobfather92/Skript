@@ -55,7 +55,7 @@ Public releases must be Authenticode-signed and timestamped. The release workflo
 
 ## Licence
 
-Copyright © 2026 Jake McNeil. All rights reserved. This repository is source-visible proprietary software, not an open-source licence. See [LICENSE.txt](LICENSE.txt) for the applicable terms. Third-party components retain their own licences.
+Copyright © 2026 Jake McNeil. Skript is free and open-source software licensed under the [GNU General Public License v3.0](LICENSE). You may use, study, modify, and redistribute it under the terms of that licence. Third-party components retain their own licences.
 
 ## Repository safety
 
