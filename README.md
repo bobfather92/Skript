@@ -42,10 +42,6 @@ python tools/embed_html.py --check
 pyinstaller --noconfirm --clean Skript.spec
 ```
 
-The installer source is in `installer/`. Release installers are generated separately and are not committed to source control.
-
-Public releases must be Authenticode-signed and timestamped. The release workflow refuses to create an unsigned tagged build. Certificate setup, local signing, signature verification, and Norton false-positive submission steps are documented in [RELEASE_SECURITY.md](RELEASE_SECURITY.md).
-
 ## Release information
 
 - [Skript 1.0 official release notes](RELEASE_NOTES_1.0.0.4.md)
@@ -56,7 +52,3 @@ Public releases must be Authenticode-signed and timestamped. The release workflo
 ## Licence
 
 Copyright © 2026 Jake McNeil. Skript is free and open-source software licensed under the [GNU General Public License v3.0](LICENSE). You may use, study, modify, and redistribute it under the terms of that licence. Third-party components retain their own licences.
-
-## Repository safety
-
-Do not commit personal scripts, recovery data, collaboration secrets, signing certificates or generated release files. Security concerns should be reported using the guidance in [SECURITY.md](SECURITY.md).
