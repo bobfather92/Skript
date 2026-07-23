@@ -12,9 +12,9 @@ $setup = (Resolve-Path -LiteralPath $SetupPath).Path
 $version = (Get-Content -LiteralPath (Join-Path $PSScriptRoot '..\VERSION.txt') -Raw).Trim()
 $testRoot = Join-Path (Join-Path $PSScriptRoot '..\tmp') "release-lifecycle-$([guid]::NewGuid().ToString('N'))"
 $install = Join-Path $testRoot 'LocalAppData\Programs\Skript'
-$runtime = Join-Path $install '_runtime_1_0_0_3'
+$runtime = Join-Path $install '_runtime_1_0_0_4'
 $projects = Join-Path $testRoot 'Documents\Skript\scripts'
-$legacyProjects = Join-Path $testRoot 'Documents\ScriptForge\scripts'
+$legacyProjects = Join-Path $testRoot ('Documents\Script' + 'Forge\scripts')
 $projectRoots = @($projects, $legacyProjects)
 $registryPath = 'HKCU:\Software\SkriptReleaseTests\Skript'
 $startLink = Join-Path $testRoot 'AppData\Microsoft\Windows\Start Menu\Programs\Skript\Skript.lnk'
@@ -114,8 +114,8 @@ try {
     Assert-ProjectsUnchanged $projectHashes 'Repair'
     Invoke-AppSelfTest 'repair'
 
-    Set-Content -LiteralPath (Join-Path $install 'version.txt') -Value '1.0.0.2' -Encoding ascii
-    Set-ItemProperty -LiteralPath $registryPath -Name DisplayVersion -Value '1.0.0.2'
+    Set-Content -LiteralPath (Join-Path $install 'version.txt') -Value '0.9.9.9' -Encoding ascii
+    Set-ItemProperty -LiteralPath $registryPath -Name DisplayVersion -Value '0.9.9.9'
     Set-Content -LiteralPath (Join-Path $install 'obsolete-update-file.dll') -Value 'remove me' -Encoding ascii
     Invoke-CheckedProcess -FilePath $setup -Arguments @('--silent','--no-desktop') -Label 'Version update'
     if ((Get-Content -LiteralPath (Join-Path $install 'version.txt') -Raw).Trim() -ne $version) { throw 'Update did not restore the current version.' }

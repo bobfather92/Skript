@@ -1,7 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-const html = fs.readFileSync(path.join(__dirname, '..', 'ScriptForge.html'), 'utf8');
+const html = fs.readFileSync(path.join(__dirname, '..', 'Skript.html'), 'utf8');
 const scripts = [...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/gi)];
 let compiled = 0;
 

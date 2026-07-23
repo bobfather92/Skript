@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-const html = fs.readFileSync(path.join(__dirname, '..', 'ScriptForge.html'), 'utf8');
+const html = fs.readFileSync(path.join(__dirname, '..', 'Skript.html'), 'utf8');
 assert.ok(!html.includes('cdn.jsdelivr.net/npm/docx'), 'Word export must not require a CDN');
 
 const match = html.match(/<script id="skript-docx-engine"[^>]*>([\s\S]*?)<\/script>/);

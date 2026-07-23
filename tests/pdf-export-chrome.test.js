@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const html = fs.readFileSync(path.join(__dirname, '..', 'ScriptForge.html'), 'utf8');
+const html = fs.readFileSync(path.join(__dirname, '..', 'Skript.html'), 'utf8');
 const marker = 'Accessibility/navigation controls remain available on screen';
 const start = html.indexOf(marker);
 assert.ok(start >= 0, 'PDF-only UI exclusion block exists');

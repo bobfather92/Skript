@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
 
-const html = fs.readFileSync(path.join(__dirname, '..', 'ScriptForge.html'), 'utf8');
+const html = fs.readFileSync(path.join(__dirname, '..', 'Skript.html'), 'utf8');
 const start = html.indexOf('const IMPORT_ELEMENT_REVIEW_THRESHOLD');
 const end = html.indexOf('function _flagUncertainImportedElements(', start);
 assert.ok(start >= 0 && end > start, 'shared import element detector is present');

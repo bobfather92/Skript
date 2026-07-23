@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-const html = fs.readFileSync(path.join(__dirname, '..', 'ScriptForge.html'), 'utf8');
+const html = fs.readFileSync(path.join(__dirname, '..', 'Skript.html'), 'utf8');
 const start = html.indexOf('function _ocrItemsFromResult(');
 const end = html.indexOf('async function _ocrPDFPages(', start);
 assert.ok(start >= 0 && end > start, 'OCR result converter is present');

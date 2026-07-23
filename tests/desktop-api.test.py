@@ -9,7 +9,7 @@ from urllib.request import Request, urlopen
 
 
 ROOT = Path(__file__).resolve().parents[1]
-spec = importlib.util.spec_from_file_location("skript_api", ROOT / "scriptforge.py")
+spec = importlib.util.spec_from_file_location("skript_api", ROOT / "skript.py")
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 
@@ -29,7 +29,7 @@ with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as temp_dir:
     def post(path, payload, extra_headers=None):
         headers = {
             "Content-Type": "application/json",
-            "X-ScriptForge-Token": module._API_TOKEN,
+            "X-Skript-Token": module._API_TOKEN,
         }
         headers.update(extra_headers or {})
         request = Request(
@@ -44,7 +44,7 @@ with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as temp_dir:
     def get(path):
         request = Request(
             f"http://127.0.0.1:{server.server_address[1]}{path}",
-            headers={"X-ScriptForge-Token": module._API_TOKEN},
+            headers={"X-Skript-Token": module._API_TOKEN},
             method="GET",
         )
         with urlopen(request, timeout=5) as response:
@@ -73,7 +73,7 @@ with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as temp_dir:
 
     try:
         connection = http.client.HTTPConnection("127.0.0.1", server.server_address[1], timeout=5)
-        request_headers = {"X-ScriptForge-Token": module._API_TOKEN}
+        request_headers = {"X-Skript-Token": module._API_TOKEN}
         connection.request("GET", "/api/version", headers=request_headers)
         first_response = connection.getresponse()
         assert first_response.version == 11
@@ -183,7 +183,7 @@ with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as temp_dir:
         preserved = post(
             "/api/end-session",
             {},
-            {"X-ScriptForge-Preserve-Recovery": "1"},
+            {"X-Skript-Preserve-Recovery": "1"},
         )
         assert preserved["recoveryPreserved"] is True
         assert recovery_path.exists()

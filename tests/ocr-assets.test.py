@@ -20,7 +20,7 @@ for relative, minimum_size in required_assets.items():
     assert asset.is_file(), f"Missing bundled OCR asset: {relative}"
     assert asset.stat().st_size >= minimum_size, f"Bundled OCR asset is incomplete: {relative}"
 
-service = (ROOT / "scriptforge.py").read_text(encoding="utf-8")
+service = (ROOT / "skript.py").read_text(encoding="utf-8")
 for relative in required_assets:
     assert f"'{relative}'" in service, f"OCR asset is not served: {relative}"
 

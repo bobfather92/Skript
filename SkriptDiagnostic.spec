@@ -5,7 +5,7 @@ from pathlib import Path
 project_root = Path(SPECPATH)
 
 a = Analysis(
-    [str(project_root / 'scriptforge.py')],
+    [str(project_root / 'skript.py')],
     pathex=[str(project_root)],
     binaries=[],
     datas=[

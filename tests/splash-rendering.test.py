@@ -2,7 +2,7 @@ import ast
 from pathlib import Path
 
 
-SOURCE_PATH = Path(__file__).resolve().parents[1] / 'scriptforge.py'
+SOURCE_PATH = Path(__file__).resolve().parents[1] / 'skript.py'
 SOURCE = SOURCE_PATH.read_text(encoding='utf-8')
 TREE = ast.parse(SOURCE)
 

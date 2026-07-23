@@ -9,7 +9,7 @@ from http.server import ThreadingHTTPServer
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
-import scriptforge  # noqa: E402
+import skript  # noqa: E402
 
 
 PORT = int(os.environ.get('SKRIPT_E2E_PORT', '4173'))
@@ -24,17 +24,17 @@ scripts = RUN_DIR / 'scripts'
 userdata.mkdir(parents=True)
 scripts.mkdir(parents=True)
 
-scriptforge.USERDATA_DIR = userdata
-scriptforge.SCRIPTS_DIR = scripts
-scriptforge._MAIN_PORT_VAL = PORT
-scriptforge._API_TOKEN = 'skript-e2e-token'
-scriptforge.SFHandler.html_bytes = scriptforge._get_html(
+skript.USERDATA_DIR = userdata
+skript.SCRIPTS_DIR = scripts
+skript._MAIN_PORT_VAL = PORT
+skript._API_TOKEN = 'skript-e2e-token'
+skript.SFHandler.html_bytes = skript._get_html(
     PORT,
     low_perf=False,
-    api_token=scriptforge._API_TOKEN,
+    api_token=skript._API_TOKEN,
 )
 
-class E2EHandler(scriptforge.SFHandler):
+class E2EHandler(skript.SFHandler):
     def do_POST(self):
         if self.path == '/__e2e_shutdown':
             self._json({'ok': True})
@@ -43,7 +43,7 @@ class E2EHandler(scriptforge.SFHandler):
         super().do_POST()
 
 
-E2EHandler.html_bytes = scriptforge.SFHandler.html_bytes
+E2EHandler.html_bytes = skript.SFHandler.html_bytes
 server = ThreadingHTTPServer(('127.0.0.1', PORT), E2EHandler)
 server.daemon_threads = True
 print(f'Skript E2E service listening on http://127.0.0.1:{PORT}', flush=True)

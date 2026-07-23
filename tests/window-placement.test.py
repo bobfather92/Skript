@@ -3,7 +3,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-spec = importlib.util.spec_from_file_location("skript_window", ROOT / "scriptforge.py")
+spec = importlib.util.spec_from_file_location("skript_window", ROOT / "skript.py")
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 
@@ -58,7 +58,7 @@ assert [message[2] for message in fake_icons.messages] == [1, 0]
 assert all(message[1] == 0x0080 for message in fake_icons.messages)
 
 
-window_source = (ROOT / "scriptforge.py").read_text(encoding="utf-8")
+window_source = (ROOT / "skript.py").read_text(encoding="utf-8")
 placement_source = window_source.split(
     "def _force_centred_browser_window", 1
 )[1].split("def _find_free_port", 1)[0]
@@ -80,7 +80,7 @@ assert "'/api/window-events'" not in window_source
 
 # Chromium can hand the app window to an already-running Edge process. The
 # launcher subprocess exiting must not stop Skript's local desktop service.
-launch_source = (ROOT / "scriptforge.py").read_text(encoding="utf-8").split("def launch():", 1)[1]
+launch_source = (ROOT / "skript.py").read_text(encoding="utf-8").split("def launch():", 1)[1]
 assert "cwd=tempfile.gettempdir()" in window_source
 assert "_EDGE_PROC.poll()" not in launch_source
 assert "while not _APP_SHUTDOWN_EVENT.wait(0.10)" in launch_source

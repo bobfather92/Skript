@@ -30413,7 +30413,7 @@ html.sf-touch .sb-section-remove-btn { min-width: 44px !important; }
   .script-page, .cover-page, .sb-paper { border: 1px solid CanvasText !important; box-shadow: none !important; }
 }
 
-/* 1.0.0.2 brand pass: every interface accent, label and active state uses
+/* Official Skript brand pass: every interface accent, label and active state uses
    Skript purple. Warning/error reds and screenplay page content stay intact. */
 :root,
 :root[data-theme="light"],
@@ -32137,9 +32137,6 @@ button.primary:hover,
       <div class="changes-browser">
         <nav class="changes-version-list" aria-label="Skript versions">
           <button class="changes-version-btn active" data-changes-version="1.0.0.4" onclick="showChangesVersion('1.0.0.4')"><strong>1.0.0.4</strong><span>Official release</span></button>
-          <button class="changes-version-btn" data-changes-version="1.0.0.3" onclick="showChangesVersion('1.0.0.3')"><strong>1.0.0.3</strong><span>Tester release</span></button>
-          <button class="changes-version-btn" data-changes-version="1.0.0.2" onclick="showChangesVersion('1.0.0.2')"><strong>1.0.0.2</strong><span>Earlier release</span></button>
-          <button class="changes-version-btn" data-changes-version="1.0.0.1" onclick="showChangesVersion('1.0.0.1')"><strong>1.0.0.1</strong><span>Earlier release</span></button>
         </nav>
         <div>
           <section class="changes-panel active" data-changes-panel="1.0.0.4">
@@ -32149,48 +32146,6 @@ button.primary:hover,
             <div class="opt-section"><strong>Long-session reliability</strong><div class="opt-note" style="margin-top:5px;">Reuses local desktop-service connections so extended editing, importing and production work cannot exhaust Windows loopback sockets.</div></div>
             <div class="opt-section"><strong>Close-flow verification</strong><div class="opt-note" style="margin-top:5px;">Verifies that a native Windows close request opens Skript's save-before-closing prompt and saves dirty projects before closing.</div></div>
             <div class="opt-section"><strong>Release verification</strong><div class="opt-note" style="margin-top:5px;">All source checks pass, with 97 browser workflows passing across desktop and compact-touch layouts and 9 intentionally skipped platform-specific duplicates.</div></div>
-          </section>
-          <section class="changes-panel" data-changes-panel="1.0.0.3">
-            <h3>Changes in 1.0.0.3</h3>
-            <p class="changes-panel-lead">Recovery, large-script performance, safer importing and clearer support tools.</p>
-            <div class="opt-section"><strong>Reliable crash recovery</strong><div class="opt-note" style="margin-top:5px;">Keeps rapid rolling snapshots and dated recovery history, including when the app is closed unexpectedly.</div></div>
-            <div class="opt-section"><strong>Recovery Centre</strong><div class="opt-note" style="margin-top:5px;">Browse and restore earlier automatic copies and saved-project backups without overwriting an existing project.</div></div>
-            <div class="opt-section"><strong>Unsaved-project protection</strong><div class="opt-note" style="margin-top:5px;">Shows unsaved indicators and warns before closing a project or the application with work still pending.</div></div>
-            <div class="opt-section"><strong>Repair and update safety</strong><div class="opt-note" style="margin-top:5px;">Added hard safety checks so maintenance only replaces installed application files and refuses any Documents or project location.</div></div>
-            <div class="opt-section"><strong>Better errors</strong><div class="opt-note" style="margin-top:5px;">Error messages now suggest a useful next action instead of stopping at a technical failure.</div></div>
-            <div class="opt-section"><strong>Report a Problem</strong><div class="opt-note" style="margin-top:5px;">Added privacy-safe diagnostic copying and report saving under Help, excluding scripts, titles, paths and personal details.</div></div>
-            <div class="opt-section"><strong>Large-script performance</strong><div class="opt-note" style="margin-top:5px;">Optimised bulk loading, typing, scrolling, word counts and incremental Navigator updates for scripts containing 150–300 scenes, with automatic reduced-effects handling for very large or measurably slow documents.</div></div>
-            <div class="opt-section"><strong>Import accuracy and review</strong><div class="opt-note" style="margin-top:5px;">Expanded Film, TV and Stage Play evidence detection, improved contextual recognition of character cues, dialogue, action and transitions, and added an explicit review step for imported elements with lower confidence.</div></div>
-            <div class="opt-section"><strong>Import/export consistency</strong><div class="opt-note" style="margin-top:5px;">Preserves the selected format, element types and import decisions through editing, project save/reopen and PDF export.</div></div>
-            <div class="opt-section"><strong>Scanned PDF support</strong><div class="opt-note" style="margin-top:5px;">Recognises printed English text in scanned and mixed PDFs using a bundled offline OCR engine, then flags lower-confidence results for review.</div></div>
-            <div class="opt-section"><strong>Release safety testing</strong><div class="opt-note" style="margin-top:5px;">The final installer is now tested through install, first launch, reopen, repair, update and uninstall while verifying that projects, backups and recovery copies remain unchanged.</div></div>
-            <div class="opt-section"><strong>Installer replacement reliability</strong><div class="opt-note" style="margin-top:5px;">Setup uses a versioned application runtime, so Windows or antivirus holding an old runtime cannot leave Repair stuck. Locked obsolete files are cleaned up later, while projects and recovery copies remain untouched.</div></div>
-            <div class="opt-section"><strong>Signing verification</strong><div class="opt-note" style="margin-top:5px;">Public release builds verify the trusted publisher identity, code-signing purpose and secure timestamp before release.</div></div>
-            <div class="opt-section"><strong>Welcome screen refinements</strong><div class="opt-note" style="margin-top:5px;">Replaced the temporary S badge with the Skript icon, matched the Recent Projects panel width to the action cards and removed the duplicate Browse another location option.</div></div>
-            <div class="opt-section"><strong>Stable desktop window</strong><div class="opt-note" style="margin-top:5px;">Uses the standard Microsoft Edge app-window frame for reliable moving, resizing, maximising and closing. Skript keeps its centred 16:9 desktop layout without embedding or overlaying browser windows.</div></div>
-            <div class="opt-section"><strong>Save before closing</strong><div class="opt-note" style="margin-top:5px;">The clean, fitted Skript prompt offers Save and close, Close without saving or Cancel whenever an open project contains unsaved work.</div></div>
-            <div class="opt-section"><strong>Page-view startup reliability</strong><div class="opt-note" style="margin-top:5px;">A page-view choice made just after launch is no longer replaced by a delayed saved preference.</div></div>
-            <div class="opt-section"><strong>PDF transition position</strong><div class="opt-note" style="margin-top:5px;">Places transitions such as CUT TO: at the left screenplay margin in the editor and every PDF export path.</div></div>
-          </section>
-          <section class="changes-panel" data-changes-panel="1.0.0.2">
-            <h3>Changes in 1.0.0.2</h3>
-            <p class="changes-panel-lead">Welcome, importing and release-history improvements.</p>
-            <div class="opt-section"><strong>Welcome screen</strong><div class="opt-note" style="margin-top:5px;">Added Open Project and a wider, fixed list of the three most recent projects with no internal scrollbar.</div></div>
-            <div class="opt-section"><strong>Word document import</strong><div class="opt-note" style="margin-top:5px;">Import Microsoft Word .docx and legacy .doc scripts, then confirm Film, TV or Stage Play formatting using the import review. DOCX files use Skript's built-in offline reader.</div></div>
-            <div class="opt-section"><strong>Purple interface</strong><div class="opt-note" style="margin-top:5px;">Changed orange and yellow text, labels, active states and button accents to Skript purple throughout the application.</div></div>
-            <div class="opt-section"><strong>View controls</strong><div class="opt-note" style="margin-top:5px;">Reduced the Page Break and Side-by-Side square glyphs so they fit cleanly inside the View control.</div></div>
-            <div class="opt-section"><strong>Changes history</strong><div class="opt-note" style="margin-top:5px;">Added a version list so release notes for 1.0.0.1 and 1.0.0.2 can be viewed separately.</div></div>
-            <div class="opt-section"><strong>About layout</strong><div class="opt-note" style="margin-top:5px;">Matched the View changes and View licences button widths.</div></div>
-          </section>
-          <section class="changes-panel" data-changes-panel="1.0.0.1">
-            <h3>Changes in 1.0.0.1</h3>
-            <p class="changes-panel-lead">Tester fixes for desktop behaviour, importing, exporting, repair and security.</p>
-            <div class="opt-section"><strong>Desktop window</strong><div class="opt-note" style="margin-top:5px;">Centred the desktop window in a responsive 16:9 rectangle while retaining touch-friendly sizing.</div></div>
-            <div class="opt-section"><strong>PDF import and export</strong><div class="opt-note" style="margin-top:5px;">Improved repeated imports, Film/TV/Play detection, Stage Play layout and single-page title sheets.</div></div>
-            <div class="opt-section"><strong>Backup and collaboration</strong><div class="opt-note" style="margin-top:5px;">Fixed the Backup Folder picker and made secure-link creation more reliable on restricted networks.</div></div>
-            <div class="opt-section"><strong>Large-script performance</strong><div class="opt-note" style="margin-top:5px;">Reduced typing lag by batching scene, character and document-stat updates.</div></div>
-            <div class="opt-section"><strong>Installer repair</strong><div class="opt-note" style="margin-top:5px;">Added Repair, safe replacement of old program files and protection for user projects.</div></div>
-            <div class="opt-section"><strong>Release security</strong><div class="opt-note" style="margin-top:5px;">Removed UPX compression and added signing, timestamping and antivirus false-positive safeguards.</div></div>
           </section>
         </div>
       </div>
@@ -33297,7 +33252,13 @@ function activateTab(id) {
 
   // Focus after paint
   if (activeTab && activeTab.view === 'script') {
-    setTimeout(() => focusLastLine(id), 30);
+    setTimeout(() => {
+      const activePanel = document.querySelector(`.script-panel.active[data-tab-id="${id}"]`);
+      // Do not steal focus when the user has already started editing the
+      // newly opened project before this deferred hand-off runs.
+      if (activePanel?.contains(document.activeElement)) return;
+      focusLastLine(id);
+    }, 30);
   }
 
   // ── 2. DEFERRED: heavy sidebar + tracker updates — run after paint ──
@@ -41623,7 +41584,7 @@ function endDesktopSession(preserveRecovery = false) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-ScriptForge-Preserve-Recovery': preserveRecovery ? '1' : '0'
+      'X-Skript-Preserve-Recovery': preserveRecovery ? '1' : '0'
     },
     body: closeBody,
     keepalive: true
@@ -46194,7 +46155,7 @@ function importFountainText(text, titleHint) {
 //  FDX is an XML format. We target FD 9/10 (version="1")
 // ─────────────────────────────────────────────────────────────────────
 
-// Map ScriptForge types → FDX paragraph types
+// Map Skript types → FDX paragraph types
 const FDX_TYPE_MAP = {
   scene:           'Scene Heading',
   action:          'Action',

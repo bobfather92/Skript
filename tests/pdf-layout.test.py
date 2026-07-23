@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-spec = importlib.util.spec_from_file_location("skript_launcher", ROOT / "scriptforge.py")
+spec = importlib.util.spec_from_file_location("skript_launcher", ROOT / "skript.py")
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 
@@ -43,7 +43,7 @@ assert 'class="el-transition">CUT TO:</div>' in html
 transition_css = html.split('.el-transition {', 1)[1].split('}', 1)[0]
 assert 'text-align: left' in transition_css
 
-fallback_source = (ROOT / 'scriptforge.py').read_text(encoding='utf-8')
+fallback_source = (ROOT / 'skript.py').read_text(encoding='utf-8')
 assert "draw(text.upper(), left_default, True, cols=58)" in fallback_source
 
 explicit = module._build_pdf_html(

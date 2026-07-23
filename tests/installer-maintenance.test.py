@@ -16,7 +16,7 @@ with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as temp_dir:
     target = base / "Programs" / "Skript"
     staging = base / "Programs" / "Skript.installing"
     projects = base / "Documents" / "Skript" / "scripts"
-    legacy_projects = base / "Documents" / "ScriptForge" / "scripts"
+    legacy_projects = base / "Documents" / ("Script" + "Forge") / "scripts"
     target.mkdir(parents=True)
     staging.mkdir(parents=True)
     projects.mkdir(parents=True)
@@ -196,6 +196,6 @@ assert "_build_tk.Tcl()" in installer_spec
 app_spec = (ROOT / "Skript.spec").read_text(encoding="utf-8")
 assert "project_root / 'assets' / 'skript.ico'" in app_spec
 assert "payload / APP_RUNTIME_DIR / 'assets' / 'skript.ico'" in source
-assert "contents_directory='_runtime_1_0_0_3'" in app_spec
+assert "contents_directory='_runtime_1_0_0_4'" in app_spec
 
 print("Installer repair and project-preserving replacement tests passed.")

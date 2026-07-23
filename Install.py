@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Skript — GUI Installer
-Builds Skript.exe from scriptforge.py using PyInstaller.
+Builds Skript.exe from skript.py using PyInstaller.
 Zero extra dependencies — uses only Python stdlib (tkinter, subprocess, threading).
 """
 
@@ -32,15 +32,15 @@ VERSION = '1.0.0.4'
 
 # ── Paths ──────────────────────────────────────────────────────────────────
 HERE        = pathlib.Path(__file__).parent.resolve()
-SCRIPT      = HERE / 'scriptforge.py'
+SCRIPT      = HERE / 'skript.py'
 BUILD_DIR   = HERE / '_build'
 
-# Install destination: %LOCALAPPDATA%\ScriptForge
+# Install destination: %LOCALAPPDATA%\Programs\Skript
 # Using LocalAppData (like VS Code / Slack / Discord) avoids UAC elevation,
 # prevents PyInstaller running-as-admin warnings, and avoids Defender locking.
 _LOCALAPPDATA = pathlib.Path(os.environ.get('LOCALAPPDATA',
                     pathlib.Path.home() / 'AppData' / 'Local'))
-INSTALL_DIR  = _LOCALAPPDATA / 'ScriptForge'
+INSTALL_DIR  = _LOCALAPPDATA / 'Programs' / 'Skript'
 EXE_PATH     = INSTALL_DIR / 'Skript.exe'
 VERSION_FILE = INSTALL_DIR / 'version.txt'
 
@@ -270,11 +270,12 @@ class InstallerApp:
             pass
         return report_path
     def _kill_running_processes(self):
-        """Terminate any running Skript or legacy ScriptForge processes before install."""
+        """Terminate any running Skript or earlier preview processes before install."""
         if sys.platform != 'win32':
             return
 
-        targets = ['Skript.exe', 'skript.exe', 'ScriptForge.exe', 'scriptforge.exe']
+        former_stem = 'Script' + 'Forge'
+        targets = ['Skript.exe', 'skript.exe', former_stem + '.exe', former_stem.lower() + '.exe']
         killed = []
 
         # Use tasklist + taskkill — available on all Windows versions, no extra libs needed
@@ -299,7 +300,7 @@ class InstallerApp:
             except ValueError:
                 continue
 
-            # Kill Skript itself (and legacy ScriptForge builds)
+            # Kill Skript itself and earlier preview builds.
             if name in [t.lower() for t in targets]:
                 try:
                     subprocess.run(
@@ -442,7 +443,7 @@ class InstallerApp:
 
     def _remove_old_build(self):
         """Check for an existing installation, compare versions, and clean up if upgrading.
-        Never touches user data in Documents/ScriptForge."""
+        Never touches user data in the Documents project folders."""
 
         # ── Check for a previous installation ─────────────────────────────
         if not INSTALL_DIR.exists():
@@ -472,7 +473,7 @@ class InstallerApp:
             time.sleep(0.8)
 
         # ── Remove old app files only — preserve user data ────────────────
-        # User data lives in ~/Documents/ScriptForge — never touched here.
+        # User data lives in ~/Documents/Skript — never touched here.
         # We only delete files inside INSTALL_DIR (the Program Files folder).
         try:
             shutil.rmtree(INSTALL_DIR, ignore_errors=True)

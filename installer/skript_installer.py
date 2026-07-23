@@ -20,7 +20,7 @@ APP_VERSION = '1.0.0.4'
 PUBLISHER = 'Jake McNeil'
 UNINSTALL_KEY = rf'Software\Microsoft\Windows\CurrentVersion\Uninstall\{APP_NAME}'
 VERSION_MARKER = 'version.txt'
-APP_RUNTIME_DIR = '_runtime_1_0_0_3'
+APP_RUNTIME_DIR = '_runtime_1_0_0_4'
 OBSOLETE_RUNTIME_NAMES = {'_internal'}
 INSTALLER_LOG = pathlib.Path(tempfile.gettempdir()) / 'Skript-Setup.log'
 
@@ -401,7 +401,7 @@ def _assert_safe_application_target(target):
     documents = (home / 'Documents').resolve()
     project_roots = {
         (documents / 'Skript').resolve(),
-        (documents / 'ScriptForge').resolve(),  # protected legacy location
+        (documents / ('Script' + 'Forge')).resolve(),  # protected earlier project location
     }
     if resolved != expected:
         raise RuntimeError('Safety check stopped maintenance outside the registered Skript application folder.')

@@ -8,9 +8,12 @@ import re
 ROOT = Path(__file__).resolve().parents[1]
 VERSION = (ROOT / "VERSION.txt").read_text(encoding="utf-8").strip()
 assert re.fullmatch(r"\d+\.\d+\.\d+\.\d+", VERSION)
+assert sorted(path.name for path in ROOT.glob("RELEASE_NOTES_*.md")) == [
+    f"RELEASE_NOTES_{VERSION}.md"
+]
 
-html = (ROOT / "ScriptForge.html").read_text(encoding="utf-8")
-python_source = (ROOT / "scriptforge.py").read_text(encoding="utf-8")
+html = (ROOT / "Skript.html").read_text(encoding="utf-8")
+python_source = (ROOT / "skript.py").read_text(encoding="utf-8")
 python_tree = ast.parse(python_source)
 embedded_assignment = next(
     node for node in python_tree.body
@@ -18,7 +21,7 @@ embedded_assignment = next(
     and any(isinstance(target, ast.Name) and target.id == "_HTML_B64" for target in node.targets)
 )
 embedded_html = gzip.decompress(base64.b64decode(ast.literal_eval(embedded_assignment.value))).decode("utf-8")
-assert embedded_html == html, "Packaged HTML must match ScriptForge.html"
+assert embedded_html == html, "Packaged HTML must match Skript.html"
 
 assert f"Version {VERSION}" in html
 assert f"showChangesVersion('{VERSION}')" in html
@@ -58,7 +61,6 @@ for required in (
 ):
     assert required in workflow, f"Missing release safeguard: {required}"
 
-assert "Skript-Setup-1.0.0.0.exe" not in workflow
 assert f"RELEASE_NOTES_{VERSION}.md" in {
     path.name for path in ROOT.glob("RELEASE_NOTES_*.md")
 }

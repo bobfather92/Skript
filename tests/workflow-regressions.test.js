@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
 
-const html = fs.readFileSync(path.join(__dirname, '..', 'ScriptForge.html'), 'utf8');
+const html = fs.readFileSync(path.join(__dirname, '..', 'Skript.html'), 'utf8');
 const apiStart = html.indexOf('function sfApiUrl(');
 const apiEnd = html.indexOf('async function sfApiFetch(', apiStart);
 assert.ok(apiStart >= 0 && apiEnd > apiStart);
@@ -25,12 +25,8 @@ assert.equal(fileContext.sfApiUrl('/api/open'), 'http://127.0.0.1:9123/api/open'
 assert.ok(!html.includes("fetch('http://127.0.0.1:' + window._SF_PORT"));
 assert.ok(html.includes('id="open-changes-btn"'), 'Options must expose versioned changes');
 assert.ok(html.includes('data-changes-version="1.0.0.4"'));
-assert.ok(html.includes('data-changes-version="1.0.0.3"'));
-assert.ok(html.includes('data-changes-version="1.0.0.2"'));
-assert.ok(html.includes('data-changes-version="1.0.0.1"'));
-assert.ok(html.includes('Changes in 1.0.0.2'));
-assert.ok(html.includes('Changes in 1.0.0.1'));
 assert.ok(html.includes('Changes in 1.0.0.4'));
+assert.equal((html.match(/data-changes-version=/g) || []).length, 1, 'Only the official release should appear');
 assert.ok(html.includes('data-testid="recovery-centre"'), 'Help must expose Recovery Centre');
 assert.ok(html.includes('data-testid="report-problem"'), 'Help must expose Report a Problem');
 assert.ok(html.includes('function restoreRecoveryPayload(data)'));

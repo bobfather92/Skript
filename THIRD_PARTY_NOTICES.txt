@@ -45,5 +45,5 @@ Tcl/Tk License
 https://www.tcl-lang.org/software/tcltk/license.html
 
 The MIT-licensed docx engine's full licence notice is embedded at the start of
-ScriptForge.html. PDF.js and Tesseract licence files remain present beside the
+Skript.html. PDF.js and Tesseract licence files remain present beside the
 distributed runtime assets.

@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
 
-const html = fs.readFileSync(path.join(__dirname, '..', 'ScriptForge.html'), 'utf8');
+const html = fs.readFileSync(path.join(__dirname, '..', 'Skript.html'), 'utf8');
 const start = html.indexOf('function _detectPDFScriptFormat(');
 const end = html.indexOf('function _showPDFReviewWizard(', start);
 assert.ok(start >= 0 && end > start, 'PDF format detector source is present');

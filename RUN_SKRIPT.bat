@@ -17,7 +17,7 @@ if %ERRORLEVEL% EQU 0 (
   goto RUN_SOURCE
 )
 
-set "INSTALLED_EXE=%LOCALAPPDATA%\ScriptForge\Skript.exe"
+set "INSTALLED_EXE=%LOCALAPPDATA%\Programs\Skript\Skript.exe"
 if exist "%INSTALLED_EXE%" (
   start "Skript" "%INSTALLED_EXE%"
   exit /b 0
@@ -29,5 +29,5 @@ pause
 exit /b 1
 
 :RUN_SOURCE
-start "Skript" "%PYTHON_EXE%" "%~dp0scriptforge.py"
+start "Skript" "%PYTHON_EXE%" "%~dp0skript.py"
 exit /b 0

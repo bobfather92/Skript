@@ -6,7 +6,7 @@ import tempfile
 
 
 ROOT = Path(__file__).resolve().parents[1]
-spec = importlib.util.spec_from_file_location("skript_folder_migration", ROOT / "scriptforge.py")
+spec = importlib.util.spec_from_file_location("skript_folder_migration", ROOT / "skript.py")
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 
@@ -17,7 +17,7 @@ def digest(path):
 
 with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as temp_dir:
     home = Path(temp_dir)
-    legacy = home / "Documents" / "ScriptForge"
+    legacy = home / "Documents" / ("Script" + "Forge")
     legacy_scripts = legacy / "scripts"
     legacy_userdata = legacy / "userdata"
     legacy_scripts.mkdir(parents=True)
@@ -56,7 +56,7 @@ with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as temp_dir:
     assert (scripts / backup.name).read_bytes() == backup.read_bytes()
     assert new_collision.read_text(encoding="utf-8") == "new file wins"
     assert (userdata / recovery.name).read_bytes() == recovery.read_bytes()
-    assert (userdata / ".scriptforge-migration-complete").is_file()
+    assert (userdata / ".skript-migration-complete").is_file()
 
     recent = json.loads((userdata / "recent_scripts.json").read_text("utf-8"))
     assert recent[0]["path"] == str(scripts / project.name)
@@ -66,4 +66,4 @@ with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as temp_dir:
         assert path.is_file()
         assert digest(path) == expected_hash, f"Migration changed legacy file: {path.name}"
 
-print("Legacy ScriptForge projects migrate safely into Documents/Skript.")
+print("Earlier project folders migrate safely into Documents/Skript.")

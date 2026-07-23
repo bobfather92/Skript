@@ -15,7 +15,7 @@ Scripts, preferences, recovery copies and backups remain on the user's computer 
 ## Running from source
 
 1. Install Python 3.11 or newer.
-2. Run `python scriptforge.py`.
+2. Run `python skript.py`.
 3. Skript opens in an isolated desktop browser window and keeps project data locally.
 
 PDF import uses the bundled PDF.js and Tesseract.js files in `vendor`; text extraction and English OCR for scanned pages run locally without uploading scripts or requiring a network connection.

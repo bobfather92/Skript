@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Synchronise ScriptForge.html with the compressed payload in scriptforge.py."""
+"""Synchronise Skript.html with the compressed payload in skript.py."""
 
 import argparse
 import base64
@@ -10,8 +10,8 @@ import textwrap
 
 
 ROOT = Path(__file__).resolve().parents[1]
-HTML_PATH = ROOT / "ScriptForge.html"
-PYTHON_PATH = ROOT / "scriptforge.py"
+HTML_PATH = ROOT / "Skript.html"
+PYTHON_PATH = ROOT / "skript.py"
 PAYLOAD_PATTERN = re.compile(
     r"_HTML_B64 = \(\n(?:    '[A-Za-z0-9+/=]+'\n)+\)",
     re.MULTILINE,
@@ -46,7 +46,7 @@ def main() -> int:
     if args.check:
         if embedded != html:
             raise SystemExit("Embedded HTML is out of date; run tools/embed_html.py")
-        print("Embedded HTML matches ScriptForge.html.")
+        print("Embedded HTML matches Skript.html.")
         return 0
 
     if embedded == html:
@@ -55,7 +55,7 @@ def main() -> int:
 
     updated = source[:match.start()] + encoded_payload(html) + source[match.end():]
     PYTHON_PATH.write_text(updated, encoding="utf-8", newline="")
-    print("Updated the embedded HTML in scriptforge.py.")
+    print("Updated the embedded HTML in skript.py.")
     return 0
 
 

@@ -80,7 +80,7 @@ jobs:
         shell: pwsh
         run: |
           python tools/embed_html.py --check
-          python -m py_compile scriptforge.py installer/skript_installer.py
+          python -m py_compile skript.py installer/skript_installer.py
           $failed = $false
           Get-ChildItem tests -Filter '*.test.js' | ForEach-Object {
             node $_.FullName

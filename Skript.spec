@@ -17,7 +17,7 @@ except Exception as _tk_error:
 project_root = Path(SPECPATH)
 
 a = Analysis(
-    [str(project_root / 'scriptforge.py')],
+    [str(project_root / 'skript.py')],
     pathex=[str(project_root)],
     binaries=[],
     datas=[
@@ -56,7 +56,7 @@ exe = EXE(
     version=str(project_root / 'installer' / 'skript_version_info.txt'),
     codesign_identity=None,
     entitlements_file=None,
-    contents_directory='_runtime_1_0_0_3',
+    contents_directory='_runtime_1_0_0_4',
 )
 
 coll = COLLECT(

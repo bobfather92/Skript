@@ -67,7 +67,7 @@ function runPagination(children) {
   };
   vm.createContext(context);
 
-  const html = fs.readFileSync(path.join(__dirname, '..', 'ScriptForge.html'), 'utf8');
+  const html = fs.readFileSync(path.join(__dirname, '..', 'Skript.html'), 'utf8');
   const constants = html.slice(
     html.indexOf('const CONTD_MORE ='),
     html.indexOf('function _legacyUpdateContdMore(')

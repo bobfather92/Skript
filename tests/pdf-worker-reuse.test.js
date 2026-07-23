@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const html = fs.readFileSync(path.join(__dirname, '..', 'ScriptForge.html'), 'utf8');
+const html = fs.readFileSync(path.join(__dirname, '..', 'Skript.html'), 'utf8');
 const start = html.indexOf("const PDF_JS_LOCAL =");
 const end = html.indexOf('function handlePDFImport(', start);
 assert.ok(start >= 0 && end > start, 'PDF engine loader source is present');
