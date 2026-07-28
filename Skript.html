@@ -32145,7 +32145,7 @@ button.primary:hover,
             <h3>Changes in 1.1.0.0</h3>
             <p class="changes-panel-lead">The first development build on the road to Skript 1.1.</p>
             <div class="opt-section"><strong>Multiple script imports</strong><div class="opt-note" style="margin-top:5px;">Select several existing Skript files in one operation and open every valid script as a separate document.</div></div>
-            <div class="opt-section"><strong>WriterDuet project import</strong><div class="opt-note" style="margin-top:5px;">Import WriterDuet .wdz and JSON exports, including projects that contain multiple screenplay documents.</div></div>
+            <div class="opt-section"><strong>WriterDuet project import</strong><div class="opt-note" style="margin-top:5px;">Import native WriterDuet .wdz checkpoint projects and JSON exports, including projects that contain multiple screenplay documents.</div></div>
             <div class="opt-section"><strong>Multi-script project foundation</strong><div class="opt-note" style="margin-top:5px;">Introduces the project-collection format used to group multiple script documents under one project identity.</div></div>
             <div class="opt-section"><strong>Safer batch handling</strong><div class="opt-note" style="margin-top:5px;">A damaged or invalid file no longer prevents other valid files in the same selection from opening.</div></div>
             <div class="opt-section"><strong>Recovery accessibility</strong><div class="opt-note" style="margin-top:5px;">Keeps keyboard focus inside the Recovery Centre when it is opened over the startup recovery prompt.</div></div>
@@ -46063,12 +46063,20 @@ const WRITERDUET_TYPE_MAP = Object.freeze({
   'character': 'character',
   'character cue': 'character',
   'speaker': 'character',
+  'dialog name': 'character',
+  'edit dialog name': 'character',
   'dialog': 'dialogue',
   'dialogue': 'dialogue',
   'lyrics': 'dialogue',
+  'dialog content': 'dialogue',
+  'edit dialog content': 'dialogue',
+  'edit dialog lyric': 'dialogue',
   'parenthetical': 'parenthetical',
   'paren': 'parenthetical',
+  'dialog paren': 'parenthetical',
+  'edit dialog paren': 'parenthetical',
   'transition': 'transition',
+  'text': 'action',
   'note': 'notes',
   'notes': 'notes',
   'outline': 'notes',
@@ -46100,7 +46108,12 @@ const WRITERDUET_COVER_FIELDS = Object.freeze({
 });
 
 function _writerDuetNormaliseType(value) {
-  return String(value ?? '').trim().toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
+  return String(value ?? '')
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .trim()
+    .toLowerCase()
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ');
 }
 
 function _writerDuetPlainText(value, depth = 0) {
@@ -46163,6 +46176,10 @@ function _writerDuetRawType(raw) {
 function _writerDuetRawText(raw, rawType) {
   if (Array.isArray(raw) && raw.length >= 2) return _writerDuetPlainText(raw[1]);
   if (!raw || typeof raw !== 'object') return _writerDuetPlainText(raw);
+  if (raw.cache && typeof raw.cache === 'object' && raw.cache.t !== undefined) {
+    const cachedText = _writerDuetPlainText(raw.cache.t);
+    if (cachedText) return cachedText;
+  }
   for (const key of ['text', 'plainText', 'plain_text', 'content', 'value', 'line', 'runs', 'spans', 'children', 'ops']) {
     if (raw[key] !== undefined && raw[key] !== null) {
       const text = _writerDuetPlainText(raw[key]);
@@ -46220,8 +46237,48 @@ function _writerDuetConvertLineArray(items) {
   return { lines, cover, recognised };
 }
 
+function _writerDuetNativeCheckpoint(input, fallbackTitle) {
+  const checkpoint = input?.checkpoint;
+  const lineMap = checkpoint?.data;
+  if (!lineMap || typeof lineMap !== 'object' || Array.isArray(lineMap)) return null;
+  const converted = _writerDuetConvertLineArray(Object.values(lineMap));
+  if (!converted || !converted.lines.length) return null;
+
+  let branchId = '';
+  const checkpointRecords = checkpoint.dataStoreCheckpointIds;
+  if (checkpointRecords && typeof checkpointRecords === 'object') {
+    for (const record of Object.values(checkpointRecords)) {
+      const checkpointPath = String(record?.checkpointPath || record?.checkpoint_path || '');
+      const match = checkpointPath.match(/\/b\/([^/]+)\/checkpoints(?:\/|$)/);
+      if (match) {
+        branchId = match[1];
+        break;
+      }
+    }
+  }
+
+  let updatedAt = 0;
+  Object.values(lineMap).forEach(line => {
+    updatedAt = Math.max(updatedAt, Number(line?.cache?.l || line?.updatedAt || line?.updated_at || line?.ct || 0));
+  });
+  const title = String(fallbackTitle || 'Imported WriterDuet Script').trim() || 'Imported WriterDuet Script';
+  const cover = { ...converted.cover, title };
+  return {
+    projectTitle: title,
+    documents: [{
+      title,
+      cover,
+      lines: converted.lines,
+      writerDuetBranchId: branchId,
+      writerDuetUpdatedAt: updatedAt,
+    }],
+  };
+}
+
 function _extractWriterDuetDocuments(input, fallbackTitle = 'Imported WriterDuet Project') {
   if (!input || typeof input !== 'object') throw new Error('WriterDuet data must be a JSON object or array.');
+  const nativeCheckpoint = _writerDuetNativeCheckpoint(input, fallbackTitle);
+  if (nativeCheckpoint) return nativeCheckpoint;
   const candidates = [];
   const visited = new WeakSet();
   let visitedNodes = 0;
@@ -46331,20 +46388,62 @@ async function _readWriterDuetFile(file) {
     }
   }
 
+  const nativeMetadata = payloads.find(payload =>
+    payload.data?.script_info && payload.data?.b && typeof payload.data.b === 'object'
+  )?.data || null;
+  const nativeProjectName = nativeMetadata?.script_info?.project_name;
+  const nativeScriptTitle = nativeMetadata?.script_info?.script_title;
+  const nativeScriptAuthor = nativeMetadata?.script_info?.script_author;
+  const projectTitle = String(
+    (typeof nativeProjectName === 'string' && nativeProjectName) ||
+    (typeof nativeScriptTitle === 'string' && nativeScriptTitle) ||
+    fallbackTitle
+  ).trim() || fallbackTitle;
+  const sharedAuthor = typeof nativeScriptAuthor === 'string' ? nativeScriptAuthor.trim() : '';
   const documents = [];
-  let projectTitle = fallbackTitle;
+  const branchDocuments = new Map();
   const seen = new Set();
   payloads.forEach(payload => {
+    if (payload.data === nativeMetadata) return;
     try {
       const extracted = _extractWriterDuetDocuments(payload.data, fallbackTitle);
-      if (extracted.projectTitle && projectTitle === fallbackTitle) projectTitle = extracted.projectTitle;
       extracted.documents.forEach(document => {
+        const branchId = String(document.writerDuetBranchId || '');
+        const branchDetails = branchId ? nativeMetadata?.b?.[branchId]?.details : null;
+        if (branchDetails?.removed === true) return;
+        const branchTitle = String(branchDetails?.name || '').trim();
+        if (branchTitle) {
+          document.title = branchTitle;
+          document.cover = { ...document.cover, title: branchTitle };
+        }
+        document.writerDuetOrder = String(branchDetails?.order || '');
+        if (sharedAuthor && !document.cover?.author) {
+          document.cover = { ...document.cover, author: sharedAuthor };
+        }
+        if (branchId) {
+          const previous = branchDocuments.get(branchId);
+          if (!previous || Number(document.writerDuetUpdatedAt || 0) > Number(previous.writerDuetUpdatedAt || 0)) {
+            branchDocuments.set(branchId, document);
+          }
+          return;
+        }
         const signature = document.lines.map(line => `${line.type}\u0000${line.text}`).join('\u0001');
         if (seen.has(signature)) return;
         seen.add(signature);
         documents.push(document);
       });
     } catch (_) {}
+  });
+  branchDocuments.forEach(document => {
+    const signature = document.lines.map(line => `${line.type}\u0000${line.text}`).join('\u0001');
+    if (seen.has(signature)) return;
+    seen.add(signature);
+    documents.push(document);
+  });
+  documents.sort((a, b) => {
+    const orderA = String(a.writerDuetOrder || '\uffff');
+    const orderB = String(b.writerDuetOrder || '\uffff');
+    return orderA.localeCompare(orderB, undefined, { numeric: true });
   });
   if (!documents.length) throw new Error('No supported screenplay documents were found in this WriterDuet export.');
   return { projectTitle, documents };

@@ -114,42 +114,65 @@ test('a multi-script project collection opens every script document', async ({ p
 });
 
 test('a WriterDuet project imports every script from its WDZ archive', async ({ page, skript }) => {
-  const project = {
-    project: {
-      title: 'WriterDuet E2E Series',
-      documents: [
-        {
-          title: 'Title Page',
-          lines: [
-            { lineType: 'Title', text: 'SHARED WORKING TITLE' },
-            { lineType: 'Written By', text: 'E2E Writer' },
-          ],
-        },
-        {
-          title: 'Pilot',
-          lines: [
-            { id: 'wd-e2e-1', lineType: 'Scene Heading', text: 'INT. WRITERDUET ROOM - DAY' },
-            { id: 'wd-e2e-2', lineType: 'Action', text: 'Two scripts wait on the screen.' },
-            { id: 'wd-e2e-3', lineType: 'Character', text: 'MAYA' },
-            { id: 'wd-e2e-4', lineType: 'Dialogue', text: 'Bring them both in.' },
-          ],
-        },
-        {
-          title: 'Episode Two',
-          content: [
-            ['Scene', 'EXT. WRITERDUET STREET - NIGHT'],
-            ['Action', 'The second story begins.'],
-          ],
-        },
-      ],
+  const writerDuetArchive = {
+    metadata: {
+      script_info: {
+        project_name: 'WriterDuet E2E Series',
+        script_title: 'Shared Working Title',
+        script_author: 'E2E Writer',
+      },
+      b: {
+        'pilot-branch': { details: { name: 'Pilot', order: 'A', visible: true } },
+        'episode-two-branch': { details: { name: 'Episode Two', order: 'B', visible: true } },
+      },
     },
+    checkpoints: [
+      {
+        filename: 'native-pilot-checkpoint',
+        branchId: 'pilot-branch',
+        lines: [
+          ['wd-e2e-1', 'Slugline', 'INT. WRITERDUET ROOM - DAY'],
+          ['wd-e2e-2', 'Action', 'Two scripts wait on the screen.'],
+          ['wd-e2e-3', 'EditDialogName', 'MAYA'],
+          ['wd-e2e-4', 'EditDialogContent', 'Bring them both in.'],
+        ],
+      },
+      {
+        filename: 'native-episode-two-checkpoint',
+        branchId: 'episode-two-branch',
+        lines: [
+          ['wd-e2e-5', 'Slugline', 'EXT. WRITERDUET STREET - NIGHT'],
+          ['wd-e2e-6', 'Action', 'The second story begins.'],
+        ],
+      },
+    ],
   };
-  const archiveBase64 = await page.evaluate(async writerDuetProject => {
+  const archiveBase64 = await page.evaluate(async archive => {
     if (!_ensureDocxEngine() || !docx?.JSZip) throw new Error('WriterDuet archive support is unavailable');
     const zip = new docx.JSZip();
-    zip.file('project.json', JSON.stringify(writerDuetProject));
+    zip.file('script.json', JSON.stringify(archive.metadata));
+    archive.checkpoints.forEach((checkpoint, checkpointIndex) => {
+      const data = {};
+      checkpoint.lines.forEach(([id, type, text], lineIndex) => {
+        data[id] = {
+          type,
+          cache: { t: text, l: 1700000000000 + checkpointIndex * 100 + lineIndex },
+        };
+      });
+      zip.file(checkpoint.filename, JSON.stringify({
+        checkpoint: {
+          data,
+          dataStoreCheckpointIds: {
+            checkpoint: {
+              checkpointPath: `duet/test/b/${checkpoint.branchId}/checkpoints/users/test/checkpoint.json`,
+            },
+          },
+        },
+        setIds: { '.set_id': '-' },
+      }));
+    });
     return zip.generateAsync({ type: 'base64', compression: 'DEFLATE' });
-  }, project);
+  }, writerDuetArchive);
 
   await skript.switchRibbon('import');
   const chooserPromise = page.waitForEvent('filechooser');
@@ -179,6 +202,10 @@ test('a WriterDuet project imports every script from its WDZ archive', async ({ 
   await expect.poll(() => page.evaluate(() => tabs.map(tab => tab.importProfile?.source))).toEqual([
     'writerduet',
     'writerduet',
+  ]);
+  await expect.poll(() => page.evaluate(() => tabs.map(tab => getCoverData(tab.id)?.author))).toEqual([
+    'E2E Writer',
+    'E2E Writer',
   ]);
 });
 

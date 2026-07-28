@@ -5,7 +5,7 @@ This is the first local development package on the road to Skript 1.1. It is int
 ## Highlights
 
 - Select several `.script`, `.sfg` or compatible JSON project files in one import operation.
-- Import native WriterDuet `.wdz` projects and WriterDuet JSON exports, including projects containing multiple script documents.
+- Import native WriterDuet `.wdz` checkpoint projects and WriterDuet JSON exports, including projects containing multiple script documents.
 - Open all valid selected scripts even when another selected file is invalid.
 - Open the initial `com.skript.project-collection` format containing multiple script documents.
 - Access **Import Scripts…** directly from the Navigator's Add Document menu.

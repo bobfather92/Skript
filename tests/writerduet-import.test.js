@@ -74,6 +74,53 @@ assert.deepEqual(
   ['scene', 'action', 'character', 'dialogue'],
 );
 
+const nativeCheckpoint = {
+  checkpoint: {
+    data: {
+      'native-line-a': {
+        type: 'Slugline',
+        cache: { t: 'INT. NATIVE WRITERDUET PROJECT - DAY', l: 1700000000001 },
+      },
+      'native-line-b': {
+        type: 'Action',
+        cache: { t: 'A real checkpoint opens.', l: 1700000000002 },
+      },
+      'native-line-c': {
+        type: 'EditDialogName',
+        cache: { t: 'MAYA', l: 1700000000003 },
+      },
+      'native-line-d': {
+        type: 'EditDialogParen',
+        cache: { t: '(relieved)', l: 1700000000004 },
+      },
+      'native-line-e': {
+        type: 'EditDialogContent',
+        cache: { t: 'That is the real format.', l: 1700000000005 },
+      },
+    },
+    dataStoreCheckpointIds: {
+      checkpoint: {
+        checkpointPath: 'duet/project/b/writerduet-branch/checkpoints/users/test/checkpoint.json',
+      },
+    },
+  },
+  setIds: { '.set_id': '-' },
+};
+const nativeResult = context._extractWriterDuetDocuments(nativeCheckpoint, 'Native WriterDuet Script');
+assert.equal(nativeResult.documents.length, 1);
+assert.equal(nativeResult.documents[0].writerDuetBranchId, 'writerduet-branch');
+assert.equal(nativeResult.documents[0].writerDuetUpdatedAt, 1700000000005);
+assert.deepEqual(
+  JSON.parse(JSON.stringify(nativeResult.documents[0].lines.map(line => [line.type, line.text]))),
+  [
+    ['scene', 'INT. NATIVE WRITERDUET PROJECT - DAY'],
+    ['action', 'A real checkpoint opens.'],
+    ['character', 'MAYA'],
+    ['parenthetical', '(relieved)'],
+    ['dialogue', 'That is the real format.'],
+  ],
+);
+
 assert.throws(
   () => context._extractWriterDuetDocuments({ documents: [{ title: 'Notes', lines: [{ type: 'unknown', text: 'Nothing' }] }] }),
   /No screenplay documents/,
