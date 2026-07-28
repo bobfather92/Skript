@@ -5,6 +5,7 @@ This is the first local development package on the road to Skript 1.1. It is int
 ## Highlights
 
 - Select several `.script`, `.sfg` or compatible JSON project files in one import operation.
+- Import native WriterDuet `.wdz` projects and WriterDuet JSON exports, including projects containing multiple script documents.
 - Open all valid selected scripts even when another selected file is invalid.
 - Open the initial `com.skript.project-collection` format containing multiple script documents.
 - Access **Import Scripts…** directly from the Navigator's Add Document menu.
@@ -28,9 +29,9 @@ Python and the supported PDF, OCR and Word engines are included in the Windows d
 
 ## Source verification
 
-- 11 JavaScript regression suites passed.
+- 12 JavaScript regression suites passed.
 - 9 Python regression suites passed.
-- Complete browser workflow: 101 passed, 9 intentionally skipped, 0 failed across desktop and compact-touch configurations.
+- Complete browser workflow: 103 passed, 9 intentionally skipped, 0 failed across desktop and compact-touch configurations.
 - Python compilation and embedded HTML syntax checks passed.
 
 ## Development-build warning

@@ -30797,6 +30797,7 @@ button.primary:hover,
           <button class="rb rb-tall" data-testid="import-pdf" onclick="document.getElementById('pdf-import-input').click()"><span class="rb-icon">📥</span><span class="rb-label">Import PDF</span></button>
           <button class="rb rb-tall" data-testid="import-word" onclick="document.getElementById('word-import-input').click()"><span class="rb-icon">📝</span><span class="rb-label">Import Word</span></button>
           <button class="rb rb-tall" data-testid="import-fdx" onclick="document.getElementById('fdx-import-input').click()"><span class="rb-icon">🎞</span><span class="rb-label">Import FDX</span></button>
+          <button class="rb rb-tall" data-testid="import-writerduet" onclick="document.getElementById('writerduet-input').click()"><span class="rb-icon">WD</span><span class="rb-label">WriterDuet</span></button>
         </div>
         <div class="rg-label">Import</div>
       </div>
@@ -32144,10 +32145,11 @@ button.primary:hover,
             <h3>Changes in 1.1.0.0</h3>
             <p class="changes-panel-lead">The first development build on the road to Skript 1.1.</p>
             <div class="opt-section"><strong>Multiple script imports</strong><div class="opt-note" style="margin-top:5px;">Select several existing Skript files in one operation and open every valid script as a separate document.</div></div>
+            <div class="opt-section"><strong>WriterDuet project import</strong><div class="opt-note" style="margin-top:5px;">Import WriterDuet .wdz and JSON exports, including projects that contain multiple screenplay documents.</div></div>
             <div class="opt-section"><strong>Multi-script project foundation</strong><div class="opt-note" style="margin-top:5px;">Introduces the project-collection format used to group multiple script documents under one project identity.</div></div>
             <div class="opt-section"><strong>Safer batch handling</strong><div class="opt-note" style="margin-top:5px;">A damaged or invalid file no longer prevents other valid files in the same selection from opening.</div></div>
             <div class="opt-section"><strong>Recovery accessibility</strong><div class="opt-note" style="margin-top:5px;">Keeps keyboard focus inside the Recovery Centre when it is opened over the startup recovery prompt.</div></div>
-            <div class="opt-section"><strong>Development verification</strong><div class="opt-note" style="margin-top:5px;">All source checks pass, with 101 browser workflows passing across desktop and compact-touch layouts and 9 intentional platform-specific skips.</div></div>
+            <div class="opt-section"><strong>Development verification</strong><div class="opt-note" style="margin-top:5px;">All source checks pass, with 103 browser workflows passing across desktop and compact-touch layouts and 9 intentional platform-specific skips.</div></div>
           </section>
         </div>
       </div>
@@ -32812,6 +32814,7 @@ button.primary:hover,
 <input type="file" id="pdf-import-input"   accept=".pdf"                 style="display:none" onchange="handlePDFImport(event)">
 <input type="file" id="word-import-input"  accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style="display:none" onchange="handleWordImport(event)">
 <input type="file" id="fdx-import-input"   accept=".fdx,application/xml,text/xml" style="display:none" onchange="handleFDXImport(event)">
+<input type="file" id="writerduet-input"   accept=".wdz,.json,application/json,application/zip" style="display:none" onchange="handleWriterDuetImport(event)">
 
 
 <script>
@@ -46042,6 +46045,358 @@ function exportFountain() {
   const fname   = title.replace(/[^a-z0-9\-_ ]/gi, '_').trim() + '.fountain';
   _downloadBlob(new Blob([content], { type: 'text/plain;charset=utf-8' }), fname);
   showToast('⛲ Exported as ' + fname);
+}
+
+// ─────────────────────────────────────────────────────────────────────
+//  WRITERDUET (.wdz / WriterDuet JSON) IMPORT
+// ─────────────────────────────────────────────────────────────────────
+const WRITERDUET_TYPE_MAP = Object.freeze({
+  'scene': 'scene',
+  'scene heading': 'scene',
+  'scene header': 'scene',
+  'slug': 'scene',
+  'slugline': 'scene',
+  'action': 'action',
+  'description': 'action',
+  'general': 'action',
+  'shot': 'action',
+  'character': 'character',
+  'character cue': 'character',
+  'speaker': 'character',
+  'dialog': 'dialogue',
+  'dialogue': 'dialogue',
+  'lyrics': 'dialogue',
+  'parenthetical': 'parenthetical',
+  'paren': 'parenthetical',
+  'transition': 'transition',
+  'note': 'notes',
+  'notes': 'notes',
+  'outline': 'notes',
+  'section': 'notes',
+  'synopsis': 'notes',
+  'act': 'act',
+  'new act': 'new-act',
+  'end act': 'end-act',
+  'act break': 'act-break',
+  'cold open': 'cold-open',
+  'tag': 'tag',
+  'stage direction': 'stage-direction',
+});
+
+const WRITERDUET_COVER_FIELDS = Object.freeze({
+  'title': 'title',
+  'project title': 'title',
+  'author': 'author',
+  'authors': 'author',
+  'written by': 'author',
+  'credit': 'author',
+  'source': 'basedOn',
+  'based on': 'basedOn',
+  'draft': 'draft',
+  'draft date': 'date',
+  'date': 'date',
+  'contact': 'contact1',
+  'copyright': 'rights1',
+});
+
+function _writerDuetNormaliseType(value) {
+  return String(value ?? '').trim().toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
+}
+
+function _writerDuetPlainText(value, depth = 0) {
+  if (depth > 8 || value === null || value === undefined) return '';
+  if (typeof value === 'string' || typeof value === 'number') {
+    return String(value)
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<[^>]*>/g, '')
+      .replace(/&nbsp;/gi, ' ')
+      .replace(/&amp;/gi, '&')
+      .replace(/&lt;/gi, '<')
+      .replace(/&gt;/gi, '>')
+      .replace(/&quot;/gi, '"')
+      .replace(/&#39;|&apos;/gi, "'")
+      .replace(/\r\n?/g, '\n')
+      .trim();
+  }
+  if (Array.isArray(value)) {
+    return value.map(item => _writerDuetPlainText(item, depth + 1)).join('');
+  }
+  if (typeof value === 'object') {
+    for (const key of ['text', 'plainText', 'plain_text', 'value', 'insert', 'content']) {
+      if (Object.prototype.hasOwnProperty.call(value, key) && value[key] !== value) {
+        const text = _writerDuetPlainText(value[key], depth + 1);
+        if (text) return text;
+      }
+    }
+    for (const key of ['runs', 'spans', 'children', 'ops']) {
+      if (Array.isArray(value[key])) {
+        const text = _writerDuetPlainText(value[key], depth + 1);
+        if (text) return text;
+      }
+    }
+  }
+  return '';
+}
+
+function _writerDuetObjectTitle(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return '';
+  for (const key of ['documentTitle', 'document_title', 'docTitle', 'doc_title', 'title', 'name', 'filename']) {
+    if (typeof value[key] === 'string') {
+      const title = value[key].trim().replace(/\.(?:wdz|json)$/i, '');
+      if (title && title.length <= 180) return title;
+    }
+  }
+  return '';
+}
+
+function _writerDuetRawType(raw) {
+  if (Array.isArray(raw) && raw.length >= 2) return raw[0];
+  if (!raw || typeof raw !== 'object') return '';
+  for (const key of ['lineType', 'line_type', 'elementType', 'element_type', 'paragraphType', 'paragraph_type', 'type', 'style', 'format']) {
+    if (raw[key] !== undefined && raw[key] !== null) return raw[key];
+  }
+  const keys = Object.keys(raw);
+  if (keys.length === 1) return keys[0];
+  return '';
+}
+
+function _writerDuetRawText(raw, rawType) {
+  if (Array.isArray(raw) && raw.length >= 2) return _writerDuetPlainText(raw[1]);
+  if (!raw || typeof raw !== 'object') return _writerDuetPlainText(raw);
+  for (const key of ['text', 'plainText', 'plain_text', 'content', 'value', 'line', 'runs', 'spans', 'children', 'ops']) {
+    if (raw[key] !== undefined && raw[key] !== null) {
+      const text = _writerDuetPlainText(raw[key]);
+      if (text) return text;
+    }
+  }
+  const normalisedType = _writerDuetNormaliseType(rawType);
+  const matchingKey = Object.keys(raw).find(key => _writerDuetNormaliseType(key) === normalisedType);
+  return matchingKey ? _writerDuetPlainText(raw[matchingKey]) : '';
+}
+
+function _writerDuetConvertLine(raw, index = 0) {
+  const rawType = _writerDuetRawType(raw);
+  const normalisedType = _writerDuetNormaliseType(rawType);
+  const type = WRITERDUET_TYPE_MAP[normalisedType];
+  const coverField = WRITERDUET_COVER_FIELDS[normalisedType];
+  if (!type && !coverField) return null;
+  const text = _writerDuetRawText(raw, rawType);
+  if (!text) return null;
+  if (coverField) return { coverField, text };
+  const requestedId = raw && !Array.isArray(raw) && typeof raw === 'object'
+    ? String(raw.lineId || raw.line_id || raw.id || '').trim()
+    : '';
+  return {
+    type,
+    text,
+    ...(requestedId ? { lineId: requestedId } : {}),
+    importMeta: {
+      source: 'writerduet',
+      detectedType: type,
+      confidence: 100,
+      needsReview: false,
+      reviewed: false,
+      reason: `Explicit WriterDuet “${String(rawType)}” line type.`,
+      sourceIndex: index,
+    },
+  };
+}
+
+function _writerDuetConvertLineArray(items) {
+  if (!Array.isArray(items) || !items.length) return null;
+  const lines = [];
+  const cover = {};
+  let recognised = 0;
+  let possible = 0;
+  items.forEach((item, index) => {
+    if (item && (typeof item === 'object' || typeof item === 'string')) possible += 1;
+    const converted = _writerDuetConvertLine(item, index);
+    if (!converted) return;
+    recognised += 1;
+    if (converted.coverField) cover[converted.coverField] = converted.text;
+    else lines.push(converted);
+  });
+  if (!recognised || recognised / Math.max(1, possible) < 0.25) return null;
+  return { lines, cover, recognised };
+}
+
+function _extractWriterDuetDocuments(input, fallbackTitle = 'Imported WriterDuet Project') {
+  if (!input || typeof input !== 'object') throw new Error('WriterDuet data must be a JSON object or array.');
+  const candidates = [];
+  const visited = new WeakSet();
+  let visitedNodes = 0;
+
+  const visit = (value, path = '$', ancestors = [], depth = 0) => {
+    if (!value || typeof value !== 'object' || depth > 12 || visitedNodes > 50000) return;
+    if (visited.has(value)) return;
+    visited.add(value);
+    visitedNodes += 1;
+
+    if (Array.isArray(value)) {
+      const converted = _writerDuetConvertLineArray(value);
+      if (converted) {
+        const title = [...ancestors].reverse().map(_writerDuetObjectTitle).find(Boolean) || '';
+        candidates.push({ ...converted, title, path });
+      }
+      value.forEach((item, index) => visit(item, `${path}[${index}]`, ancestors, depth + 1));
+      return;
+    }
+
+    const nextAncestors = [...ancestors, value];
+    const order = value.lineOrder || value.line_order || value.lineIds || value.line_ids;
+    const lineMap = value.lines || value.content || value.elements || value.paragraphs;
+    if (Array.isArray(order) && lineMap && typeof lineMap === 'object' && !Array.isArray(lineMap)) {
+      const ordered = order.map(id => lineMap[id]).filter(Boolean);
+      const converted = _writerDuetConvertLineArray(ordered);
+      if (converted) candidates.push({
+        ...converted,
+        title: _writerDuetObjectTitle(value),
+        path: `${path}.orderedLines`,
+      });
+    }
+
+    const entries = Object.entries(value);
+    const hasArrayChild = entries.some(([, child]) => Array.isArray(child));
+    if (!hasArrayChild && entries.length >= 2 && entries.length <= 10000) {
+      const converted = _writerDuetConvertLineArray(entries.map(([, child]) => child));
+      if (converted) candidates.push({
+        ...converted,
+        title: _writerDuetObjectTitle(value),
+        path: `${path}.values`,
+      });
+    }
+    entries.forEach(([key, child]) => visit(child, `${path}.${key}`, nextAncestors, depth + 1));
+  };
+  visit(input);
+  if (visitedNodes > 50000) throw new Error('The WriterDuet project is too complex to import safely.');
+
+  const projectObject = input.project && typeof input.project === 'object' ? input.project : input;
+  const projectTitle = _writerDuetObjectTitle(projectObject) || _writerDuetObjectTitle(input) || fallbackTitle;
+  const sharedCover = {};
+  candidates.filter(candidate => !candidate.lines.length).forEach(candidate => Object.assign(sharedCover, candidate.cover));
+  const scriptCandidates = candidates.filter(candidate => candidate.lines.length);
+
+  const seen = new Set();
+  const documents = [];
+  scriptCandidates.forEach((candidate, index) => {
+    const signature = candidate.lines.map(line => `${line.type}\u0000${line.text}`).join('\u0001');
+    if (!signature || seen.has(signature)) return;
+    seen.add(signature);
+    const title = candidate.title || (scriptCandidates.length === 1 ? sharedCover.title || projectTitle : `Script ${index + 1}`);
+    const cover = { ...sharedCover, ...candidate.cover };
+    cover.title = String(
+      scriptCandidates.length === 1
+        ? candidate.cover.title || sharedCover.title || title || projectTitle
+        : candidate.cover.title || title || projectTitle
+    ).trim() || 'Imported WriterDuet Script';
+    documents.push({ title: cover.title, cover, lines: candidate.lines });
+  });
+  if (!documents.length) throw new Error('No screenplay documents with recognised WriterDuet line types were found.');
+  return { projectTitle: projectTitle || documents[0].title, documents };
+}
+window._extractWriterDuetDocuments = _extractWriterDuetDocuments;
+
+async function _readWriterDuetFile(file) {
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  if (bytes.byteLength > 50 * 1024 * 1024) throw new Error('The WriterDuet project is larger than the 50 MB import limit.');
+  const fallbackTitle = file.name.replace(/\.(?:wdz|json)$/i, '') || 'Imported WriterDuet Project';
+  const isZip = bytes.length >= 4 && bytes[0] === 0x50 && bytes[1] === 0x4b;
+  const payloads = [];
+
+  if (isZip) {
+    if (!_ensureDocxEngine() || !docx?.JSZip) throw new Error('The bundled WriterDuet archive reader could not start.');
+    const zip = await docx.JSZip.loadAsync(bytes);
+    const entries = Object.values(zip.files || {}).filter(entry => !entry.dir);
+    if (entries.length > 2000) throw new Error('The WriterDuet archive contains too many files to import safely.');
+    const jsonEntries = entries
+      .filter(entry => /\.json$/i.test(entry.name) || !/\.[a-z0-9]{1,8}$/i.test(entry.name))
+      .sort((a, b) => {
+        const priority = name => /(?:project|document|script|content)\.json$/i.test(name) ? 0 : 1;
+        return priority(a.name) - priority(b.name) || a.name.localeCompare(b.name);
+      });
+    if (!jsonEntries.length) throw new Error('The WriterDuet archive does not contain readable JSON project data.');
+    for (const entry of jsonEntries.slice(0, 200)) {
+      const declaredSize = Number(entry?._data?.uncompressedSize || 0);
+      if (declaredSize > 20 * 1024 * 1024) continue;
+      const text = await entry.async('string');
+      if (text.length > 20 * 1024 * 1024) continue;
+      try { payloads.push({ name: entry.name, data: JSON.parse(text) }); } catch (_) {}
+    }
+  } else {
+    const text = new TextDecoder('utf-8', { fatal: false }).decode(bytes);
+    try {
+      payloads.push({ name: file.name, data: JSON.parse(text.replace(/^\uFEFF/, '')) });
+    } catch (_) {
+      throw new Error('This is not a readable WriterDuet .wdz archive or JSON export.');
+    }
+  }
+
+  const documents = [];
+  let projectTitle = fallbackTitle;
+  const seen = new Set();
+  payloads.forEach(payload => {
+    try {
+      const extracted = _extractWriterDuetDocuments(payload.data, fallbackTitle);
+      if (extracted.projectTitle && projectTitle === fallbackTitle) projectTitle = extracted.projectTitle;
+      extracted.documents.forEach(document => {
+        const signature = document.lines.map(line => `${line.type}\u0000${line.text}`).join('\u0001');
+        if (seen.has(signature)) return;
+        seen.add(signature);
+        documents.push(document);
+      });
+    } catch (_) {}
+  });
+  if (!documents.length) throw new Error('No supported screenplay documents were found in this WriterDuet export.');
+  return { projectTitle, documents };
+}
+
+async function handleWriterDuetImport(event) {
+  const file = event.target.files?.[0];
+  event.target.value = '';
+  if (!file) return;
+  if (!/\.(?:wdz|json)$/i.test(file.name)) {
+    showToast('Choose a WriterDuet .wdz or JSON export.', 5000);
+    return;
+  }
+  try {
+    showToast('Reading WriterDuet project…', 8000);
+    const imported = await _readWriterDuetFile(file);
+    const collectionId = imported.documents.length > 1 ? newProjectId('writerduet') : '';
+    imported.documents.forEach(document => {
+      const detection = _detectPDFScriptFormat(document.lines);
+      const format = detection.format || 'film';
+      importTabFromData({
+        version: SKRIPT_PROJECT_VERSION,
+        source: 'writerduet',
+        title: document.title,
+        format,
+        cover: document.cover,
+        notes: [],
+        lines: document.lines,
+        importProfile: {
+          version: 1,
+          source: 'writerduet',
+          sourceLabel: 'WriterDuet project',
+          detectedFormat: detection.format || '',
+          selectedFormat: format,
+          confidence: Number(detection.confidence || 0),
+          importedAt: new Date().toISOString(),
+        },
+      }, {
+        collectionId,
+        collectionTitle: imported.projectTitle,
+      });
+      const importedTab = tabs.find(tab => tab.id === activeTabId);
+      if (importedTab && collectionId) {
+        importedTab.collectionId = collectionId;
+        importedTab.collectionTitle = imported.projectTitle;
+      }
+    });
+    closeWizard();
+    showToast(`Imported ${imported.documents.length} WriterDuet script${imported.documents.length === 1 ? '' : 's'} from “${imported.projectTitle}”.`, 6000);
+  } catch (error) {
+    showToast('WriterDuet import failed: ' + error.message, 9000);
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────

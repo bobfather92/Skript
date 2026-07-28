@@ -113,6 +113,75 @@ test('a multi-script project collection opens every script document', async ({ p
   ]);
 });
 
+test('a WriterDuet project imports every script from its WDZ archive', async ({ page, skript }) => {
+  const project = {
+    project: {
+      title: 'WriterDuet E2E Series',
+      documents: [
+        {
+          title: 'Title Page',
+          lines: [
+            { lineType: 'Title', text: 'SHARED WORKING TITLE' },
+            { lineType: 'Written By', text: 'E2E Writer' },
+          ],
+        },
+        {
+          title: 'Pilot',
+          lines: [
+            { id: 'wd-e2e-1', lineType: 'Scene Heading', text: 'INT. WRITERDUET ROOM - DAY' },
+            { id: 'wd-e2e-2', lineType: 'Action', text: 'Two scripts wait on the screen.' },
+            { id: 'wd-e2e-3', lineType: 'Character', text: 'MAYA' },
+            { id: 'wd-e2e-4', lineType: 'Dialogue', text: 'Bring them both in.' },
+          ],
+        },
+        {
+          title: 'Episode Two',
+          content: [
+            ['Scene', 'EXT. WRITERDUET STREET - NIGHT'],
+            ['Action', 'The second story begins.'],
+          ],
+        },
+      ],
+    },
+  };
+  const archiveBase64 = await page.evaluate(async writerDuetProject => {
+    if (!_ensureDocxEngine() || !docx?.JSZip) throw new Error('WriterDuet archive support is unavailable');
+    const zip = new docx.JSZip();
+    zip.file('project.json', JSON.stringify(writerDuetProject));
+    return zip.generateAsync({ type: 'base64', compression: 'DEFLATE' });
+  }, project);
+
+  await skript.switchRibbon('import');
+  const chooserPromise = page.waitForEvent('filechooser');
+  await page.getByTestId('import-writerduet').click();
+  const chooser = await chooserPromise;
+  await chooser.setFiles({
+    name: 'writerduet-e2e-series.wdz',
+    mimeType: 'application/zip',
+    buffer: Buffer.from(archiveBase64, 'base64'),
+  });
+
+  await expect(page.locator('#tabs-container .tab-title')).toHaveText(['Pilot', 'Episode Two']);
+  await expect(page.locator('.script-panel:not(.active) .script-line')).toHaveText([
+    'INT. WRITERDUET ROOM - DAY',
+    'Two scripts wait on the screen.',
+    'MAYA',
+    'Bring them both in.',
+  ]);
+  await expect(page.locator('.script-panel.active .script-line')).toHaveText([
+    'EXT. WRITERDUET STREET - NIGHT',
+    'The second story begins.',
+  ]);
+  await expect.poll(() => page.evaluate(() => tabs.map(tab => tab.collectionTitle))).toEqual([
+    'WriterDuet E2E Series',
+    'WriterDuet E2E Series',
+  ]);
+  await expect.poll(() => page.evaluate(() => tabs.map(tab => tab.importProfile?.source))).toEqual([
+    'writerduet',
+    'writerduet',
+  ]);
+});
+
 test('a user can export Word, Final Draft, and invoke PDF export', async ({ page, skript }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop-chromium', 'Downloads are covered once on desktop');
   const fixture = path.join(HERE, 'fixtures', 'loaded.script');
