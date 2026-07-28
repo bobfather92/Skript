@@ -65,6 +65,11 @@ const openEnd = html.indexOf('function handleFileLoad(', openStart);
 const openSource = html.slice(openStart, openEnd);
 assert.ok(openSource.includes("document.getElementById('file-input')?.click()"));
 assert.ok(!openSource.includes('sfApiFetch'), 'Open must use only the local file picker');
+assert.ok(html.includes('id="file-input"         accept=".script,.sfg,.json" multiple'), 'Project picker must support batch import');
+assert.ok(html.includes("const SKRIPT_PROJECT_COLLECTION_SCHEMA = 'com.skript.project-collection'"));
+assert.ok(html.includes('function readProjectCollectionData(input)'));
+assert.ok(html.includes('const files = Array.from(input?.files || [])'));
+assert.ok(html.includes('data-testid="add-script-document"'), 'Navigator must expose script import');
 
 const pdfStart = html.indexOf('async function doExportPDF()');
 const pdfEnd = html.indexOf('function _fallbackWindowPrint(', pdfStart);

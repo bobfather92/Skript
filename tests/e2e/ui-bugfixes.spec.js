@@ -176,7 +176,7 @@ test('PDF and Print All are neutral until hovered', async ({ page, skript }) => 
 test('Add Document icons and labels share aligned columns', async ({ page, skript }) => {
   await page.locator('.add-doc-btn').click();
   const rows = page.locator('#add-doc-menu .add-doc-item');
-  await expect(rows).toHaveCount(6);
+  await expect(rows).toHaveCount(7);
   const positions = await rows.evaluateAll(items => items.map(item => {
     const icon = item.querySelector('.adi-icon').getBoundingClientRect();
     const label = item.querySelector('.adi-label').getBoundingClientRect();

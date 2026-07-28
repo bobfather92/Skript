@@ -31073,6 +31073,7 @@ button.primary:hover,
           <span>＋</span> Add Document
         </button>
         <div id="add-doc-menu">
+          <div class="add-doc-item" data-testid="add-script-document" onclick="loadScript();closeAddDocMenu()"><span class="adi-icon">✦</span><span class="adi-label">Import Scripts…</span></div>
           <div class="add-doc-item" onclick="document.getElementById('sb-beat-section').style.display='';openProductionHub('outline');closeAddDocMenu()"><span class="adi-icon">📌</span><span class="adi-label">Outline &amp; Beats</span></div>
           <div class="add-doc-item" onclick="switchToSynopsis();document.getElementById('sb-synopsis-section').style.display='';closeAddDocMenu()"><span class="adi-icon">📄</span><span class="adi-label">Synopsis &amp; Pitch</span></div>
           <div class="add-doc-item" onclick="document.getElementById('sb-breakdown-section').style.display='';openCatalogueBreakdown();closeAddDocMenu()"><span class="adi-icon">🗂</span><span class="adi-label">Catalogue &amp; Breakdown</span></div>
@@ -32805,7 +32806,7 @@ button.primary:hover,
   </div>
 </div>
 <!-- ══ HIDDEN FILE INPUT ══ -->
-<input type="file" id="file-input"         accept=".script,.sfg,.json"   style="display:none" onchange="handleFileLoad(event)">
+<input type="file" id="file-input"         accept=".script,.sfg,.json" multiple style="display:none" onchange="handleFileLoad(event)">
 <input type="file" id="fountain-input"     accept=".fountain,.spmd,.txt" style="display:none" onchange="handleFountainImport(event)">
 <input type="file" id="pdf-import-input"   accept=".pdf"                 style="display:none" onchange="handlePDFImport(event)">
 <input type="file" id="word-import-input"  accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style="display:none" onchange="handleWordImport(event)">
@@ -34420,6 +34421,8 @@ function sfApiUrl(path) {
 
 const SKRIPT_PROJECT_SCHEMA = 'com.skript.project';
 const SKRIPT_PROJECT_VERSION = 6;
+const SKRIPT_PROJECT_COLLECTION_SCHEMA = 'com.skript.project-collection';
+const SKRIPT_PROJECT_COLLECTION_VERSION = 1;
 const SKRIPT_LINE_TYPES = new Set([
   'scene', 'subheading', 'action', 'character', 'dialogue', 'parenthetical',
   'transition', 'notes', 'cold-open', 'act-break', 'act', 'stage-direction',
@@ -34552,6 +34555,36 @@ function migrateProjectData(input) {
   return { data, sourceVersion, migrated: sourceVersion < SKRIPT_PROJECT_VERSION, warnings };
 }
 window.migrateProjectData = migrateProjectData;
+
+function readProjectCollectionData(input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    throw new Error('This file does not contain a Skript project.');
+  }
+  if (input.schema !== SKRIPT_PROJECT_COLLECTION_SCHEMA) {
+    return {
+      projectId: null,
+      title: '',
+      scripts: [input],
+      isCollection: false,
+    };
+  }
+
+  const version = Number.isFinite(Number(input.version)) ? Number(input.version) : 1;
+  if (version > SKRIPT_PROJECT_COLLECTION_VERSION) {
+    throw new Error(`This project uses newer collection format version ${version}. Update Skript before opening it.`);
+  }
+  if (!Array.isArray(input.scripts) || input.scripts.length === 0) {
+    throw new Error('This Skript project does not contain any script documents.');
+  }
+
+  return {
+    projectId: typeof input.projectId === 'string' && input.projectId ? input.projectId : newProjectId('collection'),
+    title: String(input.title || 'Untitled Project').trim() || 'Untitled Project',
+    scripts: input.scripts,
+    isCollection: true,
+  };
+}
+window.readProjectCollectionData = readProjectCollectionData;
 
 function _importLineMetadata(line) {
   try { return JSON.parse(line?.dataset?.importMeta || '{}'); } catch (_) { return {}; }
@@ -34938,19 +34971,55 @@ function loadScript() {
   document.getElementById('file-input')?.click();
 }
 
-function handleFileLoad(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (ev) => {
+function readLocalTextFile(file) {
+  if (typeof file?.text === 'function') return file.text();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = event => resolve(String(event.target?.result || ''));
+    reader.onerror = () => reject(reader.error || new Error('The file could not be read.'));
+    reader.readAsText(file);
+  });
+}
+
+async function handleFileLoad(e) {
+  const input = e.target;
+  const files = Array.from(input?.files || []);
+  if (input) input.value = '';
+  if (!files.length) return;
+
+  let imported = 0;
+  const failures = [];
+  for (const file of files) {
     try {
-      const data = JSON.parse(ev.target.result);
-      importTabFromData(data);
-      closeWizard();
-    } catch { alert('Invalid script file.'); }
-  };
-  reader.readAsText(file);
-  e.target.value = '';
+      const parsed = JSON.parse(await readLocalTextFile(file));
+      const collection = readProjectCollectionData(parsed);
+      collection.scripts.forEach((script, index) => {
+        importTabFromData(script, {
+          collectionId: collection.projectId,
+          collectionTitle: collection.title,
+          sourcePath: collection.isCollection && index > 0 ? '' : (file.path || ''),
+        });
+        const importedTab = tabs.find(tab => tab.id === activeTabId);
+        if (importedTab && collection.isCollection) {
+          importedTab.collectionId = collection.projectId;
+          importedTab.collectionTitle = collection.title;
+        }
+        imported += 1;
+      });
+    } catch (error) {
+      failures.push(`${file.name || 'Project'}: ${error?.message || 'Invalid project file'}`);
+    }
+  }
+
+  if (imported) {
+    closeWizard();
+    const noun = imported === 1 ? 'script' : 'scripts';
+    const suffix = failures.length ? ` — ${failures.length} file${failures.length === 1 ? '' : 's'} could not be opened` : '';
+    showToast(`Imported ${imported} ${noun}${suffix}`, failures.length ? 7000 : 4000);
+  } else {
+    showToast(failures[0] || 'No valid Skript projects were found.', 7000);
+  }
+  if (failures.length) console.warn('Skript import failures:', failures);
 }
 
 function _removeEmptyActiveTabForImport() {
@@ -34990,6 +35059,8 @@ function createTabFromData(data, options = {}) {
     format: loadedFormat,
     projectId: data.projectId,
     createdAt: data.createdAt,
+    collectionId: options.collectionId || '',
+    collectionTitle: options.collectionTitle || '',
     filePath: options.sourcePath || '',
     fdx: cloneProjectValue(data.fdx, null),
     importProfile: cloneProjectValue(data.importProfile, null)
@@ -36301,7 +36372,11 @@ function switchRibbonTab(panelId) {
 function importTabFromData(data, options = {}) {
   const migration = migrateProjectData(data);
   _removeEmptyActiveTabForImport();
-  createTabFromData(migration.data, { sourcePath: options.sourcePath || '' });
+  createTabFromData(migration.data, {
+    collectionId: options.collectionId || '',
+    collectionTitle: options.collectionTitle || '',
+    sourcePath: options.sourcePath || '',
+  });
   const tab = tabs.find(item => item.id === activeTabId);
   if (tab && options.sourcePath) tab.filePath = options.sourcePath;
   if (migration.migrated && !data.source) {
@@ -41750,9 +41825,15 @@ function openRecoveryCentre() {
   }
   modal.classList.add('open');
   const firstAction = modal.querySelector('button:not([disabled])');
-  firstAction?.focus({ preventScroll: true });
-  requestAnimationFrame(() => firstAction?.focus({ preventScroll: true }));
-  refreshRecoveryCentre();
+  const ensureDialogFocus = () => {
+    if (modal.classList.contains('open') && !modal.contains(document.activeElement)) {
+      firstAction?.focus({ preventScroll: true });
+    }
+  };
+  ensureDialogFocus();
+  requestAnimationFrame(ensureDialogFocus);
+  setTimeout(ensureDialogFocus, 0);
+  refreshRecoveryCentre().finally(ensureDialogFocus);
 }
 
 function closeRecoveryCentre() {

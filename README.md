@@ -33,6 +33,10 @@ The suite covers desktop and compact touch layouts, project workflows, import/ex
 
 The same source checks and browser workflows run automatically for Windows release builds.
 
+## Version 1.1 development
+
+Version 1.1 is being developed on the `feature/1.1` branch. The first work covers multi-file import and the foundation for projects containing multiple script documents. Storyboard Editor improvements and richer spelling, grammar and script-flow suggestions follow in the staged [1.1 roadmap](ROADMAP_1.1.md).
+
 ## Building
 
 Build the Windows application from the repository root with PyInstaller:

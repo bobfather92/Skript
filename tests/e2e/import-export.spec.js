@@ -47,6 +47,72 @@ test('import creates a new tab when the active script contains writing', async (
   await expect(page.locator('.script-panel:not(.active) .script-line')).toContainText(['INT. EXISTING PROJECT - NIGHT']);
 });
 
+test('a user can import several Skript files at once', async ({ page, skript }) => {
+  const makeProject = (title, scene) => JSON.stringify({
+    version: 6,
+    title,
+    cover: { title },
+    lines: [{ type: 'scene', text: scene }],
+  });
+
+  await page.locator('#file-input').setInputFiles([
+    {
+      name: 'episode-one.script',
+      mimeType: 'application/json',
+      buffer: Buffer.from(makeProject('Episode One', 'INT. KITCHEN - DAY')),
+    },
+    {
+      name: 'episode-two.script',
+      mimeType: 'application/json',
+      buffer: Buffer.from(makeProject('Episode Two', 'EXT. GARDEN - NIGHT')),
+    },
+  ]);
+
+  await expect(page.locator('#tabs-container .tab')).toHaveCount(2);
+  await expect(page.locator('#tabs-container .tab-title')).toHaveText(['Episode One', 'Episode Two']);
+  await expect(page.locator('.tab.active .tab-title')).toHaveText('Episode Two');
+  await expect(page.locator('.script-panel.active .script-line')).toHaveText('EXT. GARDEN - NIGHT');
+});
+
+test('a multi-script project collection opens every script document', async ({ page, skript }) => {
+  const collection = {
+    schema: 'com.skript.project-collection',
+    version: 1,
+    projectId: 'collection-e2e-series',
+    title: 'E2E Series',
+    scripts: [
+      {
+        version: 6,
+        title: 'Pilot',
+        cover: { title: 'Pilot' },
+        lines: [{ type: 'scene', text: 'INT. WRITERS ROOM - DAY' }],
+      },
+      {
+        version: 6,
+        title: 'Episode Two',
+        cover: { title: 'Episode Two' },
+        lines: [{ type: 'scene', text: 'EXT. STUDIO - NIGHT' }],
+      },
+    ],
+  };
+
+  await page.locator('#file-input').setInputFiles({
+    name: 'e2e-series.script',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify(collection)),
+  });
+
+  await expect(page.locator('#tabs-container .tab-title')).toHaveText(['Pilot', 'Episode Two']);
+  await expect.poll(() => page.evaluate(() => tabs.map(tab => tab.collectionId))).toEqual([
+    'collection-e2e-series',
+    'collection-e2e-series',
+  ]);
+  await expect.poll(() => page.evaluate(() => tabs.map(tab => tab.collectionTitle))).toEqual([
+    'E2E Series',
+    'E2E Series',
+  ]);
+});
+
 test('a user can export Word, Final Draft, and invoke PDF export', async ({ page, skript }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop-chromium', 'Downloads are covered once on desktop');
   const fixture = path.join(HERE, 'fixtures', 'loaded.script');
