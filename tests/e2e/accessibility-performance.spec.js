@@ -167,8 +167,8 @@ test('options shows the current release changes above licences', async ({ page, 
   await expect(rows.nth(1)).toContainText('Open source licences');
   await page.locator('#open-changes-btn').click();
   await expect(page.locator('#changes-modal')).toBeVisible();
-  await expect(page.locator('#changes-modal')).toContainText('Official release package');
-  await expect(page.locator('#changes-modal')).toContainText('1.0.0.4');
+  await expect(page.locator('#changes-modal')).toContainText('Multiple script imports');
+  await expect(page.locator('#changes-modal')).toContainText('1.1.0.0');
   await expect(page.locator('#changes-modal [data-changes-version]')).toHaveCount(1);
   await expect(page.locator('#changes-modal [data-changes-panel]')).toHaveCount(1);
 });

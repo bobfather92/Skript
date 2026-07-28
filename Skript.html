@@ -32118,7 +32118,7 @@ button.primary:hover,
     </div>
     <div class="modal-btns" style="justify-content:space-between;align-items:center;">
       <div style="display:flex;flex-direction:column;gap:2px;">
-        <span style="font-size:10px;color:var(--text-3);" data-app-version>Version 1.0.0.4</span>
+        <span style="font-size:10px;color:var(--text-3);" data-app-version>Version 1.1.0.0</span>
         <span style="font-size:10px;color:var(--text-3);">Created by Jake McNeil</span>
       </div>
       <button class="top-btn primary" onclick="closeOptions()">Done</button>
@@ -32137,16 +32137,17 @@ button.primary:hover,
     <div class="sf-modal-body" style="overflow-y:auto;padding:16px 20px;">
       <div class="changes-browser">
         <nav class="changes-version-list" aria-label="Skript versions">
-          <button class="changes-version-btn active" data-changes-version="1.0.0.4" onclick="showChangesVersion('1.0.0.4')"><strong>1.0.0.4</strong><span>Official release</span></button>
+          <button class="changes-version-btn active" data-changes-version="1.1.0.0" onclick="showChangesVersion('1.1.0.0')"><strong>1.1.0.0</strong><span>Development build</span></button>
         </nav>
         <div>
-          <section class="changes-panel active" data-changes-panel="1.0.0.4">
-            <h3>Changes in 1.0.0.4</h3>
-            <p class="changes-panel-lead">The first formal public release of Skript 1.0.</p>
-            <div class="opt-section"><strong>Official release package</strong><div class="opt-note" style="margin-top:5px;">Prepared the signed Windows installer workflow, release documentation, checksum generation and final installer lifecycle gate for public distribution.</div></div>
-            <div class="opt-section"><strong>Long-session reliability</strong><div class="opt-note" style="margin-top:5px;">Reuses local desktop-service connections so extended editing, importing and production work cannot exhaust Windows loopback sockets.</div></div>
-            <div class="opt-section"><strong>Close-flow verification</strong><div class="opt-note" style="margin-top:5px;">Verifies that a native Windows close request opens Skript's save-before-closing prompt and saves dirty projects before closing.</div></div>
-            <div class="opt-section"><strong>Release verification</strong><div class="opt-note" style="margin-top:5px;">All source checks pass, with 97 browser workflows passing across desktop and compact-touch layouts and 9 intentionally skipped platform-specific duplicates.</div></div>
+          <section class="changes-panel active" data-changes-panel="1.1.0.0">
+            <h3>Changes in 1.1.0.0</h3>
+            <p class="changes-panel-lead">The first development build on the road to Skript 1.1.</p>
+            <div class="opt-section"><strong>Multiple script imports</strong><div class="opt-note" style="margin-top:5px;">Select several existing Skript files in one operation and open every valid script as a separate document.</div></div>
+            <div class="opt-section"><strong>Multi-script project foundation</strong><div class="opt-note" style="margin-top:5px;">Introduces the project-collection format used to group multiple script documents under one project identity.</div></div>
+            <div class="opt-section"><strong>Safer batch handling</strong><div class="opt-note" style="margin-top:5px;">A damaged or invalid file no longer prevents other valid files in the same selection from opening.</div></div>
+            <div class="opt-section"><strong>Recovery accessibility</strong><div class="opt-note" style="margin-top:5px;">Keeps keyboard focus inside the Recovery Centre when it is opened over the startup recovery prompt.</div></div>
+            <div class="opt-section"><strong>Development verification</strong><div class="opt-note" style="margin-top:5px;">All source checks pass, with 101 browser workflows passing across desktop and compact-touch layouts and 9 intentional platform-specific skips.</div></div>
           </section>
         </div>
       </div>
@@ -36190,7 +36191,7 @@ function openChangesModal() {
   closeOptions();
   const modal = document.getElementById('changes-modal');
   if (modal) modal.style.display = 'flex';
-  showChangesVersion('1.0.0.4');
+  showChangesVersion('1.1.0.0');
 }
 
 function showChangesVersion(version) {

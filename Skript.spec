@@ -56,7 +56,7 @@ exe = EXE(
     version=str(project_root / 'installer' / 'skript_version_info.txt'),
     codesign_identity=None,
     entitlements_file=None,
-    contents_directory='_runtime_1_0_0_4',
+    contents_directory='_runtime_1_1_0_0',
 )
 
 coll = COLLECT(

@@ -48,7 +48,7 @@ pyinstaller --noconfirm --clean Skript.spec
 
 ## Release information
 
-- [Skript 1.0 official release notes](RELEASE_NOTES_1.0.0.4.md)
+- [Skript 1.1 development notes](RELEASE_NOTES_1.1.0.0.md)
 - [Release checklist](RELEASING.md)
 - [Release signing and security](RELEASE_SECURITY.md)
 - [Third-party notices](THIRD_PARTY_NOTICES.txt)

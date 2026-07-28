@@ -16,11 +16,11 @@ if os.name == 'nt':
 
 
 APP_NAME = 'Skript'
-APP_VERSION = '1.0.0.4'
+APP_VERSION = '1.1.0.0'
 PUBLISHER = 'Jake McNeil'
 UNINSTALL_KEY = rf'Software\Microsoft\Windows\CurrentVersion\Uninstall\{APP_NAME}'
 VERSION_MARKER = 'version.txt'
-APP_RUNTIME_DIR = '_runtime_1_0_0_4'
+APP_RUNTIME_DIR = '_runtime_1_1_0_0'
 OBSOLETE_RUNTIME_NAMES = {'_internal'}
 INSTALLER_LOG = pathlib.Path(tempfile.gettempdir()) / 'Skript-Setup.log'
 

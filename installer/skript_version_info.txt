@@ -1,7 +1,7 @@
 VSVersionInfo(
   ffi=FixedFileInfo(
-    filevers=(1, 0, 0, 4),
-    prodvers=(1, 0, 0, 4),
+    filevers=(1, 1, 0, 0),
+    prodvers=(1, 1, 0, 0),
     mask=0x3f,
     flags=0x0,
     OS=0x40004,
@@ -14,12 +14,12 @@ VSVersionInfo(
       StringTable('080904b0', [
         StringStruct('CompanyName', 'Jake McNeil'),
         StringStruct('FileDescription', 'Skript Professional Screenwriting'),
-        StringStruct('FileVersion', '1.0.0.4'),
+        StringStruct('FileVersion', '1.1.0.0'),
         StringStruct('InternalName', 'Skript'),
         StringStruct('LegalCopyright', 'Copyright (c) 2026 Jake McNeil'),
         StringStruct('OriginalFilename', 'Skript.exe'),
         StringStruct('ProductName', 'Skript'),
-        StringStruct('ProductVersion', '1.0.0.4')
+        StringStruct('ProductVersion', '1.1.0.0')
       ])
     ]),
     VarFileInfo([VarStruct('Translation', [0x0809, 1200])])

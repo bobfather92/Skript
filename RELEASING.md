@@ -15,12 +15,12 @@ Never commit generated installers, portable packages, signing certificates, loca
 
 ## 2. Commit and tag
 
-The release tag must exactly match `v` followed by `VERSION.txt`. For build `1.0.0.4`, use:
+The release tag must exactly match `v` followed by `VERSION.txt`. For build `1.1.0.0`, use:
 
 ```powershell
-git tag -a v1.0.0.4 -m "Skript 1.0 official release"
+git tag -a v1.1.0.0 -m "Skript 1.1 official release"
 git push origin main
-git push origin v1.0.0.4
+git push origin v1.1.0.0
 ```
 
 The workflow rejects a mismatched tag and refuses to create an unsigned tagged build.

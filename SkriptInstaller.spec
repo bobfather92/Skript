@@ -42,7 +42,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='Skript-Setup-1.0.0.4',
+    name='Skript-Setup-1.1.0.0',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
