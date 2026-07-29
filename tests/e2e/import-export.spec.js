@@ -243,6 +243,12 @@ test('a user can export Word, Final Draft, and invoke PDF export', async ({ page
   const fixture = path.join(HERE, 'fixtures', 'loaded.script');
   await skript.loadLocalFile(fixture);
   await skript.switchRibbon('export');
+  await page.evaluate(() => {
+    setExportNotesEnabled(false);
+    const note = addLine(activeTabId, 'notes', getLinesContainer(activeTabId)?.lastElementChild);
+    note.textContent = 'PRIVATE EXPORT NOTE';
+  });
+  await expect(page.getByTestId('export-include-notes')).not.toBeChecked();
 
   const wordPromise = page.waitForEvent('download');
   await page.getByTestId('export-word').click();
@@ -251,6 +257,12 @@ test('a user can export Word, Final Draft, and invoke PDF export', async ({ page
   const wordBytes = await fs.readFile(await wordDownload.path());
   expect(wordBytes.subarray(0, 2).toString('ascii')).toBe('PK');
   expect(wordBytes.length).toBeGreaterThan(1000);
+  const wordXmlWithoutNotes = await page.evaluate(async bytes => {
+    _ensureDocxEngine();
+    const archive = await docx.JSZip.loadAsync(new Uint8Array(bytes));
+    return archive.file('word/document.xml').async('string');
+  }, Array.from(wordBytes));
+  expect(wordXmlWithoutNotes).not.toContain('PRIVATE EXPORT NOTE');
 
   const fdxPromise = page.waitForEvent('download');
   await page.getByTestId('export-fdx').click();
@@ -259,6 +271,7 @@ test('a user can export Word, Final Draft, and invoke PDF export', async ({ page
   const fdx = await fs.readFile(await fdxDownload.path(), 'utf8');
   expect(fdx).toContain('<FinalDraft');
   expect(fdx).toContain('INT. AUTOMATION LAB - DAY');
+  expect(fdx).not.toContain('PRIVATE EXPORT NOTE');
 
   await page.evaluate(() => {
     const exportTabId = activeTabId;
@@ -285,5 +298,31 @@ test('a user can export Word, Final Draft, and invoke PDF export', async ({ page
   expect(pdfPayload.layoutVersion).toBe(1);
   expect(pdfPayload.layout.map(line => line.text)).toContain('INT. AUTOMATION LAB - DAY');
   expect(pdfPayload.layout.map(line => line.text)).not.toContain('INT. OTHER PROJECT - NIGHT');
+  expect(pdfPayload.lines.map(line => line.text)).not.toContain('PRIVATE EXPORT NOTE');
+  expect(pdfPayload.includeNotes).toBe(false);
   expect(await page.evaluate(() => window.__skriptPrintCalls)).toBe(0);
+
+  await page.getByTestId('export-include-notes').check();
+  const wordWithNotesPromise = page.waitForEvent('download');
+  await page.getByTestId('export-word').click();
+  const wordWithNotesDownload = await wordWithNotesPromise;
+  const wordWithNotesBytes = await fs.readFile(await wordWithNotesDownload.path());
+  const wordXmlWithNotes = await page.evaluate(async bytes => {
+    const archive = await docx.JSZip.loadAsync(new Uint8Array(bytes));
+    return archive.file('word/document.xml').async('string');
+  }, Array.from(wordWithNotesBytes));
+  expect(wordXmlWithNotes).toContain('PRIVATE EXPORT NOTE');
+
+  const fdxWithNotesPromise = page.waitForEvent('download');
+  await page.getByTestId('export-fdx').click();
+  const fdxWithNotesDownload = await fdxWithNotesPromise;
+  const fdxWithNotes = await fs.readFile(await fdxWithNotesDownload.path(), 'utf8');
+  expect(fdxWithNotes).toContain('PRIVATE EXPORT NOTE');
+
+  pdfPayload = undefined;
+  await page.getByTestId('export-pdf').click();
+  await expect(page.locator('#pdf-inc-notes')).toBeChecked();
+  await page.getByTestId('confirm-export-pdf').click();
+  await expect.poll(() => pdfPayload?.includeNotes).toBe(true);
+  expect(pdfPayload.lines.map(line => line.text)).toContain('PRIVATE EXPORT NOTE');
 });

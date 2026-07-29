@@ -366,7 +366,7 @@ test('real Final Draft files and advanced FDX features survive round trip', asyn
   await page.locator('#fdx-import-input').setInputFiles(path.join(fixtureDir, 'real-final-draft-v5.fdx'));
   await expect(page.locator('.tab.active .tab-title')).toHaveText('FDX Test Script');
   const realRoundTrip = await page.evaluate(() => {
-    const xml = buildFDXDocument();
+    const xml = buildFDXDocument(true);
     const validation = validateFDXRoundTrip(xml);
     const reparsed = parseFDXDocument(xml);
     return {
@@ -390,7 +390,7 @@ test('real Final Draft files and advanced FDX features survive round trip', asyn
   await expect(page.locator('.tab.active .tab-title')).toHaveText('FDX Advanced Conformance');
   await expect(page.locator('.script-panel.active .dual-dialogue-wrap')).toHaveCount(1);
   const advanced = await page.evaluate(() => {
-    const xml = buildFDXDocument();
+    const xml = buildFDXDocument(true);
     const validation = validateFDXRoundTrip(xml);
     const parsed = parseFDXDocument(xml);
     const scene = parsed.lines.find(line => line.type === 'scene');

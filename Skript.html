@@ -27176,8 +27176,9 @@ button, .rb, .ribbon-tab, .tab, .add-doc-item,
     }
     .cover-page input::placeholder, .cover-page textarea::placeholder { color: transparent !important; }
     .script-line { color: black !important; background: transparent !important; border: none !important; font-size: 12pt !important; line-height: 1.0 !important; }
-    .script-line[data-type="parenthetical"] { font-style: italic !important; color: #333 !important; }
+    .script-line[data-type="parenthetical"] { font-style: normal !important; color: #000 !important; }
     .script-line[data-type="notes"] { border-left: 2px solid #999 !important; color: #555 !important; }
+    body[data-export-notes="exclude"] .script-line[data-type="notes"] { display: none !important; }
     .script-line::after, .script-line::before { display: none !important; }
     .script-line[data-type="scene"]::before { display: none !important; }
 
@@ -30292,11 +30293,108 @@ body[data-script-direction="rtl"] .script-page .line-parenthetical { margin-left
   margin-top: 12pt;
 }
 .script-page[data-format="film"] .script-line[data-type="parenthetical"],
-.script-page[data-format="tv"] .script-line[data-type="parenthetical"] { padding-left: 1.5in; padding-right: 2in; }
+.script-page[data-format="tv"] .script-line[data-type="parenthetical"] {
+  padding-left: 1.5in; padding-right: 2in; font-style: normal; color: #1a1a1a;
+}
 .script-page[data-format="film"] .script-line[data-type="transition"],
 .script-page[data-format="tv"] .script-line[data-type="transition"] {
   margin-top: 12pt; margin-bottom: 12pt; padding-left: 0; padding-right: 0;
   text-align: right; font-weight: 400;
+}
+.script-page[data-format="film"] .script-line[data-type="new-act"],
+.script-page[data-format="tv"] .script-line[data-type="new-act"] {
+  border: 0; padding: 0; margin: 0 0 24pt; text-align: center;
+  text-transform: uppercase; text-decoration: underline; letter-spacing: 0;
+  font-weight: 400;
+}
+.script-page[data-format="film"] .script-line[data-type="end-act"],
+.script-page[data-format="tv"] .script-line[data-type="end-act"],
+.script-page[data-format="tv"] .script-line[data-type="cold-open"],
+.script-page[data-format="tv"] .script-line[data-type="act-break"],
+.script-page[data-format="tv"] .script-line[data-type="tag"] {
+  border: 0; padding: 0; text-align: center; text-transform: uppercase;
+  letter-spacing: 0; font-weight: 400;
+}
+
+/* BBC radio drama Scene Style uses Arial, a cue column at the left and
+   dialogue beginning on the same line. Technical directions are uppercase
+   and underlined; pages use a centred footer number when exported. */
+.script-page[data-format="audio"] {
+  padding: 1in !important;
+}
+.script-page[data-format="audio"] .lines-container {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 12pt;
+  line-height: 24pt;
+}
+.script-page[data-format="audio"] .script-line {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 12pt;
+  line-height: 24pt;
+  min-height: 24pt;
+}
+.script-page[data-format="audio"] .script-line[data-type="scene"] {
+  display: block; text-align: center; text-transform: uppercase;
+  font-weight: 400; margin: 12pt 0 24pt; padding: 0;
+}
+.script-page[data-format="audio"] .script-line[data-type="character"] {
+  display: inline-block; width: 1.5in; margin: 12pt 0 0; padding: 0;
+  vertical-align: top; text-align: left; text-transform: uppercase;
+  font-weight: 400;
+}
+.script-page[data-format="audio"] .script-line[data-type="character"]::after {
+  content: ":";
+}
+.script-page[data-format="audio"] .script-line[data-type="dialogue"],
+.script-page[data-format="audio"] .script-line[data-type="parenthetical"] {
+  display: inline; margin: 0; padding: 0; font-style: normal; color: #1a1a1a;
+}
+.script-page[data-format="audio"] .script-line[data-type="character"] +
+.script-line[data-type="dialogue"],
+.script-page[data-format="audio"] .script-line[data-type="character"] +
+.script-line[data-type="parenthetical"] {
+  margin-left: 0.5in;
+}
+.script-page[data-format="audio"] .script-line[data-type="parenthetical"] {
+  text-transform: uppercase;
+}
+.script-page[data-format="audio"] .script-line[data-type="parenthetical"]::after {
+  content: " ";
+}
+.script-page[data-format="audio"] .script-line[data-type="dialogue"]::after {
+  content: ""; display: block; height: 12pt;
+}
+.script-page[data-format="audio"] .script-line[data-type="action"],
+.script-page[data-format="audio"] .script-line[data-type="stage-direction"],
+.script-page[data-format="audio"] .script-line[data-type="transition"] {
+  display: block; margin: 12pt 0 12pt 2.5in; padding: 0;
+  text-align: left; text-transform: uppercase; text-decoration: underline;
+  font-weight: 400;
+}
+
+/* BBC stage guide: cues sit around the middle without centring, directions
+   are bracketed mixed case, and every later scene begins on a new page. */
+.script-page[data-format="play"] .script-line[data-type="character"] {
+  font-weight: 400;
+}
+.script-page[data-format="play"] .script-line[data-type="act"],
+.script-page[data-format="play"] .script-line[data-type="scene"] {
+  text-align: center;
+}
+.script-page[data-format="play"] .script-line[data-type="scene"] +
+.script-line[data-type="action"],
+.script-page[data-format="play"] .script-line[data-type="scene"] +
+.script-line[data-type="stage-direction"] {
+  padding-left: 2.5in;
+}
+@media print {
+  .script-page[data-format="play"] .script-line[data-type="scene"] {
+    break-before: page; page-break-before: always;
+  }
+  .script-page[data-format="play"] .script-line[data-type="act"] +
+  .script-line[data-type="scene"] {
+    break-before: auto; page-break-before: auto;
+  }
 }
 
 /* Focus mode always shows the live active editor, even when entered from the
@@ -30806,6 +30904,15 @@ button.primary:hover,
           <button class="rb rb-tall" data-testid="print-all" onclick="printAll()"><span class="rb-icon">🖨️</span><span class="rb-label">Print All</span></button>
         </div>
         <div class="rg-label">Print</div>
+      </div>
+      <div class="rg">
+        <div class="rg-inner" style="align-items:center;padding:0 8px;">
+          <label title="Include Notes elements in PDF, Word, Fountain, Final Draft and printed script exports" style="display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text-2);cursor:pointer;white-space:nowrap;">
+            <input type="checkbox" id="export-inc-notes" data-testid="export-include-notes" onchange="setExportNotesEnabled(this.checked)">
+            <span>Include Notes</span>
+          </label>
+        </div>
+        <div class="rg-label">Script Content</div>
       </div>
     </div><!-- /export panel -->
 
@@ -32140,10 +32247,12 @@ button.primary:hover,
             <div class="opt-section"><strong>Clean WriterDuet dialogue</strong><div class="opt-note" style="margin-top:5px;">Remove hidden formatting markers from character names and recombine consecutive native dialogue fragments into one editable speech.</div></div>
             <div class="opt-section"><strong>WriterDuet transitions and acts</strong><div class="opt-note" style="margin-top:5px;">Right-align screenplay transitions and import WriterDuet Act records as visible New Act elements that always begin a fresh page.</div></div>
             <div class="opt-section"><strong>Whole imported dialogue</strong><div class="opt-note" style="margin-top:5px;">Keep long imported dialogue as one selectable and editable paragraph, including Word soft line breaks and dialogue that visually extends past a page.</div></div>
+            <div class="opt-section"><strong>BBC-format script creation</strong><div class="opt-note" style="margin-top:5px;">Align Film, TV, Radio Scene Style and Stage projects with the BBC guides, including A4 screenplay margins, regular parentheticals, right-aligned transitions, radio cue columns, page numbering, and fresh pages for Acts and stage scenes.</div></div>
+            <div class="opt-section"><strong>Optional Notes in exports</strong><div class="opt-note" style="margin-top:5px;">Choose whether Notes elements are included in PDF, Word, Fountain, Final Draft and printed script output. Notes stay private by default.</div></div>
             <div class="opt-section"><strong>Multi-script project foundation</strong><div class="opt-note" style="margin-top:5px;">Introduces the project-collection format used to group multiple script documents under one project identity.</div></div>
             <div class="opt-section"><strong>Safer batch handling</strong><div class="opt-note" style="margin-top:5px;">A damaged or invalid file no longer prevents other valid files in the same selection from opening.</div></div>
             <div class="opt-section"><strong>Recovery accessibility</strong><div class="opt-note" style="margin-top:5px;">Keeps keyboard focus inside the Recovery Centre when it is opened over the startup recovery prompt.</div></div>
-            <div class="opt-section"><strong>Development verification</strong><div class="opt-note" style="margin-top:5px;">All source checks pass, with 103 browser workflows passing across desktop and compact-touch layouts and 9 intentional platform-specific skips.</div></div>
+            <div class="opt-section"><strong>Development verification</strong><div class="opt-note" style="margin-top:5px;">All source checks pass, with 104 browser workflows passing across desktop and compact-touch layouts and 10 intentional platform-specific skips.</div></div>
           </section>
         </div>
       </div>
@@ -32718,6 +32827,7 @@ button.primary:hover,
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px;">
       <label class="pdf-choice-row"><input type="checkbox" id="pdf-inc-title" checked> Title Page</label>
       <label class="pdf-choice-row"><input type="checkbox" id="pdf-inc-script" checked> Script</label>
+      <label class="pdf-choice-row"><input type="checkbox" id="pdf-inc-notes" onchange="setExportNotesEnabled(this.checked)"> Include Notes elements</label>
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end;">
       <button class="top-btn" onclick="closePDFModal()">Cancel</button>
@@ -35983,6 +36093,34 @@ const WORD_LIST_SET = new Set(WORD_LIST.map(w => w.toLowerCase()));
 function toggleExportMenu() { /* no-op: export handled by ribbon */ }
 function closeExportMenu() { /* no-op */ }
 
+const EXPORT_INCLUDE_NOTES_KEY = 'skript-export-include-notes';
+
+function exportNotesEnabled() {
+  return document.getElementById('export-inc-notes')?.checked === true;
+}
+
+function setExportNotesEnabled(enabled, persist = true) {
+  const include = enabled === true;
+  const ribbonChoice = document.getElementById('export-inc-notes');
+  const pdfChoice = document.getElementById('pdf-inc-notes');
+  if (ribbonChoice) ribbonChoice.checked = include;
+  if (pdfChoice) pdfChoice.checked = include;
+  if (persist) {
+    try { localStorage.setItem(EXPORT_INCLUDE_NOTES_KEY, include ? 'true' : 'false'); } catch (_) {}
+  }
+}
+
+function initExportNotesPreference() {
+  let include = false;
+  try { include = localStorage.getItem(EXPORT_INCLUDE_NOTES_KEY) === 'true'; } catch (_) {}
+  setExportNotesEnabled(include, false);
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initExportNotesPreference, { once: true });
+} else {
+  initExportNotesPreference();
+}
+
 // ═══════════════════════════════════════
 //  WORD (.docx) EXPORT
 // ═══════════════════════════════════════
@@ -36005,93 +36143,271 @@ function _ensureDocxEngine() {
 
 function exportWord() {
   const container = getLinesContainer(activeTabId);
-  const coverPanel = document.querySelector(`.cover-view[data-cover-id="${activeTabId}"]`);
   if (!container) return;
   if (!_ensureDocxEngine()) {
     showToast('Word export could not start. Please restart Skript and try again.', 6000);
     return;
   }
 
-  const title = coverPanel?.querySelector('.cover-title-input')?.value || 'Untitled Script';
-  const author = coverPanel?.querySelector('.cover-author-input')?.value || '';
-  const draft  = coverPanel?.querySelector('.cover-draft-input')?.value || '';
+  const cover = getCoverData(activeTabId);
+  const title = cover.title || 'Untitled Script';
+  const author = cover.author || '';
+  const includeNotes = exportNotesEnabled();
+  const tab = tabs.find(item => item.id === activeTabId);
+  const format = tab?.format || activeFormat || 'film';
+  const isAudio = format === 'audio';
+  const {
+    Document, Packer, Paragraph, TextRun, AlignmentType, Header,
+    Footer, PageNumber, SectionType, TabStopType,
+  } = docx;
 
-  const { Document, Packer, Paragraph, TextRun, AlignmentType, HeadingLevel, PageBreak } = docx;
+  const FONT = isAudio ? 'Arial' : 'Courier New';
+  const A4_PAGE = {
+    size: { width: 11906, height: 16838 },
+    margin: isAudio
+      ? { top: 1440, right: 1440, bottom: 1440, left: 1440, header: 720, footer: 720 }
+      : { top: 1440, right: 1080, bottom: 1440, left: 2160, header: 720, footer: 720 },
+  };
+  const run = (text, options = {}) => new TextRun({ text, font: FONT, size: 24, ...options });
+  const multilineRuns = (values, options = {}) => values.map((value, index) =>
+    run(value, { ...options, break: index ? 1 : undefined })
+  );
+  const coverChildren = [];
+  const scriptChildren = [];
 
-  const children = [];
-
-  // Title page
-  children.push(new Paragraph({
-    children: [new TextRun({ text: title, bold: true, size: 48, allCaps: true })],
+  // BBC title page: clean Courier typography, no page number, with contact
+  // and rights details retained at the foot of the page.
+  coverChildren.push(new Paragraph({
+    children: [run(title.toUpperCase(), { bold: true, size: 28 })],
     alignment: AlignmentType.CENTER,
-    spacing: { before: 2880, after: 480 },
+    spacing: { before: 3600, after: 240 },
   }));
-  if (author) children.push(new Paragraph({
-    children: [new TextRun({ text: 'Written by', size: 24, color: '888888' })],
+  if (author) {
+    coverChildren.push(new Paragraph({
+      children: [run('Written by')],
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 120 },
+    }));
+    coverChildren.push(new Paragraph({
+      children: [run(author)],
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 240 },
+    }));
+  }
+  if (cover.basedOn) coverChildren.push(new Paragraph({
+    children: [run(cover.basedOn)],
     alignment: AlignmentType.CENTER,
+    spacing: { after: 120 },
   }));
-  if (author) children.push(new Paragraph({
-    children: [new TextRun({ text: author, size: 28, bold: true })],
+  const draftLine = [cover.draft, cover.date].filter(Boolean).join(' | ');
+  if (draftLine) coverChildren.push(new Paragraph({
+    children: [run(draftLine, { size: 20 })],
     alignment: AlignmentType.CENTER,
     spacing: { after: 240 },
   }));
-  if (draft) children.push(new Paragraph({
-    children: [new TextRun({ text: draft, size: 22, color: '888888' })],
-    alignment: AlignmentType.CENTER,
+  const contacts = [cover.contact1, cover.contact2, cover.contact3, cover.contact4].filter(Boolean);
+  const rights = [cover.rights1, cover.rights2].filter(Boolean);
+  if (contacts.length) coverChildren.push(new Paragraph({
+    children: multilineRuns(contacts, { size: 18 }),
+    spacing: { before: 3000, after: 120 },
+  }));
+  if (rights.length) coverChildren.push(new Paragraph({
+    children: multilineRuns(rights, { size: 18 }),
+    alignment: AlignmentType.RIGHT,
   }));
 
-  // Page break before script
-  children.push(new Paragraph({ children: [new PageBreak()] }));
+  let hasScriptContent = false;
+  const sourceLines = Array.from(container.querySelectorAll('.script-line'));
 
-  // Script lines
-  container.querySelectorAll('.script-line').forEach(line => {
+  if (isAudio) {
+    for (let index = 0; index < sourceLines.length; index++) {
+      const line = sourceLines[index];
+      const type = line.dataset.type || 'action';
+      const text = line.textContent.trim() || ' ';
+      if (type === 'notes' && !includeNotes) continue;
+
+      if (type === 'character') {
+        const speechRuns = [run(text.replace(/:\s*$/, '').toUpperCase() + ':'), run('\t')];
+        let cursor = index + 1;
+        while (cursor < sourceLines.length && ['parenthetical', 'dialogue'].includes(sourceLines[cursor].dataset.type)) {
+          const speechType = sourceLines[cursor].dataset.type;
+          let speechText = sourceLines[cursor].textContent.trim();
+          if (speechType === 'parenthetical') speechText = speechText.toUpperCase();
+          if (speechText) speechRuns.push(run((speechRuns.length > 2 ? ' ' : '') + speechText));
+          cursor++;
+        }
+        scriptChildren.push(new Paragraph({
+          children: speechRuns,
+          spacing: { before: 240, after: 240, line: 480 },
+          indent: { left: 2880, hanging: 2880 },
+          tabStops: [{ type: TabStopType.LEFT, position: 2880 }],
+          keepLines: true,
+        }));
+        index = cursor - 1;
+        hasScriptContent = true;
+        continue;
+      }
+
+      let para;
+      if (type === 'scene') para = new Paragraph({
+        children: [run(text.toUpperCase())],
+        alignment: AlignmentType.CENTER,
+        spacing: { before: 240, after: 480, line: 480 },
+        keepNext: true,
+      });
+      else if (type === 'action' || type === 'stage-direction' || type === 'transition') para = new Paragraph({
+        children: [run(text.toUpperCase(), { underline: {} })],
+        indent: { left: 3600 },
+        spacing: { before: 240, after: 240, line: 480 },
+      });
+      else if (type === 'notes') para = new Paragraph({
+        children: [run(`[NOTE: ${text}]`, { size: 20, color: '555555' })],
+        spacing: { before: 120, after: 120, line: 240 },
+      });
+      else para = new Paragraph({
+        children: [run(text)],
+        spacing: { before: 240, after: 240, line: 480 },
+      });
+      scriptChildren.push(para);
+      hasScriptContent = true;
+    }
+  } else sourceLines.forEach((line, sourceIndex) => {
     const text = line.textContent.trim() || ' ';
     const type = line.dataset.type;
+    if (type === 'notes' && !includeNotes) return;
     let para;
     switch (type) {
       case 'scene':
         para = new Paragraph({
-          children: [new TextRun({ text, bold: true, allCaps: true, size: 24 })],
-          spacing: { before: 360, after: 120 },
-          indent: { left: 0 },
+          children: [run(text.toUpperCase())],
+          alignment: format === 'play' ? AlignmentType.CENTER : undefined,
+          spacing: { before: 480, after: 240, line: 240 },
+          pageBreakBefore: format === 'play' && hasScriptContent
+            && !['act', 'new-act'].includes(sourceLines[sourceIndex - 1]?.dataset.type),
+          keepNext: true,
+        }); break;
+      case 'subheading':
+        para = new Paragraph({
+          children: [run(text.toUpperCase())],
+          spacing: { before: 240, after: 240, line: 240 },
+          keepNext: true,
         }); break;
       case 'action':
+        {
+        const stageText = format === 'play' && !text.startsWith('(') ? `(${text})` : text;
+        const opensStageScene = format === 'play'
+          && sourceLines[sourceIndex - 1]?.dataset.type === 'scene';
         para = new Paragraph({
-          children: [new TextRun({ text, size: 24 })],
-          spacing: { before: 120, after: 120 },
+          children: [run(stageText)],
+          spacing: { before: 0, after: 240, line: 240 },
+          indent: opensStageScene ? { left: 3600 } : undefined,
+          widowControl: true,
         }); break;
+        }
       case 'character':
         para = new Paragraph({
-          children: [new TextRun({ text, bold: true, allCaps: true, size: 24 })],
-          alignment: AlignmentType.CENTER,
-          spacing: { before: 240, after: 0 },
+          children: [run(text.toUpperCase())],
+          spacing: { before: 240, after: 0, line: 240 },
+          indent: { left: 2880 },
+          keepNext: true,
         }); break;
       case 'dialogue':
         para = new Paragraph({
-          children: [new TextRun({ text, size: 24 })],
-          alignment: AlignmentType.CENTER,
-          spacing: { before: 0, after: 120 },
-          indent: { left: 1440, right: 1440 },
+          children: [run(text)],
+          spacing: { before: 0, after: 0, line: 240 },
+          indent: { left: 1440, right: 1800 },
+          widowControl: true,
+        }); break;
+      case 'parenthetical':
+        para = new Paragraph({
+          children: [run(text)],
+          spacing: { before: 0, after: 0, line: 240 },
+          indent: { left: 2160, right: 2880 },
+          keepNext: true,
         }); break;
       case 'transition':
         para = new Paragraph({
-          children: [new TextRun({ text, bold: true, allCaps: true, size: 24 })],
+          children: [run(text.toUpperCase())],
           alignment: AlignmentType.RIGHT,
-          spacing: { before: 240, after: 240 },
+          spacing: { before: 240, after: 240, line: 240 },
         }); break;
+      case 'new-act':
+      case 'act':
+        para = new Paragraph({
+          children: [run(text.toUpperCase(), { underline: {} })],
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 0, after: 480, line: 240 },
+          pageBreakBefore: hasScriptContent,
+          keepNext: true,
+        }); break;
+      case 'end-act':
+      case 'act-break':
+      case 'cold-open':
+      case 'tag':
+        para = new Paragraph({
+          children: [run(text.toUpperCase())],
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 240, after: 240, line: 240 },
+        }); break;
+      case 'stage-direction':
+        {
+        const opensStageScene = format === 'play'
+          && sourceLines[sourceIndex - 1]?.dataset.type === 'scene';
+        para = new Paragraph({
+          children: [run(text.startsWith('(') ? text : `(${text})`)],
+          spacing: { before: 240, after: 240, line: 240 },
+          indent: opensStageScene ? { left: 3600 } : undefined,
+        }); break;
+        }
       case 'notes':
         para = new Paragraph({
-          children: [new TextRun({ text: '// ' + text, italics: true, size: 22, color: '16a085' })],
-          spacing: { before: 60, after: 60 },
+          children: [run(`[NOTE: ${text}]`, { size: 20, color: '555555' })],
+          spacing: { before: 120, after: 120, line: 240 },
         }); break;
       default:
-        para = new Paragraph({ children: [new TextRun({ text, size: 24 })] });
+        para = new Paragraph({
+          children: [run(text)],
+          spacing: { before: 0, after: 240, line: 240 },
+        });
     }
-    children.push(para);
+    scriptChildren.push(para);
+    hasScriptContent = true;
   });
 
+  const scriptHeader = isAudio ? undefined : new Header({
+    children: [new Paragraph({
+      children: [new TextRun({ children: [PageNumber.CURRENT, '.'], font: FONT, size: 24 })],
+      alignment: AlignmentType.RIGHT,
+    })],
+  });
+  const scriptFooter = isAudio ? new Footer({
+    children: [new Paragraph({
+      children: [
+        run('- '),
+        new TextRun({ children: [PageNumber.CURRENT], font: FONT, size: 24 }),
+        run(' -'),
+      ],
+      alignment: AlignmentType.CENTER,
+    })],
+  }) : undefined;
+
   const doc = new Document({
-    sections: [{ properties: {}, children }],
+    sections: [
+      {
+        properties: { page: A4_PAGE },
+        children: coverChildren,
+      },
+      {
+        properties: {
+          type: SectionType.NEXT_PAGE,
+          page: { ...A4_PAGE, pageNumbers: { start: 1 } },
+          grid: { linePitch: 240 },
+        },
+        headers: scriptHeader ? { default: scriptHeader } : {},
+        footers: scriptFooter ? { default: scriptFooter } : {},
+        children: scriptChildren.length ? scriptChildren : [new Paragraph({ children: [run(' ')] })],
+      },
+    ],
     creator: author || 'Skript',
     title,
   });
@@ -39670,6 +39986,7 @@ function exportStoryboardPDF() {
 
 function printScriptOnly() {
   updateContdMore();
+  document.body.setAttribute('data-export-notes', exportNotesEnabled() ? 'include' : 'exclude');
   const scriptPanel = document.querySelector(`.script-panel[data-tab-id="${activeTabId}"]`);
   const prevDisplay = scriptPanel ? scriptPanel.style.display : null;
   document.querySelectorAll('[data-print-target]').forEach(el => el.removeAttribute('data-print-target'));
@@ -39678,6 +39995,7 @@ function printScriptOnly() {
   document.body.setAttribute('data-print-mode', 'script');
   const cleanup = () => {
     document.body.removeAttribute('data-print-mode');
+    document.body.removeAttribute('data-export-notes');
     removeWatermarkAfterPrint();
     if (scriptPanel) {
       if (prevDisplay !== null) scriptPanel.style.display = prevDisplay;
@@ -39691,10 +40009,12 @@ function printScriptOnly() {
 
 function printAll() {
   updateContdMore();
+  document.body.setAttribute('data-export-notes', exportNotesEnabled() ? 'include' : 'exclude');
   applyWatermarkForPrint();
   document.body.setAttribute('data-print-mode', 'all');
   const cleanup = () => {
     document.body.removeAttribute('data-print-mode');
+    document.body.removeAttribute('data-export-notes');
     removeWatermarkAfterPrint();
     window.removeEventListener('afterprint', cleanup);
   };
@@ -39705,6 +40025,7 @@ function printAll() {
 // ── PDF Export with choice modal ──
 function showExportPDFModal() {
   const modal = document.getElementById('pdf-export-modal');
+  setExportNotesEnabled(exportNotesEnabled(), false);
   if (modal) { modal.style.display = 'flex'; }
 }
 function closePDFModal() {
@@ -39715,7 +40036,7 @@ function closePDFModal() {
 // The live editor is the pagination authority. Exporting its measured layout
 // prevents the desktop renderer from making a second, slightly different
 // wrapping decision for headings, dialogue continuations, or dual dialogue.
-function buildCanonicalPrintLayout(container) {
+function buildCanonicalPrintLayout(container, includeNotes = false) {
   if (!container) return [];
   const textOf = element => (element?.innerText ?? element?.textContent ?? '').trim();
   const serializeLine = line => ({
@@ -39727,14 +40048,18 @@ function buildCanonicalPrintLayout(container) {
 
   Array.from(container.children).forEach(node => {
     if (node.classList.contains('script-line')) {
-      layout.push(serializeLine(node));
+      if (includeNotes || node.dataset.type !== 'notes') layout.push(serializeLine(node));
     } else if (node.classList.contains('dual-dialogue-wrap')) {
+      const columns = Array.from(node.querySelectorAll(':scope > .dual-col')).map(column =>
+        Array.from(column.querySelectorAll(':scope > .script-line'))
+          .filter(line => includeNotes || line.dataset.type !== 'notes')
+          .map(serializeLine)
+      );
+      if (!columns.some(column => column.length)) return;
       layout.push({
         type: 'dual-dialogue',
         pageLeading: node.classList.contains('page-leading-line'),
-        columns: Array.from(node.querySelectorAll(':scope > .dual-col')).map(column =>
-          Array.from(column.querySelectorAll(':scope > .script-line')).map(serializeLine)
-        ),
+        columns,
       });
     } else if (node.classList.contains('more-mark')) {
       layout.push({ type: '_more', text: textOf(node) || '(MORE)' });
@@ -39752,6 +40077,8 @@ function buildCanonicalPrintLayout(container) {
 async function doExportPDF() {
   const incTitle  = document.getElementById('pdf-inc-title')?.checked  ?? true;
   const incScript = document.getElementById('pdf-inc-script')?.checked ?? true;
+  const incNotes  = document.getElementById('pdf-inc-notes')?.checked  ?? false;
+  setExportNotesEnabled(incNotes);
   closePDFModal();
   if (!incTitle && !incScript) {
     showToast('Select the title page, script, or both.');
@@ -39765,11 +40092,13 @@ async function doExportPDF() {
     if (incScript) updateContdMore();
     const cover = getCoverData(activeTabId);
     const tab = tabs.find(item => item.id === activeTabId);
-    const lines = Array.from(container?.querySelectorAll('.script-line') || []).map(line => ({
-      type: line.dataset.type || 'action',
-      text: persistedScriptLineText(line).trim(),
-    }));
-    const layout = incScript ? buildCanonicalPrintLayout(container) : [];
+    const lines = Array.from(container?.querySelectorAll('.script-line') || [])
+      .filter(line => incNotes || line.dataset.type !== 'notes')
+      .map(line => ({
+        type: line.dataset.type || 'action',
+        text: persistedScriptLineText(line).trim(),
+      }));
+    const layout = incScript ? buildCanonicalPrintLayout(container, incNotes) : [];
     try {
       showToast('Creating PDF…', 5000);
       const response = await sfApiFetch('/api/export-pdf', {
@@ -39786,6 +40115,7 @@ async function doExportPDF() {
           importProfile: cloneProjectValue(tab?.importProfile, null),
           includeCover: incTitle,
           includeScript: incScript,
+          includeNotes: incNotes,
         }),
         timeoutMs: 45000,
       });
@@ -39799,10 +40129,10 @@ async function doExportPDF() {
       showToast(`PDF renderer unavailable: ${error.message}. Opening print dialog.`, 6000);
     }
   }
-  _fallbackWindowPrint(incTitle, incScript);
+  _fallbackWindowPrint(incTitle, incScript, incNotes);
 }
 
-function _fallbackWindowPrint(incTitle, incScript) {
+function _fallbackWindowPrint(incTitle, incScript, incNotes = false) {
   if (incScript) updateContdMore();
   let mode = 'script';
   if (incTitle && incScript) mode = 'script-with-cover';
@@ -39823,8 +40153,10 @@ function _fallbackWindowPrint(incTitle, incScript) {
     scriptPanel.style.display = 'block'; scriptPanel.dataset.printTarget = 'true';
   }
   document.body.setAttribute('data-print-mode', mode);
+  document.body.setAttribute('data-export-notes', incNotes ? 'include' : 'exclude');
   const cleanup = () => {
     document.body.removeAttribute('data-print-mode');
+    document.body.removeAttribute('data-export-notes');
     if (coverEl) { coverEl.style.display = prevCoverDsp ?? ''; coverEl.style.visibility = prevCoverVis ?? ''; coverEl.style.opacity = prevCoverOp ?? ''; }
     _cleanupCoverPrintValues(coverEl);
     if (scriptPanel) scriptPanel.style.display = prevScriptDsp ?? '';
@@ -45300,7 +45632,10 @@ switchActiveView = function(view) {
 // ═══════════════════════════════════════════════════════════════════
 
 function persistedScriptLineText(line) {
-  return line?.dataset?.paginationFullText ?? line?.innerText ?? line?.textContent ?? '';
+  // textContent is the authored value. innerText can apply CSS text-transform
+  // (for example BBC Radio technical directions), which must never rewrite
+  // imported metadata, saves, or semantic exports.
+  return line?.dataset?.paginationFullText ?? line?.textContent ?? line?.innerText ?? '';
 }
 
 const CONTD_MORE = {
@@ -45441,6 +45776,10 @@ function updateContdMore() {
   const lineText = line => line.textContent.trim();
 
   function unitsFor(line) {
+    if (currentFormat === 'audio') {
+      const audioType = typeOf(line);
+      if (audioType === 'character' || audioType === 'parenthetical') return 0;
+    }
     const rectHeight = line.getBoundingClientRect?.().height || 0;
     let marginHeight = 0;
     if (typeof getComputedStyle === 'function') {
@@ -45531,6 +45870,13 @@ function updateContdMore() {
   let runningLines = 0;
   let pageNum = 1;
   let dialogueUnitsOnPage = 0;
+  const currentFormat = (
+    (typeof tabs !== 'undefined' && Array.isArray(tabs)
+      ? tabs.find(tab => tab.id === activeTabId)?.format
+      : '')
+    || (typeof activeFormat !== 'undefined' ? activeFormat : '')
+    || 'film'
+  );
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -45540,7 +45886,10 @@ function updateContdMore() {
 
     // An act opening is a hard structural boundary. Keep the first act at the
     // top of page one; every later New Act begins at the top of a fresh page.
-    if (type === 'new-act' && runningLines > 0) {
+    const previousType = i > 0 ? typeOf(lines[i - 1]) : '';
+    const isStageBoundary = currentFormat === 'play'
+      && (type === 'act' || (type === 'scene' && !['act', 'new-act'].includes(previousType)));
+    if ((type === 'new-act' || isStageBoundary) && runningLines > 0) {
       pageNum++;
       insertBreakBefore(line, pageNum);
       runningLines = 0;
@@ -45885,6 +46234,7 @@ function exportFountain() {
   const container = getLinesContainer(activeTabId);
   if (!container) { showToast('Nothing to export'); return; }
   const cover = getCoverData(activeTabId);
+  const includeNotes = exportNotesEnabled();
 
   const lines = [];
 
@@ -45948,19 +46298,30 @@ function exportFountain() {
         break;
 
       case 'notes':
+        if (!includeNotes) break;
         lines.push('');
         lines.push(`/* ${text} */`);
         lines.push('');
         break;
 
       case 'cold-open':
+      case 'tag':
         lines.push('');
-        lines.push(`= ${text || 'COLD OPEN'}`);
+        lines.push(`> ${(text || type.replace('-', ' ')).toUpperCase()} <`);
         break;
 
       case 'act-break':
+      case 'new-act':
+      case 'act':
         lines.push('');
-        lines.push(`= ${text || 'ACT BREAK'}`);
+        lines.push('===');
+        lines.push('');
+        lines.push(`> ${(text || 'NEW ACT').toUpperCase()} <`);
+        break;
+
+      case 'end-act':
+        lines.push('');
+        lines.push(`> ${(text || 'END OF ACT').toUpperCase()} <`);
         break;
 
       default:
@@ -46722,7 +47083,7 @@ function _fdxAttrs(values) {
     .map(([name, value]) => ` ${name}="${_fdxEsc(String(value))}"`).join('');
 }
 
-function _fdxParagraphXML(type, text, metadata = {}, indent = '    ') {
+function _fdxParagraphXML(type, text, metadata = {}, indent = '    ', includeNotes = true) {
   const paragraphType = metadata.paragraphType || FDX_TYPE_MAP[type] || 'Action';
   const output = [`${indent}<Paragraph${_fdxAttrs({
     Type:paragraphType, Number:metadata.number, Alignment:metadata.alignment,
@@ -46741,9 +47102,11 @@ function _fdxParagraphXML(type, text, metadata = {}, indent = '    ') {
     Style:run.style, RevisionID:run.revisionId, Color:run.color, Background:run.background,
     Font:run.font, Size:run.size, Align:type === 'transition' ? 'Right' : ''
   })}>${_fdxEsc(run.text || '')}</Text>`));
-  (metadata.notes || []).forEach(note => output.push(
-    `${indent}  <ScriptNote><Paragraph Type="General"><Text>${_fdxEsc(note.text || note)}</Text></Paragraph></ScriptNote>`
-  ));
+  if (includeNotes) {
+    (metadata.notes || []).forEach(note => output.push(
+      `${indent}  <ScriptNote><Paragraph Type="General"><Text>${_fdxEsc(note.text || note)}</Text></Paragraph></ScriptNote>`
+    ));
+  }
   output.push(`${indent}</Paragraph>`);
   return output;
 }
@@ -46753,7 +47116,7 @@ function _fdxCoverSignature(cover = {}) {
     .map(key => String(cover[key] || '').replace(/\s+/g, '').trim()).join('\u001f');
 }
 
-function buildFDXDocument() {
+function buildFDXDocument(includeNotes = exportNotesEnabled()) {
   const container = getLinesContainer(activeTabId);
   if (!container) return '';
   const cover = getCoverData(activeTabId);
@@ -46775,8 +47138,11 @@ function buildFDXDocument() {
       Array.from(el.querySelectorAll('.dual-dialogue-cols > .dual-col')).forEach(column => {
         Array.from(column.children).forEach(line => {
           if (!line.classList.contains('script-line')) return;
+          if (!includeNotes && line.dataset.type === 'notes') return;
           const text = persistedScriptLineText(line).trim();
-          if (text) xmlLines.push(..._fdxParagraphXML(line.dataset.type || 'dialogue', text, _fdxLineMetadata(line), '        '));
+          if (text) xmlLines.push(..._fdxParagraphXML(
+            line.dataset.type || 'dialogue', text, _fdxLineMetadata(line), '        ', includeNotes
+          ));
         });
       });
       xmlLines.push('      </DualDialogue>');
@@ -46784,7 +47150,10 @@ function buildFDXDocument() {
       return;
     }
     if (!el.classList.contains('script-line')) return;
-    xmlLines.push(..._fdxParagraphXML(el.dataset.type || 'action', persistedScriptLineText(el).trim(), _fdxLineMetadata(el)));
+    if (!includeNotes && el.dataset.type === 'notes') return;
+    xmlLines.push(..._fdxParagraphXML(
+      el.dataset.type || 'action', persistedScriptLineText(el).trim(), _fdxLineMetadata(el), '    ', includeNotes
+    ));
   });
 
   xmlLines.push('  </Content>');
@@ -46945,18 +47314,24 @@ function parseFDXDocument(xmlText) {
   };
 }
 
-function _fdxDOMModel(container) {
+function _fdxDOMModel(container, includeNotes = true) {
   const readLine = line => ({
     type:line.dataset.type || 'action', text:persistedScriptLineText(line).trim(),
-    fdx:_fdxLineMetadata(line)
+    fdx:(() => {
+      const metadata = _fdxLineMetadata(line);
+      return includeNotes ? metadata : {...metadata, notes:[]};
+    })()
   });
   const output = [];
   Array.from(container?.children || []).forEach(node => {
-    if (node.classList.contains('script-line')) output.push(readLine(node));
+    if (node.classList.contains('script-line')) {
+      if (includeNotes || node.dataset.type !== 'notes') output.push(readLine(node));
+    }
     else if (node.classList.contains('dual-dialogue-wrap')) output.push({
       type:'dual-dialogue', text:'',
       columns:Array.from(node.querySelectorAll('.dual-dialogue-cols > .dual-col')).map(column =>
         Array.from(column.children).filter(line => line.classList.contains('script-line'))
+          .filter(line => includeNotes || line.dataset.type !== 'notes')
           .map(readLine).filter(line => line.text)
       )
     });
@@ -46972,7 +47347,10 @@ function _fdxCanonicalLine(line) {
   const runs = Array.isArray(metadata.runs) && metadata.runs.length
     ? metadata.runs : [{text:String(line.text || '')}];
   return {
-    type:line.type || 'action', text:String(line.text || '').replace(/\s+/g, ' ').trim(),
+    // Final Draft has no standalone Notes paragraph type. Visible Skript
+    // Notes are exported as General paragraphs, which round-trip as Action.
+    type:line.type === 'notes' ? 'action' : (line.type || 'action'),
+    text:String(line.text || '').replace(/\s+/g, ' ').trim(),
     number:metadata.number || '', startsNewPage:metadata.startsNewPage || '',
     revisionId:metadata.revisionId || '',
     runs:runs.map(run => ({text:run.text || '', style:run.style || '', revisionId:run.revisionId || ''})),
@@ -47006,7 +47384,9 @@ function handleFDXImport(event) {
     try {
       const data = parseFDXDocument(String(reader.result || ''));
       importTabFromData(data);
-      const check = validateFDXRoundTrip(buildFDXDocument());
+      // Import validation checks the complete interchange data, including
+      // embedded Final Draft ScriptNotes, independently of export preference.
+      const check = validateFDXRoundTrip(buildFDXDocument(true));
       showToast(check.ok ? `Imported ${data.lines.length} FDX paragraphs.` : `FDX imported with ${check.mismatches} validation warning(s).`, 6000);
     } catch(error) { showToast(`FDX import error: ${error.message}`, 7000); }
   };
@@ -47014,9 +47394,10 @@ function handleFDXImport(event) {
 }
 
 function exportFDX() {
-  const xml = buildFDXDocument();
+  const includeNotes = exportNotesEnabled();
+  const xml = buildFDXDocument(includeNotes);
   if (!xml) { showToast('Nothing to export'); return; }
-  const check = validateFDXRoundTrip(xml);
+  const check = validateFDXRoundTrip(xml, _fdxDOMModel(getLinesContainer(activeTabId), includeNotes));
   if (!check.ok && !confirm(`Round-trip validation found ${check.mismatches} difference(s). Export anyway?`)) return;
   const cover = getCoverData(activeTabId);
   const title = (cover.title || 'script').replace(/[^a-z0-9\-_ ]/gi, '_').trim();

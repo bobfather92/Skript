@@ -51,6 +51,7 @@ assert 'text-align: right' in transition_css
 assert 'class="el-new-act">ACT TWO</div>' in html
 new_act_css = html.split('.el-new-act', 1)[1].split('}', 1)[0]
 assert 'text-align: center' in new_act_css
+assert 'text-decoration: underline' in new_act_css
 assert "border-top" not in new_act_css
 page_stamp_css = html.split(".page-num-stamp {", 1)[1].split("}", 1)[0]
 assert "display: none" in page_stamp_css
@@ -118,6 +119,41 @@ assert '.format-play .el-dialogue' in play
 assert '(The lights fade slowly.)' in play
 assert 'grid-template-columns: minmax(0, 1fr) minmax(0, 1fr)' in play
 assert 'writer@example.test' in play and '+44 0000 000000' in play
+
+notes_excluded = module._build_pdf_html(
+    "Notes Choice", {}, [
+        {"type": "action", "text": "Visible action."},
+        {"type": "notes", "text": "Private note."},
+    ], "film", False, True,
+)
+assert "Visible action." in notes_excluded
+assert "Private note." not in notes_excluded
+notes_included = module._build_pdf_html(
+    "Notes Choice", {}, [
+        {"type": "action", "text": "Visible action."},
+        {"type": "notes", "text": "Included note."},
+    ], "film", False, True, None, True,
+)
+assert 'class="el-notes">Included note.</div>' in notes_included
+
+radio = module._build_pdf_html(
+    "Radio Test", {}, [
+        {"type": "scene", "text": "SCENE 1."},
+        {"type": "action", "text": "SFX: A DOOR CLOSES."},
+        {"type": "character", "text": "MAYA"},
+        {"type": "parenthetical", "text": "(close)"},
+        {"type": "dialogue", "text": "We are on air."},
+    ], "audio", False, True,
+)
+assert '<body class="format-audio">' in radio
+assert '@page radio' in radio
+assert 'font-family: Arial, Helvetica, sans-serif' in radio
+assert '.format-audio .el-character::after { content: ":"; }' in radio
+assert 'content: "- " counter(page) " -"' in radio
+assert 'class="radio-speech"' in radio
+assert 'class="radio-cue">MAYA:</div>' in radio
+assert 'class="radio-parenthetical">(close)</span>' in radio
+assert 'class="radio-dialogue">We are on air.</span>' in radio
 
 cover_pdf = module._build_basic_pdf_bytes(
     "One Page Cover",

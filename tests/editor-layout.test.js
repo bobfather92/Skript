@@ -24,4 +24,9 @@ assert.ok(
   html.includes('body[data-format="film"] #acts-rg,'),
   'The New Act controls must be available in Film projects',
 );
+assert.ok(html.includes('font-style: normal; color: #1a1a1a;'), 'BBC parentheticals must use regular text');
+assert.ok(html.includes('text-decoration: underline; letter-spacing: 0;'), 'BBC act headings must be underlined');
+assert.ok(html.includes('.script-page[data-format="audio"] .script-line[data-type="character"]::after'), 'Radio cues must include a colon');
+assert.ok(html.includes('font-family: Arial, Helvetica, sans-serif;'), 'BBC radio Scene Style must use Arial');
+assert.ok(html.includes('break-before: page; page-break-before: always;'), 'BBC stage scenes must start on a new page');
 console.log('BBC A4 editor layout regression tests passed.');

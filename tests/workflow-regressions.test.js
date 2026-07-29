@@ -78,9 +78,14 @@ assert.ok(html.includes('data-testid="add-script-document"'), 'Navigator must ex
 const pdfStart = html.indexOf('async function doExportPDF()');
 const pdfEnd = html.indexOf('function _fallbackWindowPrint(', pdfStart);
 const pdfSource = html.slice(pdfStart, pdfEnd);
-assert.ok(pdfSource.includes('_fallbackWindowPrint(incTitle, incScript)'));
+assert.ok(pdfSource.includes('_fallbackWindowPrint(incTitle, incScript, incNotes)'));
 assert.ok(pdfSource.includes("sfApiFetch('/api/export-pdf'"), 'Desktop PDF export must suppress browser headers');
 assert.ok(pdfSource.includes('getLinesContainer(activeTabId)'), 'PDF export must read only the active script');
+assert.ok(html.includes('data-testid="export-include-notes"'), 'Export ribbon must expose Include Notes');
+assert.ok(html.includes("includeNotes: incNotes"), 'PDF export must send the Notes choice');
+assert.ok(html.includes("type === 'notes' && !includeNotes"), 'Word export must omit Notes when unticked');
+assert.ok(html.includes("if (!includeNotes) break;"), 'Fountain export must omit Notes when unticked');
+assert.ok(html.includes("buildFDXDocument(includeNotes = exportNotesEnabled())"), 'FDX export must use the Notes choice');
 
 for (const feature of [
   'scanActiveDocumentSuggestions({ notify: false })',
