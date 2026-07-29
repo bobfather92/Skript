@@ -14,6 +14,7 @@ This is the first local development package on the road to Skript 1.1. It is int
 - Choose whether Notes elements are included in PDF, Word, Fountain, Final Draft and printed script output; Notes are excluded by default.
 - Keep Edge's Downloads icon and browser controls hidden behind Skript's own Windows title bar.
 - Replace Edge's unsaved-work box with a Skript exit window offering **Continue writing**, **Exit without saving**, and **Save and exit**.
+- Block installation, update, repair and removal while any Skript version is open, requiring the user to save their work and close the app first.
 - Open all valid selected scripts even when another selected file is invalid.
 - Open the initial `com.skript.project-collection` format containing multiple script documents.
 - Access **Import Scripts…** directly from the Navigator's Add Document menu.

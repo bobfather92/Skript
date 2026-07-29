@@ -414,11 +414,10 @@ def _assert_safe_application_target(target):
     return resolved
 
 
-def _stop_installed_skript(target):
-    """Stop only Skript.exe launched from this installation without using WMI."""
-    app_exe = pathlib.Path(target) / 'Skript.exe'
-    if not app_exe.exists() or os.name != 'nt':
-        return
+def _running_skript_processes(target=None):
+    """Return active Skript app processes without closing or changing them."""
+    if os.name != 'nt':
+        return []
 
     try:
         import ctypes
@@ -444,42 +443,89 @@ def _stop_installed_skript(target):
         kernel32.OpenProcess.restype = wintypes.HANDLE
         kernel32.QueryFullProcessImageNameW.argtypes = [wintypes.HANDLE, wintypes.DWORD, wintypes.LPWSTR, ctypes.POINTER(wintypes.DWORD)]
         kernel32.QueryFullProcessImageNameW.restype = wintypes.BOOL
-        kernel32.TerminateProcess.argtypes = [wintypes.HANDLE, wintypes.UINT]
-        kernel32.TerminateProcess.restype = wintypes.BOOL
-        kernel32.WaitForSingleObject.argtypes = [wintypes.HANDLE, wintypes.DWORD]
-        kernel32.WaitForSingleObject.restype = wintypes.DWORD
         kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
         kernel32.CloseHandle.restype = wintypes.BOOL
 
         snapshot = kernel32.CreateToolhelp32Snapshot(0x00000002, 0)
         if snapshot == wintypes.HANDLE(-1).value:
-            return
-        expected = os.path.normcase(os.path.abspath(str(app_exe)))
+            return []
+        expected = (
+            os.path.normcase(os.path.abspath(str(pathlib.Path(target) / 'Skript.exe')))
+            if target else ''
+        )
+        isolated_test = installer_test_root() is not None
+        known_names = {'skript.exe', ('script' + 'forge.exe')}
+        running = []
         entry = PROCESSENTRY32W()
         entry.dwSize = ctypes.sizeof(entry)
         try:
             more = kernel32.Process32FirstW(snapshot, ctypes.byref(entry))
             while more:
-                if entry.szExeFile.casefold() == 'skript.exe' and entry.th32ProcessID != os.getpid():
-                    rights = 0x0001 | 0x1000 | 0x00100000
-                    process = kernel32.OpenProcess(rights, False, entry.th32ProcessID)
+                process_name = entry.szExeFile.casefold()
+                if process_name in known_names and entry.th32ProcessID != os.getpid():
+                    process_path = ''
+                    process = kernel32.OpenProcess(0x1000, False, entry.th32ProcessID)
                     if process:
                         try:
                             size = wintypes.DWORD(32768)
                             path_buffer = ctypes.create_unicode_buffer(size.value)
-                            if (kernel32.QueryFullProcessImageNameW(process, 0, path_buffer, ctypes.byref(size))
-                                    and os.path.normcase(os.path.abspath(path_buffer.value)) == expected):
-                                if kernel32.TerminateProcess(process, 0):
-                                    kernel32.WaitForSingleObject(process, 4000)
+                            if kernel32.QueryFullProcessImageNameW(
+                                process, 0, path_buffer, ctypes.byref(size)
+                            ):
+                                process_path = os.path.normcase(
+                                    os.path.abspath(path_buffer.value)
+                                )
                         finally:
                             kernel32.CloseHandle(process)
+                    # Isolated release tests must ignore the user's real app.
+                    # Production Setup blocks every active Skript version,
+                    # including portable and earlier-name installations.
+                    if not isolated_test or (process_path and process_path == expected):
+                        running.append({
+                            'pid': int(entry.th32ProcessID),
+                            'name': entry.szExeFile,
+                            'path': process_path,
+                        })
                 more = kernel32.Process32NextW(snapshot, ctypes.byref(entry))
         finally:
             kernel32.CloseHandle(snapshot)
+        return running
     except Exception:
-        # The bounded directory replacement below reports a clear error if
-        # Windows still has the installed application open.
+        return []
+
+
+def _require_skript_closed(target=None):
+    """Block maintenance while any active Skript version may hold user work."""
+    running = _running_skript_processes(target)
+    if not running:
         return
+    count = len(running)
+    raise RuntimeError(
+        f'Close every open Skript window before continuing. '
+        f'Setup found {count} active Skript process{"es" if count != 1 else ""}. '
+        'Setup will not close the app automatically because it may contain unsaved work. '
+        'After Skript has fully closed, try again.'
+    )
+
+
+def _confirm_skript_closed(parent, target=None):
+    """Give interactive users a Retry/Cancel gate until Skript is closed."""
+    while _running_skript_processes(target):
+        parent.attributes('-topmost', True)
+        try:
+            retry = messagebox.askretrycancel(
+                'Close Skript before continuing',
+                'Skript is currently open.\n\n'
+                'Save your work and close every Skript window. Setup will not '
+                'install, update, repair, or remove files while Skript is active.\n\n'
+                'After Skript has fully closed, select Retry.',
+                parent=parent,
+            )
+        finally:
+            parent.attributes('-topmost', False)
+        if not retry:
+            return False
+    return True
 
 
 def _replace_application_files(staging, target, progress):
@@ -492,8 +538,8 @@ def _replace_application_files(staging, target, progress):
     # never prevent this repair from installing the new application.
     previous = target.with_name(f'{target.name}.previous-{os.getpid()}')
     _cleanup_old_application_paths(target)
-    progress(66, 'Closing the existing Skript application...')
-    _stop_installed_skript(target)
+    progress(66, 'Checking that Skript is closed...')
+    _require_skript_closed(target)
 
     used_content_fallback = False
     if target.exists():
@@ -542,6 +588,8 @@ def _replace_application_files(staging, target, progress):
 def install_payload(create_desktop=True, progress=None):
     progress = progress or (lambda value, status: None)
     target = _assert_safe_application_target(install_dir())
+    progress(5, 'Checking that Skript is closed...')
+    _require_skript_closed(target)
     staging = target.with_name(target.name + '.installing')
     payload = resource_path('payload', 'Skript')
     check_prerequisites(payload, progress)
@@ -579,6 +627,17 @@ def install_payload(create_desktop=True, progress=None):
 def uninstall_worker(target, notify=True):
     target = _assert_safe_application_target(target)
     time.sleep(1.2)
+    try:
+        _require_skript_closed(target)
+    except RuntimeError as exc:
+        if not notify:
+            raise
+        root = tk.Tk()
+        root.withdraw()
+        root.attributes('-topmost', True)
+        messagebox.showerror('Skript Uninstaller', str(exc), parent=root)
+        root.destroy()
+        return
     last_error = None
     for _ in range(10):
         try:
@@ -614,6 +673,9 @@ def uninstall_worker(target, notify=True):
 def begin_uninstall():
     root = tk.Tk()
     root.withdraw()
+    if not _confirm_skript_closed(root, install_dir()):
+        root.destroy()
+        return
     if not messagebox.askyesno('Uninstall Skript', 'Remove Skript from this computer?\n\nClose Skript before continuing.'):
         root.destroy()
         return
@@ -791,6 +853,9 @@ class InstallerWindow:
 
     def start_install(self):
         if str(self.install_btn.cget('state')) == 'disabled':
+            return
+        if not _confirm_skript_closed(self.root, install_dir()):
+            self.status_var.set('Close Skript before continuing with Setup')
             return
         self.install_btn.configure(state='disabled')
         self.cancel_btn.configure(state='disabled')

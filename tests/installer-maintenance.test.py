@@ -31,9 +31,9 @@ with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as temp_dir:
     legacy_project = legacy_projects / "legacy-project.script"
     legacy_project.write_text("legacy user project", encoding="utf-8")
 
-    original_stop = installer._stop_installed_skript
+    original_require_closed = installer._require_skript_closed
     original_install_dir = installer.install_dir
-    installer._stop_installed_skript = lambda _target: None
+    installer._require_skript_closed = lambda _target: None
     installer.install_dir = lambda: target
     progress_updates = []
     try:
@@ -41,7 +41,7 @@ with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as temp_dir:
             staging, target, lambda value, status: progress_updates.append((value, status))
         )
     finally:
-        installer._stop_installed_skript = original_stop
+        installer._require_skript_closed = original_require_closed
         installer.install_dir = original_install_dir
 
     assert (target / "Skript.exe").read_text(encoding="utf-8") == "new app"
@@ -50,10 +50,24 @@ with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as temp_dir:
     assert project.read_text(encoding="utf-8") == "user project"
     assert legacy_project.read_text(encoding="utf-8") == "legacy user project"
     assert [status for _value, status in progress_updates] == [
-        "Closing the existing Skript application...",
+        "Checking that Skript is closed...",
         "Replacing old application files...",
         "Finalising application files...",
     ]
+
+    real_running = installer._running_skript_processes
+    installer._running_skript_processes = lambda _target=None: [
+        {'pid': 1234, 'name': 'Skript.exe', 'path': str(target / 'Skript.exe')}
+    ]
+    try:
+        try:
+            installer._require_skript_closed(target)
+            raise AssertionError("Setup must not continue while Skript is active")
+        except RuntimeError as error:
+            assert "Close every open Skript window before continuing" in str(error)
+            assert "will not close the app automatically" in str(error)
+    finally:
+        installer._running_skript_processes = real_running
 
     retry_target = base / "retry-cleanup"
     retry_target.mkdir()
@@ -178,6 +192,7 @@ source = (ROOT / "installer" / "skript_installer.py").read_text(encoding="utf-8"
 for required in (
     "ModifyPath", "--repair", "Repair Skript", "Finalising application files",
     "CreateToolhelp32Snapshot", "QueryFullProcessImageNameW",
+    "_require_skript_closed", "_confirm_skript_closed", "askretrycancel",
     "Waiting for Windows to release the application folder",
     "Cleaning the incomplete installation",
     "Windows is holding the folder — switching replacement method",
