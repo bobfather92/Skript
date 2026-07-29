@@ -15,6 +15,8 @@ This is the first local development package on the road to Skript 1.1. It is int
 - Keep Edge's Downloads icon and browser controls hidden behind Skript's own Windows title bar.
 - Replace Edge's unsaved-work box with a Skript exit window offering **Continue writing**, **Exit without saving**, and **Save and exit**.
 - Block installation, update, repair and removal while any Skript version is open, requiring the user to save their work and close the app first.
+- Move the Skript window smoothly without blocking or destabilising the interface during title-bar dragging.
+- Clear the Recent Projects history from either the welcome screen or Recent Projects window without deleting saved project files.
 - Open all valid selected scripts even when another selected file is invalid.
 - Open the initial `com.skript.project-collection` format containing multiple script documents.
 - Access **Import Scripts…** directly from the Navigator's Add Document menu.
@@ -40,7 +42,7 @@ Python and the supported PDF, OCR and Word engines are included in the Windows d
 
 - 12 JavaScript regression suites passed.
 - 9 Python regression suites passed.
-- Complete browser workflow: 104 passed, 10 intentionally skipped, 0 failed across desktop and compact-touch configurations.
+- Complete browser workflow: 106 passed, 10 intentionally skipped, 0 failed across desktop and compact-touch configurations.
 - Python compilation and embedded HTML syntax checks passed.
 
 ## Development-build warning

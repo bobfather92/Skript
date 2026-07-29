@@ -112,6 +112,11 @@ with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as temp_dir:
         loaded = post("/api/load-script", {"path": saved["path"]})
         assert loaded["ok"] is True
         assert json.loads(loaded["content"])["title"] == "API Test"
+        recent_before_clear = post("/api/recent-scripts", {})
+        assert recent_before_clear["ok"] is True and recent_before_clear["scripts"]
+        assert post("/api/clear-recent", {})["ok"] is True
+        assert post("/api/recent-scripts", {})["scripts"] == []
+        assert Path(saved["path"]).exists(), "Clearing Recent Projects must not delete saved files"
 
         legacy_word = br"{\rtf1\ansi ACT I\par SCENE 1\par HAMLET: To be, or not to be.\par}"
         imported_word = post("/api/import-word", {

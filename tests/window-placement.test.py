@@ -58,6 +58,31 @@ assert [message[2] for message in fake_icons.messages] == [1, 0]
 assert all(message[1] == 0x0080 for message in fake_icons.messages)
 
 
+class FakeDragUser32:
+    def __init__(self):
+        self.released = 0
+        self.messages = []
+
+    def GetCursorPos(self, pointer):
+        pointer._obj.x = 321
+        pointer._obj.y = 654
+        return 1
+
+    def ReleaseCapture(self):
+        self.released += 1
+        return 1
+
+    def PostMessageW(self, hwnd, message, hit_test, packed_position):
+        self.messages.append((hwnd, message, hit_test, packed_position))
+        return 1
+
+
+fake_drag = FakeDragUser32()
+assert module._post_native_window_drag(456, user32=fake_drag) is True
+assert fake_drag.released == 1
+assert fake_drag.messages == [(456, 0x00A1, 2, (654 << 16) | 321)]
+
+
 window_source = (ROOT / "skript.py").read_text(encoding="utf-8")
 placement_source = window_source.split(
     "def _force_centred_browser_window", 1
@@ -73,6 +98,8 @@ assert "_resize_native_host(" not in placement_source
 control_source = window_source.split("def _window_control", 1)[1].split("def launch", 1)[0]
 assert "_titlebar_overlay_is_active" in control_source
 assert "_native_host_is_active" not in control_source
+assert "_post_native_window_drag(hwnd, u32)" in control_source
+assert "SendMessageW(hwnd, 0x00A1" not in control_source
 html_injection_source = window_source.split("def _get_html", 1)[1].split("class SFHandler", 1)[0]
 assert "_SF_NATIVE_SHELL" not in html_injection_source
 assert "_SF_NATIVE_TITLEBAR_OVERLAY" in html_injection_source

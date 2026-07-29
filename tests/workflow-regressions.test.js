@@ -47,6 +47,10 @@ assert.ok(!html.includes('class="wiz-recent-browse"'), 'Open Project already pro
 assert.ok(html.includes('.wiz-recent-window {\n    width: 100%;'), 'Recent Projects must match the welcome-card width');
 assert.ok(html.includes('scripts.slice(0, 3)'), 'Welcome must show no more than three recent projects');
 assert.ok(html.includes('#wiz-recent-list { height: auto; overflow: visible;'), 'Welcome recent projects must not scroll');
+assert.ok(html.includes('id="wiz-clear-recent"'), 'Welcome Recent Projects must provide a Clear button');
+assert.ok(html.includes('id="recent-clear-btn"'), 'Recent Projects modal must provide a Clear button');
+assert.ok(html.includes('function confirmClearRecentProjects()'), 'Clear Recent Projects must use the protected API workflow');
+assert.ok(html.includes('Your saved project files will remain on this computer.'), 'Clear confirmation must explain that saved projects are retained');
 assert.ok(html.includes('id="desktop-titlebar"'), 'Desktop shell must provide Skript-owned window controls');
 assert.ok(html.includes('id="desktop-close-modal"'), 'Desktop shell must provide its own save-before-close dialog');
 assert.ok(

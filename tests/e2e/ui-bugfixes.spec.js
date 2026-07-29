@@ -75,6 +75,39 @@ test('Welcome icon and Recent Projects align with the action cards', async ({ pa
   expect(widths.recentOverflow).toBe('visible');
 });
 
+test('Recent Projects can be cleared without deleting saved files', async ({ page, skript }) => {
+  let clearRequests = 0;
+  const recentProject = {
+    title: 'Keep This Saved File',
+    path: 'C:\\Scripts\\Keep-This-Saved-File.script',
+    savedAt: '2026-07-15T12:00:00Z',
+  };
+  await page.route('**/api/recent-scripts', async route => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ ok: true, scripts: [recentProject] }),
+    });
+  });
+  await page.route('**/api/clear-recent', async route => {
+    clearRequests += 1;
+    await route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' });
+  });
+  await page.evaluate(() => openNewProjectWizard());
+  const clearButton = page.locator('#wiz-clear-recent');
+  await expect(clearButton).toBeVisible();
+  await expect(clearButton).toBeEnabled();
+  await clearButton.click();
+  const confirmation = page.locator('#clear-recent-modal');
+  await expect(confirmation).toBeVisible();
+  await expect(confirmation).toContainText('Your saved project files will remain on this computer.');
+  await confirmation.getByRole('button', { name: 'Clear recent projects' }).click();
+  await expect.poll(() => clearRequests).toBe(1);
+  await expect(confirmation).toBeHidden();
+  await expect(page.locator('#wiz-recent-list')).toContainText('No recent projects yet.');
+  await expect(clearButton).toBeDisabled();
+});
+
 test('a native close request opens the Skript close prompt instead of Edge', async ({ page, skript }) => {
   let windowAction = '';
   await page.route('**/api/window', async route => {
