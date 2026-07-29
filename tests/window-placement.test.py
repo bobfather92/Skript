@@ -61,26 +61,71 @@ assert all(message[1] == 0x0080 for message in fake_icons.messages)
 class FakeDragUser32:
     def __init__(self):
         self.released = 0
-        self.messages = []
+        self.points = [(321, 654), (341, 664), (371, 684)]
+        self.button_states = [0x8000, 0x8000, 0]
+        self.positions = []
 
     def GetCursorPos(self, pointer):
-        pointer._obj.x = 321
-        pointer._obj.y = 654
+        x, y = self.points.pop(0)
+        pointer._obj.x = x
+        pointer._obj.y = y
+        return 1
+
+    def GetWindowRect(self, _hwnd, pointer):
+        pointer._obj.left = 100
+        pointer._obj.top = 200
+        pointer._obj.right = 900
+        pointer._obj.bottom = 800
         return 1
 
     def ReleaseCapture(self):
         self.released += 1
         return 1
 
-    def PostMessageW(self, hwnd, message, hit_test, packed_position):
-        self.messages.append((hwnd, message, hit_test, packed_position))
-        return 1
+    def GetAsyncKeyState(self, _key):
+        return self.button_states.pop(0)
+
+    def SetWindowPos(self, hwnd, insert_after, x, y, width, height, flags):
+        self.positions.append((hwnd, insert_after, x, y, width, height, flags))
+        return True
 
 
 fake_drag = FakeDragUser32()
-assert module._post_native_window_drag(456, user32=fake_drag) is True
+drag_worker = module._start_native_window_drag(456, user32=fake_drag)
+assert drag_worker is True
+for _ in range(100):
+    if len(fake_drag.positions) == 2:
+        break
+    module.time.sleep(0.001)
 assert fake_drag.released == 1
-assert fake_drag.messages == [(456, 0x00A1, 2, (654 << 16) | 321)]
+assert [(position[2], position[3]) for position in fake_drag.positions] == [
+    (120, 210),
+    (150, 230),
+]
+assert all(position[6] == 0x4015 for position in fake_drag.positions)
+
+
+class FakeFrameUser32:
+    def GetWindowRect(self, _hwnd, pointer):
+        pointer._obj.left = 92
+        pointer._obj.top = 92
+        pointer._obj.right = 1308
+        pointer._obj.bottom = 908
+        return 1
+
+
+class FakeDwmApi:
+    def DwmGetWindowAttribute(self, _hwnd, _attribute, pointer, _size):
+        pointer._obj.left = 100
+        pointer._obj.top = 100
+        pointer._obj.right = 1300
+        pointer._obj.bottom = 900
+        return 0
+
+
+assert module._visible_native_window_bounds(
+    456, user32=FakeFrameUser32(), dwmapi=FakeDwmApi()
+) == (100, 100, 1300, 900)
 
 
 window_source = (ROOT / "skript.py").read_text(encoding="utf-8")
@@ -98,8 +143,14 @@ assert "_resize_native_host(" not in placement_source
 control_source = window_source.split("def _window_control", 1)[1].split("def launch", 1)[0]
 assert "_titlebar_overlay_is_active" in control_source
 assert "_native_host_is_active" not in control_source
-assert "_post_native_window_drag(hwnd, u32)" in control_source
-assert "SendMessageW(hwnd, 0x00A1" not in control_source
+assert "_start_native_window_drag(hwnd, u32)" in control_source
+assert "threading.Thread" in window_source
+assert "GetAsyncKeyState(0x01)" in window_source
+overlay_source = window_source.split(
+    "def _sync_native_titlebar_overlay", 1
+)[1].split("def _create_native_titlebar_overlay", 1)[0]
+assert "geometry[2], geometry[3], 0x0010 | 0x0040" in overlay_source
+assert "geometry[2], geometry[3], 0x0004 | 0x0010 | 0x0040" not in overlay_source
 html_injection_source = window_source.split("def _get_html", 1)[1].split("class SFHandler", 1)[0]
 assert "_SF_NATIVE_SHELL" not in html_injection_source
 assert "_SF_NATIVE_TITLEBAR_OVERLAY" in html_injection_source

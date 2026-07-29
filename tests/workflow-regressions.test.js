@@ -52,6 +52,7 @@ assert.ok(html.includes('id="recent-clear-btn"'), 'Recent Projects modal must pr
 assert.ok(html.includes('function confirmClearRecentProjects()'), 'Clear Recent Projects must use the protected API workflow');
 assert.ok(html.includes('Your saved project files will remain on this computer.'), 'Clear confirmation must explain that saved projects are retained');
 assert.ok(html.includes('id="desktop-titlebar"'), 'Desktop shell must provide Skript-owned window controls');
+assert.ok(html.includes('max-width: 100vw;'), 'Desktop titlebar must never extend beyond the Skript window');
 assert.ok(html.includes('id="desktop-close-modal"'), 'Desktop shell must provide its own save-before-close dialog');
 assert.ok(
   html.includes("if (window._SF_NATIVE_TITLEBAR_OVERLAY && desktopCloseApproved)"),
