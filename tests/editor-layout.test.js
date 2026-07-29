@@ -18,4 +18,10 @@ for (const rule of [
 }
 
 assert.ok(!html.includes('body[data-line-spacing="normal"]  .script-line { line-height: 1.75'));
+const transitionRule = html.split('.script-line[data-type="transition"] {', 2)[1].split('}', 1)[0];
+assert.ok(transitionRule.includes('text-align: right;'), 'Transitions must align to the right edge');
+assert.ok(
+  html.includes('body[data-format="film"] #acts-rg,'),
+  'The New Act controls must be available in Film projects',
+);
 console.log('BBC A4 editor layout regression tests passed.');

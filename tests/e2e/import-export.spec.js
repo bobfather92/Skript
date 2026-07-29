@@ -33,7 +33,7 @@ test('a user can import a Fountain screenplay', async ({ page, skript }, testInf
   await expect(skript.activeLines.nth(2)).toHaveAttribute('data-type', 'character');
   await expect(skript.activeLines.nth(3)).toHaveAttribute('data-type', 'dialogue');
   await expect(skript.activeLines.nth(4)).toHaveAttribute('data-type', 'transition');
-  await expect(skript.activeLines.nth(4)).toHaveCSS('text-align', 'left');
+  await expect(skript.activeLines.nth(4)).toHaveCSS('text-align', 'right');
 });
 
 test('import creates a new tab when the active script contains writing', async ({ page, skript }) => {
@@ -136,6 +136,8 @@ test('a WriterDuet project imports every script from its WDZ archive', async ({ 
           ['wd-e2e-3', 'EditDialogName', '\ue5e5\u0005MAYA\u0006\ue5e6'],
           ['wd-e2e-4', 'EditDialogContent', 'Bring them both\nin and keep this'],
           ['wd-e2e-4b', 'EditDialogContent', 'speech together.'],
+          ['wd-e2e-4c', 'Transition', 'Fade to black:'],
+          ['wd-e2e-4d', 'Act', 'ACT TWO'],
         ],
       },
       {
@@ -191,6 +193,8 @@ test('a WriterDuet project imports every script from its WDZ archive', async ({ 
     'Two scripts wait on the screen.',
     'MAYA',
     'Bring them both in and keep this speech together.',
+    'Fade to black:',
+    'ACT TWO',
   ]);
   await expect(page.locator('.script-panel.active .script-line')).toHaveText([
     'EXT. WRITERDUET STREET - NIGHT',
@@ -208,6 +212,15 @@ test('a WriterDuet project imports every script from its WDZ archive', async ({ 
     'E2E Writer',
     'E2E Writer',
   ]);
+  await page.evaluate(() => activateTab(tabs.find(tab => tab.title === 'Pilot').id));
+  const importedTransition = page.locator('.script-panel.active .script-line[data-type="transition"]');
+  await expect(importedTransition).toHaveCSS('text-align', 'right');
+  const importedNewAct = page.locator('.script-panel.active .script-line[data-type="new-act"]');
+  await expect(importedNewAct).toBeVisible();
+  await page.evaluate(() => updateContdMore());
+  await expect.poll(() => importedNewAct.evaluate(line =>
+    line.previousElementSibling?.previousElementSibling?.classList.contains('virtual-page-break') || false
+  )).toBe(true);
   await expect.poll(() => page.evaluate(() => migrateProjectData({
     version: 2,
     title: 'Reopened WriterDuet Import',
@@ -216,10 +229,12 @@ test('a WriterDuet project imports every script from its WDZ archive', async ({ 
       { type: 'character', text: '\ue5e5\u0005CARVALKO\u0006\ue5e6' },
       { type: 'dialogue', text: 'This saved speech was\nsplit in' },
       { type: 'dialogue', text: 'an earlier import.' },
+      { type: 'act', text: 'CHAPTER TWO' },
     ],
   }).data.lines.map(line => [line.type, line.text]))).toEqual([
     ['character', 'CARVALKO'],
     ['dialogue', 'This saved speech was split in an earlier import.'],
+    ['new-act', 'CHAPTER TWO'],
   ]);
 });
 

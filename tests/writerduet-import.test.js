@@ -101,6 +101,14 @@ const nativeCheckpoint = {
         type: 'EditDialogContent',
         cache: { t: 'editable paragraph.', l: 1700000000006 },
       },
+      'native-line-g': {
+        type: 'Transition',
+        cache: { t: 'Fade to black:', l: 1700000000007 },
+      },
+      'native-line-h': {
+        type: 'Act',
+        cache: { t: 'ACT TWO', l: 1700000000008 },
+      },
     },
     dataStoreCheckpointIds: {
       checkpoint: {
@@ -113,7 +121,7 @@ const nativeCheckpoint = {
 const nativeResult = context._extractWriterDuetDocuments(nativeCheckpoint, 'Native WriterDuet Script');
 assert.equal(nativeResult.documents.length, 1);
 assert.equal(nativeResult.documents[0].writerDuetBranchId, 'writerduet-branch');
-assert.equal(nativeResult.documents[0].writerDuetUpdatedAt, 1700000000006);
+assert.equal(nativeResult.documents[0].writerDuetUpdatedAt, 1700000000008);
 assert.deepEqual(
   JSON.parse(JSON.stringify(nativeResult.documents[0].lines.map(line => [line.type, line.text]))),
   [
@@ -122,6 +130,8 @@ assert.deepEqual(
     ['character', 'MAYA'],
     ['parenthetical', '(relieved)'],
     ['dialogue', 'That is the real format and remains one editable paragraph.'],
+    ['transition', 'Fade to black:'],
+    ['new-act', 'ACT TWO'],
   ],
 );
 assert.equal(nativeResult.documents[0].lines[4].importMeta.sourceIndexEnd, 5);
@@ -130,12 +140,14 @@ const reopenedWriterDuetLines = context._writerDuetNormaliseImportedLines([
   { type: 'character', text: '\ue5e5\u0005CARVALKO\u0006\ue5e6', lineId: 'saved-cue' },
   { type: 'dialogue', text: 'A saved speech was\nsplit in', lineId: 'saved-dialogue-a' },
   { type: 'dialogue', text: 'an earlier import.', lineId: 'saved-dialogue-b' },
+  { type: 'act', text: 'CHAPTER TWO', lineId: 'saved-act' },
 ]);
 assert.deepEqual(
   JSON.parse(JSON.stringify(reopenedWriterDuetLines.map(line => [line.type, line.text]))),
   [
     ['character', 'CARVALKO'],
     ['dialogue', 'A saved speech was split in an earlier import.'],
+    ['new-act', 'CHAPTER TWO'],
   ],
 );
 

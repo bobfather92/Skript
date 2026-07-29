@@ -23973,7 +23973,7 @@ var __async = (__this, __arguments, generator) => {
     color: #1a1a1a;
     text-transform: uppercase;
     font-weight: 700;
-    text-align: left;
+    text-align: right;
     margin-top: 32px;
     margin-bottom: 16px;
     letter-spacing: 0;
@@ -27675,16 +27675,10 @@ button, .rb, .ribbon-tab, .tab, .add-doc-item,
   }
   /* dual-dialogue-label and remove-btn removed */
 
-  /* ── Acts section separator (TV / Play) ── */
-  /* Hide the Acts ribbon group when in Film format — JS also controls this */
-  body[data-format="film"] #acts-rg { display: none !important; }
+  /* ── Acts section separator ── */
+  body[data-format="film"] #acts-rg,
   body[data-format="play"] #acts-rg,
-  body[data-format="tv"]   #acts-rg { display: block !important; }
-  /* Hide act elements in Film format */
-  .script-page[data-format="film"] .script-line[data-type="new-act"],
-  .script-page[data-format="film"] .script-line[data-type="end-act"] {
-    display: none !important;
-  }
+  body[data-format="tv"]   #acts-rg { display: block; }
   .script-line[data-type="new-act"] {
     text-align: center;
     font-weight: 900;
@@ -27696,7 +27690,6 @@ button, .rb, .ribbon-tab, .tab, .add-doc-item,
     padding: 12px 0 !important;
     border-top: 3px double rgba(0,0,0,0.2) !important;
     color: #111 !important;
-    page-break-before: always;
   }
   .script-line[data-type="end-act"] {
     text-align: center;
@@ -27783,7 +27776,7 @@ button, .rb, .ribbon-tab, .tab, .add-doc-item,
   }
   .script-page[data-format="film"] .script-line[data-type="transition"],
   .script-page[data-format="tv"]   .script-line[data-type="transition"] {
-    text-align: left;
+    text-align: right;
     padding-left: 0;
     padding-right: 0;
   }
@@ -30303,7 +30296,7 @@ body[data-script-direction="rtl"] .script-page .line-parenthetical { margin-left
 .script-page[data-format="film"] .script-line[data-type="transition"],
 .script-page[data-format="tv"] .script-line[data-type="transition"] {
   margin-top: 12pt; margin-bottom: 12pt; padding-left: 0; padding-right: 0;
-  text-align: left; font-weight: 400;
+  text-align: right; font-weight: 400;
 }
 
 /* Focus mode always shows the live active editor, even when entered from the
@@ -31893,6 +31886,11 @@ button.primary:hover,
     <span class="ftb-dot" style="background:#3ba38a;"></span>
     <span>Notes</span>
   </button>
+  <div class="ftb-sep"></div>
+  <button class="ftb-btn el-btn" data-type="new-act" onclick="insertNewAct()" title="Start a new act on a new page">
+    <span class="ftb-dot" style="background:#d95f5f;"></span>
+    <span>New Act</span>
+  </button>
 
   <!-- TV-only (shown when format=tv) -->
   <div class="ftb-sep ftb-tv"></div>
@@ -32140,6 +32138,7 @@ button.primary:hover,
             <div class="opt-section"><strong>Multiple script imports</strong><div class="opt-note" style="margin-top:5px;">Select several existing Skript files in one operation and open every valid script as a separate document.</div></div>
             <div class="opt-section"><strong>WriterDuet project import</strong><div class="opt-note" style="margin-top:5px;">Import native WriterDuet .wdz checkpoint projects and JSON exports, including projects that contain multiple screenplay documents.</div></div>
             <div class="opt-section"><strong>Clean WriterDuet dialogue</strong><div class="opt-note" style="margin-top:5px;">Remove hidden formatting markers from character names and recombine consecutive native dialogue fragments into one editable speech.</div></div>
+            <div class="opt-section"><strong>WriterDuet transitions and acts</strong><div class="opt-note" style="margin-top:5px;">Right-align screenplay transitions and import WriterDuet Act records as visible New Act elements that always begin a fresh page.</div></div>
             <div class="opt-section"><strong>Whole imported dialogue</strong><div class="opt-note" style="margin-top:5px;">Keep long imported dialogue as one selectable and editable paragraph, including Word soft line breaks and dialogue that visually extends past a page.</div></div>
             <div class="opt-section"><strong>Multi-script project foundation</strong><div class="opt-note" style="margin-top:5px;">Introduces the project-collection format used to group multiple script documents under one project identity.</div></div>
             <div class="opt-section"><strong>Safer batch handling</strong><div class="opt-note" style="margin-top:5px;">A damaged or invalid file no longer prevents other valid files in the same selection from opening.</div></div>
@@ -41001,9 +41000,9 @@ function switchFormat(fmt, silent = false) {
   // Show/hide format-specific ribbon buttons
   document.querySelectorAll('.fmt-btns').forEach(el => el.style.display = 'none');
   document.querySelectorAll('.fmt-btns.fmt-' + fmt).forEach(el => el.style.display = '');
-  // Show Acts group only for TV and Play
+  // New Act is available in every script format and always starts a page.
   const actsRg = document.getElementById('acts-rg');
-  if (actsRg) actsRg.style.display = (fmt === 'tv' || fmt === 'play') ? '' : 'none';
+  if (actsRg) actsRg.style.display = '';
 
   // Each open project keeps its own format.
   document.querySelector(`.script-panel[data-tab-id="${activeTabId}"] .script-page`)?.setAttribute('data-format', fmt);
@@ -45539,6 +45538,15 @@ function updateContdMore() {
     const type = typeOf(line);
     const linesUsed = unitsFor(line);
 
+    // An act opening is a hard structural boundary. Keep the first act at the
+    // top of page one; every later New Act begins at the top of a fresh page.
+    if (type === 'new-act' && runningLines > 0) {
+      pageNum++;
+      insertBreakBefore(line, pageNum);
+      runningLines = 0;
+      dialogueUnitsOnPage = 0;
+    }
+
     // A scene heading stays with the first content below it. A character cue
     // stays with its parenthetical and dialogue when that block fits a page.
     let keepUnits = linesUsed;
@@ -46006,7 +46014,7 @@ const WRITERDUET_TYPE_MAP = Object.freeze({
   'outline': 'notes',
   'section': 'notes',
   'synopsis': 'notes',
-  'act': 'act',
+  'act': 'new-act',
   'new act': 'new-act',
   'end act': 'end-act',
   'act break': 'act-break',
@@ -46092,6 +46100,7 @@ function _writerDuetNormaliseImportedLines(sourceLines) {
     if (!rawLine || typeof rawLine !== 'object') return;
     const line = {
       ...rawLine,
+      type: rawLine.type === 'act' ? 'new-act' : rawLine.type,
       text: _writerDuetCleanText(rawLine.text),
       ...(rawLine.importMeta && typeof rawLine.importMeta === 'object'
         ? { importMeta: { ...rawLine.importMeta } }

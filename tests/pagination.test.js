@@ -137,4 +137,19 @@ const exportedSpeech = wrappedDoc.printLayout
   .join(' ');
 assert.equal(exportedSpeech, longSpeechText);
 
+// New Act is a hard boundary: it begins page 2 even when page 1 has room.
+const actDoc = runPagination([
+  line('scene', 'INT. OPENING ROOM - DAY', 2),
+  line('action', 'The opening act ends early.', 2),
+  line('new-act', 'ACT TWO', 3),
+  line('scene', 'EXT. SECOND ACT STREET - NIGHT', 2),
+]);
+const newAct = actDoc.children.find(item => item.dataset.type === 'new-act');
+const newActIndex = actDoc.children.indexOf(newAct);
+assert.equal(actDoc.children[newActIndex - 2].className, 'virtual-page-break');
+assert.ok(newAct.classList.contains('page-leading-line'));
+assert.ok(actDoc.printLayout.some((item, index, layout) =>
+  item.type === 'new-act' && layout[index - 2]?.type === '_break'
+));
+
 console.log('BBC-style pagination regression tests passed.');

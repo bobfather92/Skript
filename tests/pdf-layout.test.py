@@ -18,6 +18,7 @@ html = module._build_pdf_html(
         {"type": "dialogue", "text": "We go live in thirty seconds."},
         {"type": "parenthetical", "text": "(quietly)"},
         {"type": "transition", "text": "CUT TO:"},
+        {"type": "new-act", "text": "ACT TWO"},
     ],
     "film",
     False,
@@ -41,10 +42,14 @@ assert html.index("el-scene") < html.index("el-action")
 assert html.index("el-character") < html.index("el-dialogue")
 assert 'class="el-transition">CUT TO:</div>' in html
 transition_css = html.split('.el-transition {', 1)[1].split('}', 1)[0]
-assert 'text-align: left' in transition_css
+assert 'text-align: right' in transition_css
+assert 'class="el-new-act">ACT TWO</div>' in html
+new_act_css = html.split('.el-new-act', 1)[1].split('}', 1)[0]
+assert 'text-align: center' in new_act_css
 
 fallback_source = (ROOT / 'skript.py').read_text(encoding='utf-8')
-assert "draw(text.upper(), left_default, True, cols=58)" in fallback_source
+assert "transition_x = max(left_default, page_w - 54" in fallback_source
+assert "elif typ == 'new-act':" in fallback_source
 
 explicit = module._build_pdf_html(
     "Parity Test",
