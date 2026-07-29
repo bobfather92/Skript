@@ -28287,13 +28287,6 @@ body.focus-mode #act-overlay { display: none !important; }
 }
 .more-mark { margin-left: 2in; text-align: left; padding-right: 0; margin-bottom: 0; }
 .contd-mark { margin-left: 192px; text-align: left; letter-spacing: 0; }
-.pagination-dialogue-fragment {
-  display: block; margin: 0; padding-left: 1in; padding-right: 1.25in;
-  font-family: 'Courier New', Courier, monospace; font-size: 12pt;
-  line-height: 12pt; min-height: 12pt; color: #111; white-space: pre-wrap; overflow-wrap: break-word;
-  cursor: text;
-}
-.pagination-dialogue-fragment:hover { outline: 1px dashed rgba(212,168,67,.55); }
 .script-line.page-leading-line { margin-top: 0 !important; }
 .virtual-page-break {
   display: block;
@@ -32146,6 +32139,7 @@ button.primary:hover,
             <p class="changes-panel-lead">The first development build on the road to Skript 1.1.</p>
             <div class="opt-section"><strong>Multiple script imports</strong><div class="opt-note" style="margin-top:5px;">Select several existing Skript files in one operation and open every valid script as a separate document.</div></div>
             <div class="opt-section"><strong>WriterDuet project import</strong><div class="opt-note" style="margin-top:5px;">Import native WriterDuet .wdz checkpoint projects and JSON exports, including projects that contain multiple screenplay documents.</div></div>
+            <div class="opt-section"><strong>Whole imported dialogue</strong><div class="opt-note" style="margin-top:5px;">Keep long imported dialogue as one selectable and editable paragraph, including Word soft line breaks and dialogue that visually extends past a page.</div></div>
             <div class="opt-section"><strong>Multi-script project foundation</strong><div class="opt-note" style="margin-top:5px;">Introduces the project-collection format used to group multiple script documents under one project identity.</div></div>
             <div class="opt-section"><strong>Safer batch handling</strong><div class="opt-note" style="margin-top:5px;">A damaged or invalid file no longer prevents other valid files in the same selection from opening.</div></div>
             <div class="opt-section"><strong>Recovery accessibility</strong><div class="opt-note" style="margin-top:5px;">Keeps keyboard focus inside the Recovery Centre when it is opened over the startup recovery prompt.</div></div>
@@ -39747,8 +39741,6 @@ function buildCanonicalPrintLayout(container) {
       layout.push({ type: '_page-num', text: textOf(node) });
     } else if (node.classList.contains('contd-mark')) {
       layout.push({ type: '_contd', text: textOf(node) });
-    } else if (node.classList.contains('pagination-dialogue-fragment')) {
-      layout.push({ type: 'dialogue', text: textOf(node) });
     }
   });
   return layout;
@@ -45488,19 +45480,6 @@ function updateContdMore() {
     }
     return Math.min(total, PAGE_LINES);
   }
-  function splitDialogueText(text, firstUnits, totalUnits) {
-    const words = text.trim().split(/\s+/).filter(Boolean);
-    if (words.length < 2 || firstUnits < 1 || totalUnits <= firstUnits) return null;
-    const target = Math.max(1, Math.floor(text.length * firstUnits / totalUnits));
-    let length = 0, splitAt = 1;
-    for (let i = 0; i < words.length - 1; i++) {
-      length += words[i].length + (i ? 1 : 0);
-      splitAt = i + 1;
-      if (length >= target) break;
-    }
-    return { first:words.slice(0,splitAt).join(' '), rest:words.slice(splitAt).join(' ') };
-  }
-
   function precedingCharacter(index) {
     for (let i = index - 1; i >= 0; i--) {
       const type = typeOf(lines[i]);
@@ -45546,48 +45525,15 @@ function updateContdMore() {
     if (!withMore) line.classList.add('page-leading-line');
   }
 
-  function splitDialogueAcrossPage(line, page, characterName, firstUnits, totalUnits) {
-    const fullText = lineText(line);
-    const parts = splitDialogueText(fullText, firstUnits, totalUnits);
-    if (!parts?.first || !parts.rest || !characterName) return false;
-    const lineId = ensureScriptLineId(line);
-    line.dataset.paginationFullText = fullText;
-    line.classList.add('dialogue-pagination-source');
-    line.innerText = parts.first;
-
-    const moreMark = document.createElement('span');
-    moreMark.className = 'more-mark'; moreMark.textContent = '(MORE)'; moreMark.setAttribute('aria-hidden','true');
-    const pbr = document.createElement('span');
-    pbr.className = 'virtual-page-break'; pbr.dataset.page = `Page ${page}`; pbr.setAttribute('aria-hidden','true');
-    const numStamp = document.createElement('span');
-    numStamp.className = 'page-num-stamp'; numStamp.textContent = `${page}.`; numStamp.setAttribute('aria-hidden','true');
-    const contdMark = document.createElement('span');
-    contdMark.className = 'contd-mark'; contdMark.textContent = characterName + " (CONT'D)"; contdMark.setAttribute('aria-hidden','true');
-    const fragment = document.createElement('div');
-    fragment.className = 'pagination-dialogue-fragment'; fragment.textContent = parts.rest;
-    fragment.dataset.sourceLineId = lineId;
-    fragment.title = 'Click to edit the complete dialogue paragraph';
-    line.after(moreMark,pbr,numStamp,contdMark,fragment);
-    return true;
-  }
-
   let runningLines = 0;
   let pageNum = 1;
   let dialogueUnitsOnPage = 0;
-  let previousDialogueText = '';
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const text = lineText(line);
     const type = typeOf(line);
     const linesUsed = unitsFor(line);
-
-    // While a split paragraph is being edited, show it as one uninterrupted
-    // paragraph. It will be repaginated as soon as focus leaves the line.
-    if (line.dataset?.paginationEditing === 'true') {
-      runningLines += linesUsed;
-      continue;
-    }
 
     // A scene heading stays with the first content below it. A character cue
     // stays with its parenthetical and dialogue when that block fits a page.
@@ -45609,18 +45555,17 @@ function updateContdMore() {
       insertBreakBefore(line, pageNum);
       runningLines = 0;
       dialogueUnitsOnPage = 0;
-      previousDialogueText = '';
     }
 
     if (runningLines > 0 && runningLines + linesUsed > PAGE_LINES) {
-      const availableUnits = PAGE_LINES - runningLines;
       const characterName = type === 'dialogue' ? precedingCharacter(i) : '';
-      if (type === 'dialogue' && availableUnits >= 3 && linesUsed > availableUnits
-          && splitDialogueAcrossPage(line,pageNum+1,characterName,availableUnits,linesUsed)) {
-        pageNum++;
-        runningLines = Math.max(1, linesUsed - availableUnits);
-        dialogueUnitsOnPage = runningLines;
-        previousDialogueText = text;
+
+      // One dialogue paragraph is one editing unit. If it is taller than the
+      // remaining page after its cue, let the visual page overflow instead of
+      // truncating the source and cloning the rest into a second DOM element.
+      if (type === 'dialogue' && dialogueUnitsOnPage === 0 && characterName) {
+        runningLines += linesUsed;
+        dialogueUnitsOnPage += linesUsed;
         continue;
       }
 
@@ -45639,41 +45584,16 @@ function updateContdMore() {
       }
       runningLines = 0;
       dialogueUnitsOnPage = 0;
-      previousDialogueText = '';
     }
 
     runningLines += linesUsed;
     if (type === 'dialogue') {
       dialogueUnitsOnPage += linesUsed;
-      previousDialogueText = text;
     } else if (type !== 'parenthetical' && type !== 'character') {
       dialogueUnitsOnPage = 0;
-      previousDialogueText = '';
     }
   }
 }
-
-document.addEventListener('click', event => {
-  const fragment = event.target.closest?.('.pagination-dialogue-fragment');
-  if (!fragment) return;
-  const lineId = fragment.dataset.sourceLineId || '';
-  const source = document.querySelector(`.script-line[data-line-id="${CSS.escape(lineId)}"]`);
-  if (!source) return;
-  const container = getLinesContainer(activeTabId);
-  container?.querySelectorAll('.dialogue-pagination-source').forEach(line => {
-    if (line.dataset.paginationFullText != null) line.innerText = line.dataset.paginationFullText;
-    delete line.dataset.paginationFullText;
-    line.classList.remove('dialogue-pagination-source');
-  });
-  container?.querySelectorAll('.pagination-dialogue-fragment,.more-mark,.contd-mark,.virtual-page-break,.page-num-stamp').forEach(el => el.remove());
-  source.dataset.paginationEditing = 'true';
-  source.focus();
-  if (typeof setCaretToEnd === 'function') setCaretToEnd(source);
-  source.addEventListener('blur', () => {
-    delete source.dataset.paginationEditing;
-    window._scheduleContdMore?.();
-  }, { once:true });
-});
 
 // Hook into the existing update pipeline
 (function _hookContdMore() {
@@ -47367,26 +47287,21 @@ async function _importDocxLocally(bytes, filename) {
       } else if (name === 'tab') pieces.push('\t');
       else if (name === 'br') {
         if (_wordXmlAttr(node, 'type') === 'page') hasPageBreak = true;
-        else pieces.push('\n');
+        else pieces.push(' ');
       } else if (name === 'lastRenderedPageBreak') hasPageBreak = true;
       node = walker.nextNode();
     }
     const style = styleNames.get(styleId) || styleId || '';
-    const text = pieces.join('').replace(/\u00a0/g, ' ').trim();
-    const rawLines = text ? text.split(/\r?\n/) : [];
-    let addedLine = false;
-    for (const rawLine of rawLines) {
-      const cleaned = rawLine.replace(/[ \t]+/g, ' ').trim();
-      if (cleaned) {
-        paragraphs.push({
-          text: cleaned, style, bold: !!(totalChars && boldChars >= totalChars * .6), page,
-          left, alignment, breakBefore: pendingParagraphBreak && !addedLine,
-        });
-        pendingParagraphBreak = false;
-        addedLine = true;
-      }
+    const text = pieces.join('').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
+    if (text) {
+      paragraphs.push({
+        text, style, bold: !!(totalChars && boldChars >= totalChars * .6), page,
+        left, alignment, breakBefore: pendingParagraphBreak,
+      });
+      pendingParagraphBreak = false;
+    } else {
+      pendingParagraphBreak = true;
     }
-    if (!addedLine) pendingParagraphBreak = true;
     if (hasPageBreak) page += 1;
   }
   if (!paragraphs.length) throw new Error('No readable text was found in this Word document.');

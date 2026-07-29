@@ -118,27 +118,19 @@ assert.equal(more.textContent, '(MORE)');
 assert.equal(pageBreak.className, 'virtual-page-break');
 assert.equal(contd.textContent, "MAYA (CONT'D)");
 
-// A single wrapped dialogue paragraph is visually divided without losing its
-// complete source text.
+// A single wrapped dialogue paragraph remains one selectable/editable element.
+// Page calculation must not truncate it or clone the overflow into a fragment.
 const longSpeechText = Array.from({ length: 180 }, (_, i) => `word${i + 1}`).join(' ');
 const wrappedDoc = runPagination([
   ...Array.from({ length: 10 }, () => line('notes', 'x')),
   line('character', 'MAYA', 2),
   line('dialogue', longSpeechText, 60),
 ]);
-const wrappedSource = wrappedDoc.children.find(item => item.classList.contains('dialogue-pagination-source'));
-const wrappedMore = wrappedDoc.children.find(item => item.className === 'more-mark');
-const wrappedFragment = wrappedDoc.children.find(item => item.className === 'pagination-dialogue-fragment');
-assert.ok(wrappedSource.textContent.length < longSpeechText.length);
-assert.equal(wrappedSource.dataset.paginationFullText, longSpeechText);
-assert.equal(wrappedMore.textContent, '(MORE)');
-assert.ok(wrappedDoc.children.some(item => item.textContent === "MAYA (CONT'D)"));
-assert.equal(`${wrappedSource.textContent} ${wrappedFragment.textContent}`, longSpeechText);
-const markerTypes = wrappedDoc.printLayout.map(item => item.type);
-assert.ok(markerTypes.includes('_more'));
-assert.ok(markerTypes.includes('_break'));
-assert.ok(markerTypes.includes('_page-num'));
-assert.ok(markerTypes.includes('_contd'));
+const wrappedDialogue = wrappedDoc.children.filter(item => item.dataset.type === 'dialogue');
+assert.equal(wrappedDialogue.length, 1);
+assert.equal(wrappedDialogue[0].textContent, longSpeechText);
+assert.equal(wrappedDialogue[0].dataset.paginationFullText, undefined);
+assert.ok(!wrappedDoc.children.some(item => item.className === 'pagination-dialogue-fragment'));
 const exportedSpeech = wrappedDoc.printLayout
   .filter(item => item.type === 'dialogue')
   .map(item => item.text)

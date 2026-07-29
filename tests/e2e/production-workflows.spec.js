@@ -141,6 +141,48 @@ test('DOCX import uses the built-in reader when the desktop service is unavailab
   await expect(page.locator('.tab.active .tab-title')).toHaveText('THE CLOCK HOUSE');
   await expect(skript.activeLines.filter({ hasText: 'INT. CLOCK HOUSE - NIGHT' })).toHaveAttribute('data-type', 'scene');
   await expect(skript.activeLines.filter({ hasText: 'MAYA' })).toHaveAttribute('data-type', 'character');
+
+  const wrappedDialogue = 'This long speech remains one editable dialogue paragraph even when Word stores a soft line break inside it.';
+  const softBreakDocx = await page.evaluate(async dialogueText => {
+    if (!_ensureDocxEngine() || !docx?.JSZip) throw new Error('Word archive support is unavailable');
+    const [firstHalf, secondHalf] = [
+      'This long speech remains one editable dialogue paragraph',
+      'even when Word stores a soft line break inside it.',
+    ];
+    const zip = new docx.JSZip();
+    zip.file('word/document.xml', `<?xml version="1.0" encoding="UTF-8"?>
+      <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>
+        <w:p><w:pPr><w:pStyle w:val="SceneHeading"/></w:pPr><w:r><w:t>INT. IMPORT TEST - DAY</w:t></w:r></w:p>
+        <w:p><w:pPr><w:pStyle w:val="Character"/></w:pPr><w:r><w:t>MAYA</w:t></w:r></w:p>
+        <w:p><w:pPr><w:pStyle w:val="Dialogue"/></w:pPr><w:r><w:t>${firstHalf}</w:t><w:br/><w:t xml:space="preserve"> ${secondHalf}</w:t></w:r></w:p>
+      </w:body></w:document>`);
+    zip.file('word/styles.xml', `<?xml version="1.0" encoding="UTF-8"?>
+      <w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+        <w:style w:type="paragraph" w:styleId="SceneHeading"><w:name w:val="Scene Heading"/></w:style>
+        <w:style w:type="paragraph" w:styleId="Character"><w:name w:val="Character"/></w:style>
+        <w:style w:type="paragraph" w:styleId="Dialogue"><w:name w:val="Dialogue"/></w:style>
+      </w:styles>`);
+    zip.file('docProps/core.xml', `<?xml version="1.0" encoding="UTF-8"?>
+      <cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties"
+        xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>Wrapped Dialogue Test</dc:title></cp:coreProperties>`);
+    const output = await zip.generateAsync({ type: 'base64', compression: 'DEFLATE' });
+    if (dialogueText !== `${firstHalf} ${secondHalf}`) throw new Error('Dialogue fixture mismatch');
+    return output;
+  }, wrappedDialogue);
+  await page.locator('#word-import-input').setInputFiles({
+    name: 'wrapped-dialogue.docx',
+    mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    buffer: Buffer.from(softBreakDocx, 'base64'),
+  });
+  await expect(page.locator('#pdf-review-wizard')).toHaveClass(/open/);
+  await expect.poll(() => page.evaluate(() =>
+    pdfReviewState?.lines.filter(line => line.type === 'dialogue').map(line => line.text)
+  )).toEqual([wrappedDialogue]);
+  for (let step = 0; step < 4; step += 1) await page.locator('#pdf-review-next').click();
+  await expect(page.locator('#pdf-review-wizard')).not.toHaveClass(/\bopen\b/);
+  const importedDialogue = page.locator('.script-panel.active .script-line[data-type="dialogue"]');
+  await expect(importedDialogue).toHaveCount(1);
+  await expect(importedDialogue).toHaveText(wrappedDialogue);
 });
 
 test('Studio schedule links scenes, catalogue, reports and Call Sheets', async ({ page, skript }) => {

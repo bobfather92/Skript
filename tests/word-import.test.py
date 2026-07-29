@@ -19,7 +19,7 @@ document_xml = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
   <w:p><w:r><w:t>Rain strikes the windows.</w:t></w:r></w:p>
   <w:p><w:pPr><w:pStyle w:val="Character"/></w:pPr><w:r><w:t>MAYA</w:t></w:r></w:p>
   <w:p><w:pPr><w:pStyle w:val="Parenthetical"/></w:pPr><w:r><w:t>(quietly)</w:t></w:r></w:p>
-  <w:p><w:pPr><w:pStyle w:val="Dialogue"/></w:pPr><w:r><w:t>It has started again.</w:t></w:r></w:p>
+  <w:p><w:pPr><w:pStyle w:val="Dialogue"/></w:pPr><w:r><w:t>It has started again, and this deliberately long speech</w:t><w:br/><w:t>continues after a soft Word line break.</w:t></w:r></w:p>
   <w:p><w:pPr><w:ind w:left="2880"/></w:pPr><w:r><w:t>ÉLODIE (V.O.)</w:t></w:r></w:p>
   <w:p><w:pPr><w:ind w:left="1440"/></w:pPr><w:r><w:t>I can hear it too.</w:t></w:r></w:p>
   <w:p><w:pPr><w:jc w:val="right"/></w:pPr><w:r><w:t>HARD CUT TO:</w:t></w:r></w:p>
@@ -52,7 +52,7 @@ assert [(line["type"], line["text"]) for line in result["lines"]] == [
     ("action", "Rain strikes the windows."),
     ("character", "MAYA"),
     ("parenthetical", "(quietly)"),
-    ("dialogue", "It has started again."),
+    ("dialogue", "It has started again, and this deliberately long speech continues after a soft Word line break."),
     ("character", "ÉLODIE (V.O.)"),
     ("dialogue", "I can hear it too."),
     ("transition", "HARD CUT TO:"),
@@ -60,11 +60,14 @@ assert [(line["type"], line["text"]) for line in result["lines"]] == [
 assert next(line for line in result["lines"] if line["text"] == "ÉLODIE (V.O.)")["_wordLeft"] == 2880
 assert next(line for line in result["lines"] if line["text"] == "HARD CUT TO:")["_wordAlign"] == "right"
 
-rtf = br"{\rtf1\ansi ACT I\par SCENE 1\par HAMLET: To be, or not to be.\par}"
+rtf = br"{\rtf1\ansi ACT I\par SCENE 1\par HAMLET: To be, or not to be,\line that is the question.\par}"
 legacy = module._import_word_bytes(rtf, ".doc", "Legacy Stage Play")
 assert legacy["converter"] == "RTF reader"
 assert any(line["type"] == "act" for line in legacy["lines"])
 assert any(line["type"] == "character" and line["text"] == "HAMLET" for line in legacy["lines"])
-assert any(line["type"] == "dialogue" and "To be" in line["text"] for line in legacy["lines"])
+assert any(
+    line["type"] == "dialogue" and line["text"] == "To be, or not to be, that is the question."
+    for line in legacy["lines"]
+)
 
 print("Word DOCX and legacy DOC/RTF import regression tests passed.")
