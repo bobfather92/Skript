@@ -87,7 +87,7 @@ const nativeCheckpoint = {
       },
       'native-line-c': {
         type: 'EditDialogName',
-        cache: { t: 'MAYA', l: 1700000000003 },
+        cache: { t: '\ue5e5\u0005MAYA\u0006\ue5e6', l: 1700000000003 },
       },
       'native-line-d': {
         type: 'EditDialogParen',
@@ -95,7 +95,11 @@ const nativeCheckpoint = {
       },
       'native-line-e': {
         type: 'EditDialogContent',
-        cache: { t: 'That is the real format.', l: 1700000000005 },
+        cache: { t: 'That is the real\nformat and remains one', l: 1700000000005 },
+      },
+      'native-line-f': {
+        type: 'EditDialogContent',
+        cache: { t: 'editable paragraph.', l: 1700000000006 },
       },
     },
     dataStoreCheckpointIds: {
@@ -109,7 +113,7 @@ const nativeCheckpoint = {
 const nativeResult = context._extractWriterDuetDocuments(nativeCheckpoint, 'Native WriterDuet Script');
 assert.equal(nativeResult.documents.length, 1);
 assert.equal(nativeResult.documents[0].writerDuetBranchId, 'writerduet-branch');
-assert.equal(nativeResult.documents[0].writerDuetUpdatedAt, 1700000000005);
+assert.equal(nativeResult.documents[0].writerDuetUpdatedAt, 1700000000006);
 assert.deepEqual(
   JSON.parse(JSON.stringify(nativeResult.documents[0].lines.map(line => [line.type, line.text]))),
   [
@@ -117,7 +121,21 @@ assert.deepEqual(
     ['action', 'A real checkpoint opens.'],
     ['character', 'MAYA'],
     ['parenthetical', '(relieved)'],
-    ['dialogue', 'That is the real format.'],
+    ['dialogue', 'That is the real format and remains one editable paragraph.'],
+  ],
+);
+assert.equal(nativeResult.documents[0].lines[4].importMeta.sourceIndexEnd, 5);
+
+const reopenedWriterDuetLines = context._writerDuetNormaliseImportedLines([
+  { type: 'character', text: '\ue5e5\u0005CARVALKO\u0006\ue5e6', lineId: 'saved-cue' },
+  { type: 'dialogue', text: 'A saved speech was\nsplit in', lineId: 'saved-dialogue-a' },
+  { type: 'dialogue', text: 'an earlier import.', lineId: 'saved-dialogue-b' },
+]);
+assert.deepEqual(
+  JSON.parse(JSON.stringify(reopenedWriterDuetLines.map(line => [line.type, line.text]))),
+  [
+    ['character', 'CARVALKO'],
+    ['dialogue', 'A saved speech was split in an earlier import.'],
   ],
 );
 

@@ -32139,6 +32139,7 @@ button.primary:hover,
             <p class="changes-panel-lead">The first development build on the road to Skript 1.1.</p>
             <div class="opt-section"><strong>Multiple script imports</strong><div class="opt-note" style="margin-top:5px;">Select several existing Skript files in one operation and open every valid script as a separate document.</div></div>
             <div class="opt-section"><strong>WriterDuet project import</strong><div class="opt-note" style="margin-top:5px;">Import native WriterDuet .wdz checkpoint projects and JSON exports, including projects that contain multiple screenplay documents.</div></div>
+            <div class="opt-section"><strong>Clean WriterDuet dialogue</strong><div class="opt-note" style="margin-top:5px;">Remove hidden formatting markers from character names and recombine consecutive native dialogue fragments into one editable speech.</div></div>
             <div class="opt-section"><strong>Whole imported dialogue</strong><div class="opt-note" style="margin-top:5px;">Keep long imported dialogue as one selectable and editable paragraph, including Word soft line breaks and dialogue that visually extends past a page.</div></div>
             <div class="opt-section"><strong>Multi-script project foundation</strong><div class="opt-note" style="margin-top:5px;">Introduces the project-collection format used to group multiple script documents under one project identity.</div></div>
             <div class="opt-section"><strong>Safer batch handling</strong><div class="opt-note" style="margin-top:5px;">A damaged or invalid file no longer prevents other valid files in the same selection from opening.</div></div>
@@ -34495,7 +34496,7 @@ function migrateProjectData(input) {
 
   const seenLineIds = new Set();
   const sourceLines = Array.isArray(input.lines) ? input.lines : [];
-  const lines = sourceLines.map((raw, index) => {
+  let lines = sourceLines.map((raw, index) => {
     const line = raw && typeof raw === 'object' ? raw : { text: raw };
     const requestedId = typeof line.lineId === 'string' ? line.lineId.trim() : '';
     const lineId = requestedId && !seenLineIds.has(requestedId) ? requestedId : newProjectId(`line-${index + 1}`);
@@ -34519,6 +34520,9 @@ function migrateProjectData(input) {
     }
     return migrated;
   });
+  if (String(input.importProfile?.source || '').toLowerCase() === 'writerduet') {
+    lines = _writerDuetNormaliseImportedLines(lines);
+  }
 
   const title = String(input.title || input.cover?.title || 'Untitled').trim() || 'Untitled';
   const cover = { ...(input.cover && typeof input.cover === 'object' ? input.cover : {}) };
@@ -46071,6 +46075,44 @@ function _writerDuetPlainText(value, depth = 0) {
   return '';
 }
 
+function _writerDuetCleanText(value) {
+  return String(value ?? '')
+    // WriterDuet can wrap character names in private-use glyphs and C0
+    // control bytes. They are editing metadata, not screenplay text.
+    .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f\u200b-\u200f\u202a-\u202e\u2060-\u206f\ue000-\uf8ff]/gi, '')
+    // Native checkpoints may store visual line wrapping inside one logical
+    // screenplay paragraph. Let Skript wrap it to the editor width instead.
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function _writerDuetNormaliseImportedLines(sourceLines) {
+  const lines = [];
+  (Array.isArray(sourceLines) ? sourceLines : []).forEach(rawLine => {
+    if (!rawLine || typeof rawLine !== 'object') return;
+    const line = {
+      ...rawLine,
+      text: _writerDuetCleanText(rawLine.text),
+      ...(rawLine.importMeta && typeof rawLine.importMeta === 'object'
+        ? { importMeta: { ...rawLine.importMeta } }
+        : {}),
+    };
+    if (!line.text) return;
+    const previous = lines[lines.length - 1];
+    if (line.type === 'dialogue' && previous?.type === 'dialogue') {
+      previous.text = `${previous.text} ${line.text}`.replace(/\s+/g, ' ').trim();
+      if (previous.importMeta) {
+        previous.importMeta.sourceIndexEnd = line.importMeta?.sourceIndexEnd
+          ?? line.importMeta?.sourceIndex
+          ?? previous.importMeta.sourceIndexEnd;
+      }
+      return;
+    }
+    lines.push(line);
+  });
+  return lines;
+}
+
 function _writerDuetObjectTitle(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return '';
   for (const key of ['documentTitle', 'document_title', 'docTitle', 'doc_title', 'title', 'name', 'filename']) {
@@ -46117,7 +46159,7 @@ function _writerDuetConvertLine(raw, index = 0) {
   const type = WRITERDUET_TYPE_MAP[normalisedType];
   const coverField = WRITERDUET_COVER_FIELDS[normalisedType];
   if (!type && !coverField) return null;
-  const text = _writerDuetRawText(raw, rawType);
+  const text = _writerDuetCleanText(_writerDuetRawText(raw, rawType));
   if (!text) return null;
   if (coverField) return { coverField, text };
   const requestedId = raw && !Array.isArray(raw) && typeof raw === 'object'
@@ -46154,7 +46196,7 @@ function _writerDuetConvertLineArray(items) {
     else lines.push(converted);
   });
   if (!recognised || recognised / Math.max(1, possible) < 0.25) return null;
-  return { lines, cover, recognised };
+  return { lines: _writerDuetNormaliseImportedLines(lines), cover, recognised };
 }
 
 function _writerDuetNativeCheckpoint(input, fallbackTitle) {

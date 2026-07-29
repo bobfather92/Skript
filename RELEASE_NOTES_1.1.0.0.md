@@ -6,6 +6,7 @@ This is the first local development package on the road to Skript 1.1. It is int
 
 - Select several `.script`, `.sfg` or compatible JSON project files in one import operation.
 - Import native WriterDuet `.wdz` checkpoint projects and WriterDuet JSON exports, including projects containing multiple script documents.
+- Remove WriterDuet’s hidden character-name markers and recombine consecutive native dialogue fragments into one editable speech.
 - Keep long imported dialogue as one selectable and editable Skript paragraph, including Word soft line breaks and dialogue that visually extends past a page.
 - Open all valid selected scripts even when another selected file is invalid.
 - Open the initial `com.skript.project-collection` format containing multiple script documents.

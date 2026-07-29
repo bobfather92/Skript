@@ -133,8 +133,9 @@ test('a WriterDuet project imports every script from its WDZ archive', async ({ 
         lines: [
           ['wd-e2e-1', 'Slugline', 'INT. WRITERDUET ROOM - DAY'],
           ['wd-e2e-2', 'Action', 'Two scripts wait on the screen.'],
-          ['wd-e2e-3', 'EditDialogName', 'MAYA'],
-          ['wd-e2e-4', 'EditDialogContent', 'Bring them both in.'],
+          ['wd-e2e-3', 'EditDialogName', '\ue5e5\u0005MAYA\u0006\ue5e6'],
+          ['wd-e2e-4', 'EditDialogContent', 'Bring them both\nin and keep this'],
+          ['wd-e2e-4b', 'EditDialogContent', 'speech together.'],
         ],
       },
       {
@@ -189,7 +190,7 @@ test('a WriterDuet project imports every script from its WDZ archive', async ({ 
     'INT. WRITERDUET ROOM - DAY',
     'Two scripts wait on the screen.',
     'MAYA',
-    'Bring them both in.',
+    'Bring them both in and keep this speech together.',
   ]);
   await expect(page.locator('.script-panel.active .script-line')).toHaveText([
     'EXT. WRITERDUET STREET - NIGHT',
@@ -206,6 +207,19 @@ test('a WriterDuet project imports every script from its WDZ archive', async ({ 
   await expect.poll(() => page.evaluate(() => tabs.map(tab => getCoverData(tab.id)?.author))).toEqual([
     'E2E Writer',
     'E2E Writer',
+  ]);
+  await expect.poll(() => page.evaluate(() => migrateProjectData({
+    version: 2,
+    title: 'Reopened WriterDuet Import',
+    importProfile: { source: 'writerduet' },
+    lines: [
+      { type: 'character', text: '\ue5e5\u0005CARVALKO\u0006\ue5e6' },
+      { type: 'dialogue', text: 'This saved speech was\nsplit in' },
+      { type: 'dialogue', text: 'an earlier import.' },
+    ],
+  }).data.lines.map(line => [line.type, line.text]))).toEqual([
+    ['character', 'CARVALKO'],
+    ['dialogue', 'This saved speech was split in an earlier import.'],
   ]);
 });
 
