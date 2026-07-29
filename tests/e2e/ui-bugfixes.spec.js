@@ -82,13 +82,13 @@ test('a native close request opens the Skript close prompt instead of Edge', asy
     await route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' });
   });
   await skript.activeLines.first().fill('INT. UNSAVED ROOM - NIGHT');
-  await page.evaluate(() => requestDesktopClose());
+  await page.request.post('/__e2e_window_event');
   const modal = page.locator('#desktop-close-modal');
   await expect(modal).toBeVisible();
-  await expect(modal).toContainText('Save before closing?');
+  await expect(modal).toContainText('Do you want to exit Skript?');
   await expect(modal).toContainText('1 project has unsaved changes. Save now to keep your latest work.');
-  await expect(modal.getByRole('button', { name: 'Save and close' })).toBeVisible();
-  await expect(modal.getByRole('button', { name: 'Close without saving' })).toBeVisible();
+  await expect(modal.getByRole('button', { name: 'Save and exit' })).toBeVisible();
+  await expect(modal.getByRole('button', { name: 'Exit without saving' })).toBeVisible();
   const closeLayout = await modal.evaluate(element => {
     const box = element.querySelector('.modal-box').getBoundingClientRect();
     const copy = element.querySelector('.desktop-close-copy').getBoundingClientRect();
@@ -100,15 +100,16 @@ test('a native close request opens the Skript close prompt instead of Edge', asy
     };
   });
   expect(closeLayout).toEqual({ copyInside: true, buttonsInside: true, oneRow: true });
-  await modal.getByRole('button', { name: 'Cancel' }).click();
+  await modal.getByRole('button', { name: 'Continue writing' }).click();
   await expect(modal).toBeHidden();
   await expect(skript.activeLines.first()).toHaveText('INT. UNSAVED ROOM - NIGHT');
   await page.evaluate(() => requestDesktopClose());
-  await modal.getByRole('button', { name: 'Close without saving' }).click();
+  await modal.getByRole('button', { name: 'Exit without saving' }).click();
   await expect.poll(() => windowAction).toBe('close');
+  await page.request.post('/__e2e_clear_window_event');
 });
 
-test('Save and close saves the project before requesting native close', async ({ page, skript }) => {
+test('Save and exit saves the project before requesting native close', async ({ page, skript }) => {
   let windowAction = '';
   const closeSequence = [];
   await page.route('**/api/save-auto', async route => {
@@ -126,7 +127,7 @@ test('Save and close saves the project before requesting native close', async ({
   });
   await skript.activeLines.first().fill('INT. SAVE BEFORE CLOSE - DAY');
   await page.evaluate(() => requestDesktopClose());
-  await page.locator('#desktop-close-modal').getByRole('button', { name: 'Save and close' }).click();
+  await page.locator('#desktop-close-modal').getByRole('button', { name: 'Save and exit' }).click();
   await expect.poll(() => windowAction).toBe('close');
   expect(closeSequence).toEqual(['save', 'close']);
 });

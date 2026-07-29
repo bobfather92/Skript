@@ -12,6 +12,8 @@ This is the first local development package on the road to Skript 1.1. It is int
 - Export WriterDuet scripts with BBC-style A4 margins and 12-point spacing, proper continuation pages, top-right page headers, no browser-generated footers, and clean Act page breaks.
 - Create and export Film, TV, BBC Radio Scene Style and BBC Stage scripts using the corresponding BBC layout conventions.
 - Choose whether Notes elements are included in PDF, Word, Fountain, Final Draft and printed script output; Notes are excluded by default.
+- Keep Edge's Downloads icon and browser controls hidden behind Skript's own Windows title bar.
+- Replace Edge's unsaved-work box with a Skript exit window offering **Continue writing**, **Exit without saving**, and **Save and exit**.
 - Open all valid selected scripts even when another selected file is invalid.
 - Open the initial `com.skript.project-collection` format containing multiple script documents.
 - Access **Import Scripts…** directly from the Navigator's Add Document menu.

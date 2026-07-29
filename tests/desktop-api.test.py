@@ -92,6 +92,14 @@ with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as temp_dir:
             assert response.headers.get_content_type() == "image/png"
             assert len(response.read()) > 1_000
 
+        published_seq = module._publish_window_event("request-close")
+        window_event = get("/api/window-events")
+        assert window_event == {
+            "ok": True,
+            "seq": published_seq,
+            "event": "request-close",
+        }
+
         script = {
             "version": 4,
             "title": "API Test",

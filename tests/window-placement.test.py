@@ -67,24 +67,25 @@ assert "_set_windows_app_identity(hwnd)" in placement_source
 assert "SetWindowPos(hwnd, 0, x, y, width, height" in placement_source
 assert "_enable_native_app_shell(hwnd)" not in placement_source
 assert "target=_maintain_native_app_shell" not in placement_source
-assert "_create_native_titlebar_overlay(hwnd)" not in placement_source
+assert "_create_native_titlebar_overlay(hwnd)" in placement_source
 assert "_create_native_browser_host(hwnd" not in placement_source
 assert "_resize_native_host(" not in placement_source
 control_source = window_source.split("def _window_control", 1)[1].split("def launch", 1)[0]
-assert "_titlebar_overlay_is_active" not in control_source
+assert "_titlebar_overlay_is_active" in control_source
 assert "_native_host_is_active" not in control_source
 html_injection_source = window_source.split("def _get_html", 1)[1].split("class SFHandler", 1)[0]
 assert "_SF_NATIVE_SHELL" not in html_injection_source
-assert "_SF_NATIVE_TITLEBAR_OVERLAY" not in html_injection_source
-assert "'/api/window-events'" not in window_source
+assert "_SF_NATIVE_TITLEBAR_OVERLAY" in html_injection_source
+assert "'/api/window-events'" in window_source
 
 # Chromium can hand the app window to an already-running Edge process. The
 # launcher subprocess exiting must not stop Skript's local desktop service.
 launch_source = (ROOT / "skript.py").read_text(encoding="utf-8").split("def launch():", 1)[1]
 assert "cwd=tempfile.gettempdir()" in window_source
 assert "_EDGE_PROC.poll()" not in launch_source
-assert "while not _APP_SHUTDOWN_EVENT.wait(0.10)" in launch_source
-assert "_pump_native_titlebar_overlay()" not in launch_source
-assert "_destroy_native_titlebar_overlay()" not in launch_source
+assert "while not _APP_SHUTDOWN_EVENT.wait(0.05)" in launch_source
+assert "_pump_native_titlebar_overlay()" in launch_source
+assert "_destroy_native_titlebar_overlay()" in launch_source
+assert "--start-minimized" in window_source
 
 print("Centred landscape desktop-window geometry tests passed.")

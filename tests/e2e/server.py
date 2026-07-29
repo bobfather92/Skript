@@ -40,6 +40,14 @@ class E2EHandler(skript.SFHandler):
             self._json({'ok': True})
             threading.Thread(target=self.server.shutdown, daemon=True).start()
             return
+        if self.path == '/__e2e_window_event':
+            seq = skript._publish_window_event('request-close')
+            self._json({'ok': True, 'seq': seq})
+            return
+        if self.path == '/__e2e_clear_window_event':
+            seq = skript._publish_window_event('')
+            self._json({'ok': True, 'seq': seq})
+            return
         super().do_POST()
 
 

@@ -49,7 +49,10 @@ assert.ok(html.includes('scripts.slice(0, 3)'), 'Welcome must show no more than 
 assert.ok(html.includes('#wiz-recent-list { height: auto; overflow: visible;'), 'Welcome recent projects must not scroll');
 assert.ok(html.includes('id="desktop-titlebar"'), 'Desktop shell must provide Skript-owned window controls');
 assert.ok(html.includes('id="desktop-close-modal"'), 'Desktop shell must provide its own save-before-close dialog');
-assert.ok(html.includes("if (window._SF_NATIVE_SHELL)"), 'Desktop close must bypass the browser beforeunload dialog');
+assert.ok(
+  html.includes("if (window._SF_NATIVE_TITLEBAR_OVERLAY && desktopCloseApproved)"),
+  'An approved Skript close must bypass the browser beforeunload dialog'
+);
 assert.ok(html.includes('--amber: var(--brand-purple)'), 'Interface accent labels must use Skript purple');
 assert.ok(html.includes('#pv-btn-sidebyside { width: 26px'), 'Side-by-side View glyph must fit its background plate');
 

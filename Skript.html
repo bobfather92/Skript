@@ -30607,14 +30607,14 @@ button.primary:hover,
 <div class="modal-overlay" id="desktop-close-modal" role="dialog" aria-modal="true" aria-labelledby="desktop-close-title" style="display:none;align-items:center;justify-content:center;">
   <div class="modal-box">
     <div class="desktop-close-copy">
-      <h2 id="desktop-close-title">Save before closing?</h2>
+      <h2 id="desktop-close-title">Do you want to exit Skript?</h2>
       <p id="desktop-close-summary">Your project has unsaved changes. Save now to keep your latest work.</p>
       <div id="desktop-close-status"></div>
     </div>
     <div class="desktop-close-actions">
-      <button class="top-btn" type="button" onclick="cancelDesktopClose()">Cancel</button>
-      <button class="top-btn" type="button" id="desktop-discard-close" onclick="discardAndCloseDesktop()">Close without saving</button>
-      <button class="top-btn primary" type="button" id="desktop-save-close" onclick="saveAndCloseDesktop()">Save and close</button>
+      <button class="top-btn" type="button" onclick="cancelDesktopClose()">Continue writing</button>
+      <button class="top-btn" type="button" id="desktop-discard-close" onclick="discardAndCloseDesktop()">Exit without saving</button>
+      <button class="top-btn primary" type="button" id="desktop-save-close" onclick="saveAndCloseDesktop()">Save and exit</button>
     </div>
   </div>
 </div>
@@ -34846,12 +34846,6 @@ function desktopTitlebarDrag(event) {
 
 function requestDesktopClose() {
   const authored = tabs.filter(tabHasAuthoredContent);
-  if (!authored.length) {
-    desktopCloseApproved = true;
-    desktopDiscardOnClose = false;
-    desktopWindowAction('close');
-    return;
-  }
   const dirty = authored.filter(tab => tab.dirty);
   const modal = document.getElementById('desktop-close-modal');
   const summary = document.getElementById('desktop-close-summary');
@@ -34859,8 +34853,13 @@ function requestDesktopClose() {
   const status = document.getElementById('desktop-close-status');
   if (summary) summary.textContent = dirty.length
     ? `${dirty.length} project${dirty.length === 1 ? ' has' : 's have'} unsaved changes. Save now to keep your latest work.`
-    : 'This project is already saved. You can save it again or close Skript.';
-  if (saveButton) saveButton.textContent = dirty.length ? 'Save and close' : 'Close saved project';
+    : (authored.length
+      ? 'Your work is already saved. You can save it again, exit, or continue writing.'
+      : 'There is no unsaved work. You can exit Skript or continue writing.');
+  if (saveButton) {
+    saveButton.textContent = 'Save and exit';
+    saveButton.disabled = authored.length === 0;
+  }
   if (status) status.textContent = '';
   desktopCloseBusy = false;
   if (modal) modal.style.display = 'flex';
@@ -42007,8 +42006,7 @@ function sendEmergencyRecovery() {
 }
 
 window.addEventListener('beforeunload', event => {
-  if (window._SF_NATIVE_SHELL) {
-    if (!desktopCloseApproved && getUnsavedTabs().some(tabHasAuthoredContent)) sendEmergencyRecovery();
+  if (window._SF_NATIVE_TITLEBAR_OVERLAY && desktopCloseApproved) {
     return;
   }
   if (getUnsavedTabs().some(tabHasAuthoredContent)) {
