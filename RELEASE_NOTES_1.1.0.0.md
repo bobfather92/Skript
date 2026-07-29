@@ -10,6 +10,8 @@ This is the first local development package on the road to Skript 1.1. It is int
 - Right-align screenplay transitions and import WriterDuet Act records as visible New Act elements that always begin a fresh page.
 - Keep long imported dialogue as one selectable and editable Skript paragraph, including Word soft line breaks and dialogue that visually extends past a page.
 - Export WriterDuet scripts with BBC-style A4 margins and 12-point spacing, proper continuation pages, top-right page headers, no browser-generated footers, and clean Act page breaks.
+- Create and export Film, TV, BBC Radio Scene Style and BBC Stage scripts using the corresponding BBC layout conventions.
+- Choose whether Notes elements are included in PDF, Word, Fountain, Final Draft and printed script output; Notes are excluded by default.
 - Open all valid selected scripts even when another selected file is invalid.
 - Open the initial `com.skript.project-collection` format containing multiple script documents.
 - Access **Import Scripts…** directly from the Navigator's Add Document menu.
@@ -35,7 +37,7 @@ Python and the supported PDF, OCR and Word engines are included in the Windows d
 
 - 12 JavaScript regression suites passed.
 - 9 Python regression suites passed.
-- Complete browser workflow: 103 passed, 9 intentionally skipped, 0 failed across desktop and compact-touch configurations.
+- Complete browser workflow: 104 passed, 10 intentionally skipped, 0 failed across desktop and compact-touch configurations.
 - Python compilation and embedded HTML syntax checks passed.
 
 ## Development-build warning
