@@ -9868,17 +9868,6 @@ class SFHandler(BaseHTTPRequestHandler):
                     if pdf_path.exists():
                         pdf_path.unlink()
 
-                if getattr(sys, 'frozen', False):
-                    pdf_path.write_bytes(_build_basic_pdf_bytes(title, cover, lines, fmt, inc_cover, inc_script, layout))
-                    rendered = pdf_path.exists() and pdf_path.stat().st_size > 500
-                    if rendered:
-                        if sys.platform == 'win32' and open_pdf:
-                            os.startfile(str(pdf_path))
-                        self._json({'ok': True, 'path': str(pdf_path)})
-                    else:
-                        self._json({'ok': False, 'error': 'pdf_fallback_failed'})
-                    return
-
                 browser_paths = [
                     r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe',
                     r'C:\Program Files\Microsoft\Edge\Application\msedge.exe',
@@ -9924,7 +9913,20 @@ class SFHandler(BaseHTTPRequestHandler):
                         os.startfile(str(pdf_path))
                     self._json({'ok': True, 'path': str(pdf_path)})
                 else:
-                    self._json({'ok': False, 'error': 'edge_not_found'})
+                    # Keep a dependency-free renderer as a genuine fallback.
+                    # Packaged builds must not bypass the browser renderer:
+                    # doing so discards the editor's measured page breaks and
+                    # produces visibly different spacing from the BBC layout.
+                    pdf_path.write_bytes(_build_basic_pdf_bytes(
+                        title, cover, lines, fmt, inc_cover, inc_script, layout
+                    ))
+                    rendered = pdf_path.exists() and pdf_path.stat().st_size > 500
+                    if rendered:
+                        if sys.platform == 'win32' and open_pdf:
+                            os.startfile(str(pdf_path))
+                        self._json({'ok': True, 'path': str(pdf_path), 'renderer': 'basic'})
+                    else:
+                        self._json({'ok': False, 'error': 'pdf_render_failed'})
                 try:
                     shutil.rmtree(profile_dir, ignore_errors=True)
                 except Exception:
@@ -9987,7 +9989,7 @@ def _pdf_escape_text(value):
 
 
 def _build_basic_pdf_bytes(title, cover, lines, fmt, inc_cover, inc_script, layout=None):
-    """Dependency-free A4 PDF renderer used by the packaged application."""
+    """Dependency-free BBC-style A4 PDF renderer used if Edge is unavailable."""
     import textwrap
 
     page_w, page_h = 595.28, 841.89
@@ -9996,6 +9998,8 @@ def _build_basic_pdf_bytes(title, cover, lines, fmt, inc_cover, inc_script, layo
     source_lines = layout if isinstance(layout, list) and layout else lines
     pages, ops = [], []
     y = top
+    page_has_content = False
+    previous_type = ''
 
     def add_at(text, x, at_y, bold=False, size=12):
         text = str(text or '').strip()
@@ -10005,13 +10009,15 @@ def _build_basic_pdf_bytes(title, cover, lines, fmt, inc_cover, inc_script, layo
         ops.append(f'BT /{font} {size} Tf {x:.2f} {at_y:.2f} Td ({_pdf_escape_text(text)}) Tj ET')
 
     def new_page():
-        nonlocal ops, y
+        nonlocal ops, y, page_has_content, previous_type
         pages.append(ops)
         ops = []
         y = top
+        page_has_content = False
+        previous_type = ''
 
     def draw(text, x=left_default, bold=False, size=12, cols=58):
-        nonlocal y
+        nonlocal y, page_has_content
         text = str(text or '').strip()
         wrapped = textwrap.wrap(text, width=cols, break_long_words=True, break_on_hyphens=False) if text else ['']
         for row in wrapped:
@@ -10019,7 +10025,16 @@ def _build_basic_pdf_bytes(title, cover, lines, fmt, inc_cover, inc_script, layo
                 new_page()
             if row:
                 add_at(row, x, y, bold, size)
+                page_has_content = True
             y -= leading
+
+    def blank_lines(count):
+        nonlocal y
+        if page_has_content and count > 0:
+            y -= leading * count
+
+    def is_page_leading(item):
+        return bool(isinstance(item, dict) and item.get('pageLeading')) or not page_has_content
 
     if inc_cover:
         cv = cover or {}
@@ -10092,49 +10107,72 @@ def _build_basic_pdf_bytes(title, cover, lines, fmt, inc_cover, inc_script, layo
             typ = str(item.get('type', 'action') if isinstance(item, dict) else 'action')
             text = item.get('text', '') if isinstance(item, dict) else str(item)
             is_play = fmt == 'play'
+            page_leading = is_page_leading(item)
+
+            if typ == '_break':
+                if page_has_content or ops:
+                    new_page()
+                continue
+            if typ == '_page-num':
+                # BBC page numbers sit in the top-right header and do not
+                # consume a line of script body.
+                add_at(text, page_w - 108, page_h - 48, False, 12)
+                continue
+            if typ == '_more':
+                draw(text or '(MORE)', 252, cols=12)
+                previous_type = typ
+                continue
+            if typ == '_contd':
+                draw(text.upper(), 252, cols=36)
+                previous_type = typ
+                continue
+
             if typ == 'scene':
-                y -= 12 if is_play else 6
-                draw(text.upper(), left_default, True, cols=58)
+                if not page_leading:
+                    blank_lines(1 if previous_type == 'transition' else 2)
+                draw(text.upper(), left_default, not is_play, cols=60)
             elif typ == 'character':
-                y -= 6
-                draw(text.upper(), 252 if is_play else 252, True, cols=32)
+                if not page_leading:
+                    blank_lines(1)
+                draw(text.upper(), 252, is_play, cols=36)
             elif typ == 'dialogue':
                 draw(text, 180, cols=35)
             elif typ == 'parenthetical':
-                draw(text, 216 if not is_play else 180, cols=28 if not is_play else 35)
+                draw(text, 216 if not is_play else 180, cols=25 if not is_play else 35)
             elif typ == 'transition':
                 if not is_play:
-                    y -= 6
+                    blank_lines(2 if previous_type == 'new-act' else 1)
                     transition_text = str(text or '').upper()
                     transition_x = max(left_default, page_w - 54 - len(transition_text) * 7.2)
-                    draw(transition_text, transition_x, True, cols=58)
+                    draw(transition_text, transition_x, False, cols=60)
             elif typ == 'new-act':
-                if ops and y != top:
+                if page_has_content:
                     new_page()
-                y -= 12
                 act_text = str(text or '').upper()
                 draw(act_text, max(left_default, (page_w - len(act_text) * 7.2) / 2), True, cols=45)
-                y -= 6
             elif typ == 'act':
-                if is_play and ops and y != top:
+                if is_play and page_has_content:
                     new_page()
-                y -= 12
+                if not page_leading:
+                    blank_lines(2)
                 draw(text.upper(), left_default if is_play else 250, True, cols=45)
-                y -= 6
             elif typ in ('act-break', 'cold-open', 'tag'):
-                y -= 12
+                blank_lines(1)
                 draw(text.upper(), 250, True, cols=35)
-                y -= 6
             elif typ == 'notes':
                 continue
             elif is_play and typ in ('action', 'stage-direction'):
+                if not page_leading:
+                    blank_lines(1)
                 direction = str(text or '').strip()
                 if direction and not (direction.startswith('(') and direction.endswith(')')):
                     direction = f'({direction})'
-                draw(direction, left_default, cols=58)
-                y -= 6
+                draw(direction, left_default, cols=60)
             else:
-                draw(text, left_default, cols=58)
+                if not page_leading:
+                    blank_lines(1)
+                draw(text, left_default, cols=60)
+            previous_type = typ
     if ops or not pages:
         pages.append(ops)
 
@@ -10317,6 +10355,15 @@ def _build_pdf_html(title, cover, lines, fmt, inc_cover, inc_script, layout=None
          Left 1.5in gutter (binding), all others 1in
          Text area = 8.27 - 1.5 - 1.0 = 5.77in wide           */
       margin: 1in 0.75in 1in 1.5in;
+      @top-right {
+        content: counter(page) ".";
+        font: 12pt/12pt 'Courier New', Courier, monospace;
+        vertical-align: middle;
+      }
+    }
+    @page cover {
+      counter-increment: page 0;
+      @top-right { content: none; }
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
@@ -10331,6 +10378,7 @@ def _build_pdf_html(title, cover, lines, fmt, inc_cover, inc_script, layout=None
 
     /* ── Cover ──────────────────────────────────────────────── */
     .cover-page {
+      page: cover;
       width: 100%;
       /* Deliberately below the 246.2mm printable area to avoid rounding spills. */
       height: 238mm;
@@ -10452,11 +10500,7 @@ def _build_pdf_html(title, cover, lines, fmt, inc_cover, inc_script, layout=None
       text-transform: uppercase;
     }
     .page-num-stamp {
-      display: block;
-      font: 12pt/12pt 'Courier New', Courier, monospace;
-      text-align: right;
-      height: 12pt;
-      margin: 0 0 12pt;
+      display: none;
     }
     .el-transition {
       text-align: right;
@@ -10509,8 +10553,9 @@ def _build_pdf_html(title, cover, lines, fmt, inc_cover, inc_script, layout=None
                       margin-top: 24pt; margin-bottom: 12pt; }
     .el-new-act     { text-align: center; text-transform: uppercase;
                       font-weight: bold; letter-spacing: 2pt;
-                      margin: 0 0 12pt; padding-top: 12pt;
-                      border-top: 2pt double #777; }
+                      margin: 0 0 24pt; }
+    .el-new-act + .el-transition { margin-top: 12pt; }
+    .el-transition + .el-scene { margin-top: 12pt; }
     .el-stage-direction { margin-left: 1.0in; margin-right: 1.3in;
                           margin-bottom: 12pt; font-style: italic; }
     .el-tag         { text-align: center; text-transform: uppercase;

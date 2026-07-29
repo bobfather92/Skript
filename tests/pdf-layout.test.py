@@ -27,6 +27,8 @@ html = module._build_pdf_html(
 
 expected_css = [
     "margin: 1in 0.75in 1in 1.5in",
+    'content: counter(page) "."',
+    "counter-increment: page 0",
     ".el-scene + .el-action { margin-top: 12pt; }",
     ".speech + .el-action { margin-top: 12pt; }",
     "margin-left: 2.0in",
@@ -46,10 +48,17 @@ assert 'text-align: right' in transition_css
 assert 'class="el-new-act">ACT TWO</div>' in html
 new_act_css = html.split('.el-new-act', 1)[1].split('}', 1)[0]
 assert 'text-align: center' in new_act_css
+assert "border-top" not in new_act_css
+page_stamp_css = html.split(".page-num-stamp {", 1)[1].split("}", 1)[0]
+assert "display: none" in page_stamp_css
 
 fallback_source = (ROOT / 'skript.py').read_text(encoding='utf-8')
 assert "transition_x = max(left_default, page_w - 54" in fallback_source
 assert "elif typ == 'new-act':" in fallback_source
+assert "if getattr(sys, 'frozen', False):" not in fallback_source.split(
+    "elif path == '/api/export-pdf':", 1
+)[1].split("# ── Molly AI proxy", 1)[0]
+assert "'renderer': 'basic'" in fallback_source
 
 explicit = module._build_pdf_html(
     "Parity Test",
@@ -142,4 +151,45 @@ for token in ('EXTRAORDINARILY', 'Christopher', 'attribution', 'Confidential',
               'Productions', 'alexandra.writer@example-', 'production.test',
               'Copyright', 'adaptation'):
     assert token in long_cover_pdf, token
+
+fallback_layout_pdf = module._build_basic_pdf_bytes(
+    "Fallback Layout",
+    {},
+    [],
+    "film",
+    False,
+    True,
+    [
+        {"type": "new-act", "text": "ACT ONE"},
+        {"type": "transition", "text": "FADE IN:"},
+        {"type": "scene", "text": "EXT. LOCATION - DAY"},
+        {"type": "action", "text": "The first page follows BBC spacing."},
+        {"type": "character", "text": "MAYA"},
+        {"type": "dialogue", "text": "This speech continues."},
+        {"type": "_more", "text": "(MORE)"},
+        {"type": "_break", "text": ""},
+        {"type": "_page-num", "text": "2."},
+        {"type": "_contd", "text": "MAYA (CONT'D)"},
+        {"type": "dialogue", "text": "On a genuine second page."},
+        {"type": "transition", "text": "CUT TO:"},
+        {"type": "new-act", "text": "ACT TWO"},
+        {"type": "scene", "text": "INT. SECOND LOCATION - NIGHT"},
+    ],
+).decode("latin-1")
+
+# Explicit editor pagination must remain structural in the dependency-free
+# renderer. Markers must never print as ordinary body text.
+assert len(re.findall(r"/Type /Page\b", fallback_layout_pdf)) == 3
+assert "_break" not in fallback_layout_pdf
+assert "_page-num" not in fallback_layout_pdf
+assert re.search(r"252\.00 \d+\.\d+ Td \(\\\(MORE\\\)\)", fallback_layout_pdf)
+assert re.search(r"487\.28 793\.89 Td \(2\.\)", fallback_layout_pdf)
+assert "MAYA \\(CONT'D\\)" in fallback_layout_pdf
+
+# The first Act, transition, scene and action use the same 12pt line grid as
+# the BBC reference: 36pt from Act to transition, then 24pt between blocks.
+assert "272.44 770.00 Td (ACT ONE)" in fallback_layout_pdf
+assert "483.68 734.00 Td (FADE IN:)" in fallback_layout_pdf
+assert "108.00 710.00 Td (EXT. LOCATION - DAY)" in fallback_layout_pdf
+assert "108.00 686.00 Td (The first page follows BBC spacing.)" in fallback_layout_pdf
 print("BBC A4 PDF layout regression tests passed.")
