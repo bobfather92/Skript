@@ -9,6 +9,7 @@ This is the first local development package on the road to Skript 1.1. It is int
 - Remove WriterDuet’s hidden character-name markers and recombine consecutive native dialogue fragments into one editable speech.
 - Right-align screenplay transitions and import WriterDuet Act records as visible New Act elements that always begin a fresh page.
 - Keep long imported dialogue as one selectable and editable Skript paragraph, including Word soft line breaks and dialogue that visually extends past a page.
+- Export WriterDuet scripts with BBC-style A4 margins and 12-point spacing, proper continuation pages, top-margin page numbers, and clean Act page breaks.
 - Open all valid selected scripts even when another selected file is invalid.
 - Open the initial `com.skript.project-collection` format containing multiple script documents.
 - Access **Import Scripts…** directly from the Navigator's Add Document menu.
