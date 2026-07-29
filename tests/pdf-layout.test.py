@@ -29,6 +29,9 @@ expected_css = [
     "margin: 1in 0.75in 1in 1.5in",
     'content: counter(page) "."',
     "counter-increment: page 0",
+    "@bottom-left { content: none; }",
+    "@bottom-center { content: none; }",
+    "@bottom-right { content: none; }",
     ".el-scene + .el-action { margin-top: 12pt; }",
     ".speech + .el-action { margin-top: 12pt; }",
     "margin-left: 2.0in",
@@ -184,12 +187,15 @@ assert "_break" not in fallback_layout_pdf
 assert "_page-num" not in fallback_layout_pdf
 assert re.search(r"252\.00 \d+\.\d+ Td \(\\\(MORE\\\)\)", fallback_layout_pdf)
 assert re.search(r"487\.28 793\.89 Td \(2\.\)", fallback_layout_pdf)
+assert re.search(r"487\.28 793\.89 Td \(1\.\)", fallback_layout_pdf)
+assert re.search(r"487\.28 793\.89 Td \(3\.\)", fallback_layout_pdf)
 assert "MAYA \\(CONT'D\\)" in fallback_layout_pdf
+assert not re.search(r"\b(?:http|file):", fallback_layout_pdf, re.I)
 
 # The first Act, transition, scene and action use the same 12pt line grid as
 # the BBC reference: 36pt from Act to transition, then 24pt between blocks.
-assert "272.44 770.00 Td (ACT ONE)" in fallback_layout_pdf
-assert "483.68 734.00 Td (FADE IN:)" in fallback_layout_pdf
-assert "108.00 710.00 Td (EXT. LOCATION - DAY)" in fallback_layout_pdf
-assert "108.00 686.00 Td (The first page follows BBC spacing.)" in fallback_layout_pdf
+assert "272.44 758.00 Td (ACT ONE)" in fallback_layout_pdf
+assert "483.68 722.00 Td (FADE IN:)" in fallback_layout_pdf
+assert "108.00 698.00 Td (EXT. LOCATION - DAY)" in fallback_layout_pdf
+assert "108.00 674.00 Td (The first page follows BBC spacing.)" in fallback_layout_pdf
 print("BBC A4 PDF layout regression tests passed.")
