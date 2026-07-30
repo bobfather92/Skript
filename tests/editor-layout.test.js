@@ -24,6 +24,15 @@ assert.ok(
   html.includes('body[data-format="film"] #acts-rg,'),
   'The New Act controls must be available in Film projects',
 );
+assert.ok(
+  html.includes('body[data-format="tv"]   #acts-rg { display: flex; }'),
+  'The Acts group must retain the same flex layout and label baseline as other ribbon groups',
+);
+const ribbonRule = html.split('#ribbon {', 2)[1].split('}', 1)[0];
+assert.ok(
+  ribbonRule.includes('user-select: none;') && ribbonRule.includes('-webkit-user-select: none;'),
+  'Ribbon labels must not trigger the browser text-selection menu on double-click',
+);
 assert.ok(html.includes('font-style: normal; color: #1a1a1a;'), 'BBC parentheticals must use regular text');
 assert.ok(html.includes('text-decoration: underline; letter-spacing: 0;'), 'BBC act headings must be underlined');
 assert.ok(html.includes('.script-page[data-format="audio"] .script-line[data-type="character"]::after'), 'Radio cues must include a colon');

@@ -19,6 +19,7 @@ This is the first local development package on the road to Skript 1.1. It is int
 - Keep the title bar aligned to the visible window frame without extending into Windows' invisible resize border.
 - Remove the duplicate/misaligned title bar on displays using Windows scaling, and keep Skript behind other applications when it is not active.
 - Start each session in an isolated browser profile so Edge cannot restore stale duplicate Skript windows.
+- Keep the Acts ribbon label aligned with File and Elements, and prevent double-clicking ribbon text from opening Edge's selection menu.
 - Clear the Recent Projects history from either the welcome screen or Recent Projects window without deleting saved project files.
 - Open all valid selected scripts even when another selected file is invalid.
 - Open the initial `com.skript.project-collection` format containing multiple script documents.
@@ -45,7 +46,7 @@ Python and the supported PDF, OCR and Word engines are included in the Windows d
 
 - 12 JavaScript regression suites passed.
 - 9 Python regression suites passed.
-- Complete browser workflow: 106 passed, 10 intentionally skipped, 0 failed across desktop and compact-touch configurations.
+- Complete browser workflow: 107 passed, 11 intentionally skipped, 0 failed across desktop and compact-touch configurations.
 - Packaged Windows title-bar smoke test passed for hold-drag movement and visible-frame alignment.
 - Python compilation and embedded HTML syntax checks passed.
 

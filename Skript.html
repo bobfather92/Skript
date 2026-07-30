@@ -23260,6 +23260,8 @@ var __async = (__this, __arguments, generator) => {
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
+    user-select: none;
+    -webkit-user-select: none;
   }
 
   /* Ribbon tabs row */
@@ -27692,7 +27694,7 @@ button, .rb, .ribbon-tab, .tab, .add-doc-item,
   /* ── Acts section separator ── */
   body[data-format="film"] #acts-rg,
   body[data-format="play"] #acts-rg,
-  body[data-format="tv"]   #acts-rg { display: block; }
+  body[data-format="tv"]   #acts-rg { display: flex; }
   .script-line[data-type="new-act"] {
     text-align: center;
     font-weight: 900;

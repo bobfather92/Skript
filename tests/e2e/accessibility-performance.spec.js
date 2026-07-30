@@ -146,6 +146,39 @@ test('mouse mode keeps the standard ribbon dimensions', async ({ page, skript },
   expect(tabLayout.titleOffset).toBeLessThanOrEqual(1);
 });
 
+test('Acts matches the other ribbon groups and cannot open the text-selection menu', async ({ page, skript }, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop-chromium', 'Desktop ribbon check');
+  const labels = page.locator('.ribbon-panel[data-panel="home"] .rg-label');
+  const fileLabel = labels.filter({ hasText: /^File$/ });
+  const elementsLabel = labels.filter({ hasText: /^Elements$/ });
+  const actsLabel = labels.filter({ hasText: /^Acts$/ });
+  await expect(actsLabel).toBeVisible();
+
+  const layout = await page.locator('.ribbon-panel[data-panel="home"]').evaluate(panel => {
+    const rect = text => {
+      const label = Array.from(panel.querySelectorAll('.rg-label')).find(node => node.textContent.trim() === text);
+      const bounds = label.getBoundingClientRect();
+      return { top: bounds.top, bottom: bounds.bottom };
+    };
+    return {
+      actsDisplay: getComputedStyle(panel.querySelector('#acts-rg')).display,
+      file: rect('File'),
+      elements: rect('Elements'),
+      acts: rect('Acts'),
+    };
+  });
+  expect(layout.actsDisplay).toBe('flex');
+  expect(layout.acts.top).toBeCloseTo(layout.file.top, 0);
+  expect(layout.acts.top).toBeCloseTo(layout.elements.top, 0);
+  expect(layout.acts.bottom).toBeCloseTo(layout.file.bottom, 0);
+
+  await actsLabel.dblclick();
+  expect(await page.evaluate(() => window.getSelection()?.toString() || '')).toBe('');
+  await expect(fileLabel).toHaveCSS('user-select', 'none');
+  await expect(elementsLabel).toHaveCSS('user-select', 'none');
+  await expect(actsLabel).toHaveCSS('user-select', 'none');
+});
+
 
 test('options exposes bundled open source licences', async ({ page, skript }) => {
   await page.evaluate(() => openOptions());
