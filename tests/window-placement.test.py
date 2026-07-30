@@ -128,6 +128,36 @@ assert module._visible_native_window_bounds(
 ) == (100, 100, 1300, 900)
 
 
+class FakeForegroundUser32:
+    def __init__(self, foreground, roots=None, owners=None):
+        self.foreground = foreground
+        self.roots = roots or {}
+        self.owners = owners or {}
+
+    def GetForegroundWindow(self):
+        return self.foreground
+
+    def GetAncestor(self, hwnd, _flag):
+        return self.roots.get(hwnd, hwnd)
+
+    def GetWindow(self, hwnd, _flag):
+        return self.owners.get(hwnd, 0)
+
+
+assert module._native_titlebar_target_is_foreground(
+    100, 200, FakeForegroundUser32(100)
+) is True
+assert module._native_titlebar_target_is_foreground(
+    100, 200, FakeForegroundUser32(201, roots={201: 200})
+) is True
+assert module._native_titlebar_target_is_foreground(
+    100, 200, FakeForegroundUser32(300)
+) is False
+assert module._native_titlebar_target_is_foreground(
+    100, 200, FakeForegroundUser32(301, owners={301: 100})
+) is True
+
+
 window_source = (ROOT / "skript.py").read_text(encoding="utf-8")
 placement_source = window_source.split(
     "def _force_centred_browser_window", 1
@@ -149,11 +179,19 @@ assert "GetAsyncKeyState(0x01)" in window_source
 overlay_source = window_source.split(
     "def _sync_native_titlebar_overlay", 1
 )[1].split("def _create_native_titlebar_overlay", 1)[0]
-assert "geometry[2], geometry[3], 0x0010 | 0x0040" in overlay_source
-assert "geometry[2], geometry[3], 0x0004 | 0x0010 | 0x0040" not in overlay_source
+assert "_native_titlebar_target_is_foreground" in overlay_source
+assert "if not (was_hidden or force)" in overlay_source
+assert "position_flags |= 0x0004" in overlay_source
+create_overlay_source = window_source.split(
+    "def _create_native_titlebar_overlay", 1
+)[1].split("def _pump_native_titlebar_overlay", 1)[0]
+assert "widget.bind('<B1-Motion>', continue_drag)" in create_overlay_source
+assert "widget.bind('<ButtonRelease-1>', end_drag)" in create_overlay_source
+assert "user32.SetWindowPos(\n                    browser_hwnd" in create_overlay_source
 html_injection_source = window_source.split("def _get_html", 1)[1].split("class SFHandler", 1)[0]
 assert "_SF_NATIVE_SHELL" not in html_injection_source
 assert "_SF_NATIVE_TITLEBAR_OVERLAY" in html_injection_source
+assert 'classList.add("sf-native-titlebar-overlay")' in html_injection_source
 assert "'/api/window-events'" in window_source
 
 # Chromium can hand the app window to an already-running Edge process. The

@@ -9,6 +9,7 @@ import ctypes
 import os
 import subprocess
 import time
+import tkinter as tk
 from ctypes import wintypes
 from pathlib import Path
 
@@ -79,6 +80,29 @@ def visible_bounds(hwnd):
     return rect.left, rect.top, rect.right, rect.bottom
 
 
+def browser_renderer_bounds(hwnd):
+    renderers = []
+    callback_type = ctypes.WINFUNCTYPE(
+        ctypes.c_bool, wintypes.HWND, wintypes.LPARAM
+    )
+
+    def visit(child, _lparam):
+        class_name = ctypes.create_unicode_buffer(128)
+        user32.GetClassNameW(child, class_name, len(class_name))
+        if class_name.value == "Chrome_RenderWidgetHostHWND":
+            rect = RECT()
+            if user32.GetWindowRect(child, ctypes.byref(rect)):
+                area = max(0, rect.right - rect.left) * max(0, rect.bottom - rect.top)
+                renderers.append(
+                    (area, (rect.left, rect.top, rect.right, rect.bottom))
+                )
+        return True
+
+    callback = callback_type(visit)
+    user32.EnumChildWindows(hwnd, callback, 0)
+    return max(renderers, default=(0, None), key=lambda item: item[0])[1]
+
+
 def wait_for_windows(process_id, timeout):
     deadline = time.time() + timeout
     while time.time() < deadline:
@@ -130,10 +154,16 @@ def main():
         overlay, browser = wait_for_windows(process.pid, args.timeout)
         frame_before = visible_bounds(browser["hwnd"])
         overlay_bounds = overlay["rect"]
+        renderer_bounds = browser_renderer_bounds(browser["hwnd"])
         if abs(overlay_bounds[0] - frame_before[0]) > 2:
             raise RuntimeError("The titlebar left edge does not match the Skript window.")
         if abs(overlay_bounds[2] - frame_before[2]) > 2:
             raise RuntimeError("The titlebar right edge does not match the Skript window.")
+        if renderer_bounds and overlay_bounds[3] < renderer_bounds[1] - 2:
+            raise RuntimeError(
+                "The titlebar does not fully cover Edge's own title strip "
+                f"(overlay bottom {overlay_bounds[3]}, renderer top {renderer_bounds[1]})."
+            )
 
         drag_x = overlay_bounds[0] + min(240, (overlay_bounds[2] - overlay_bounds[0]) // 2)
         drag_y = overlay_bounds[1] + max(2, (overlay_bounds[3] - overlay_bounds[1]) // 2)
@@ -173,9 +203,32 @@ def main():
             raise RuntimeError("The titlebar did not follow the moved window.")
         if abs(overlay_after["rect"][2] - frame_after[2]) > 2:
             raise RuntimeError("The titlebar width changed after moving the window.")
+
+        probe = tk.Tk()
+        try:
+            probe.title("Skript background-window test")
+            probe.geometry("360x180+30+30")
+            probe.update_idletasks()
+            probe.update()
+            probe_widget = int(probe.winfo_id())
+            probe_hwnd = int(user32.GetParent(probe_widget) or probe_widget)
+            user32.SetForegroundWindow(probe_hwnd)
+            deadline = time.time() + 2
+            while time.time() < deadline and user32.IsWindowVisible(overlay["hwnd"]):
+                probe.update()
+                time.sleep(0.05)
+            if user32.IsWindowVisible(overlay["hwnd"]):
+                raise RuntimeError(
+                    "Skript's titlebar remained above another foreground application."
+                )
+            user32.SetForegroundWindow(browser["hwnd"])
+            wait_for_windows(process.pid, 3)
+        finally:
+            probe.destroy()
+
         print(
             "Native titlebar smoke test passed: hold-drag moved Skript and "
-            "the bar stayed aligned to the visible window."
+            "the bar stayed aligned without covering another foreground app."
         )
     finally:
         if mouse_down:

@@ -7760,6 +7760,8 @@ def _get_html(port: int, low_perf: bool = False, api_token: str = '') -> bytes:
         f'window._SF_NATIVE_TITLEBAR_OVERLAY={str(sys.platform == "win32").lower()};'
         f'if(window._SF_LOW_PERF)'
         f'  document.documentElement.classList.add("sf-low-perf");'
+        f'if(window._SF_NATIVE_TITLEBAR_OVERLAY)'
+        f'  document.documentElement.classList.add("sf-native-titlebar-overlay");'
         f'(function(){{'
         f'const nativeFetch=window.fetch.bind(window);'
         f'window.fetch=function(input,init){{'
@@ -12270,6 +12272,30 @@ def _visible_native_window_bounds(hwnd, user32=None, dwmapi=None):
         return None
 
 
+def _native_titlebar_target_is_foreground(target_hwnd, overlay_hwnd, user32=None):
+    """Only show the separate titlebar while Skript owns the foreground."""
+    if sys.platform != 'win32' and user32 is None:
+        return False
+    try:
+        import ctypes
+
+        u32 = user32 or ctypes.windll.user32
+        foreground = int(u32.GetForegroundWindow() or 0)
+        if not foreground:
+            return True
+
+        candidate = int(u32.GetAncestor(foreground, 2) or foreground)
+        visited = set()
+        while candidate and candidate not in visited:
+            if candidate in (int(target_hwnd), int(overlay_hwnd)):
+                return True
+            visited.add(candidate)
+            candidate = int(u32.GetWindow(candidate, 4) or 0)  # GW_OWNER
+        return False
+    except Exception:
+        return True
+
+
 def _sync_native_titlebar_overlay(force=False):
     """Keep the small native Skript bar over Edge's client-drawn strip."""
     global _TITLEBAR_OVERLAY_GEOMETRY
@@ -12284,8 +12310,16 @@ def _sync_native_titlebar_overlay(force=False):
             _fields_ = [('left', ctypes.c_long), ('top', ctypes.c_long),
                         ('right', ctypes.c_long), ('bottom', ctypes.c_long)]
 
-        if user32.IsIconic(_TITLEBAR_OVERLAY_TARGET) or not user32.IsWindowVisible(_TITLEBAR_OVERLAY_TARGET):
-            _TITLEBAR_OVERLAY_ROOT.withdraw()
+        target_unavailable = (
+            user32.IsIconic(_TITLEBAR_OVERLAY_TARGET)
+            or not user32.IsWindowVisible(_TITLEBAR_OVERLAY_TARGET)
+        )
+        target_in_background = not _native_titlebar_target_is_foreground(
+            _TITLEBAR_OVERLAY_TARGET, _TITLEBAR_OVERLAY_HWND, user32
+        )
+        if target_unavailable or target_in_background:
+            if _TITLEBAR_OVERLAY_GEOMETRY is not None:
+                _TITLEBAR_OVERLAY_ROOT.withdraw()
             _TITLEBAR_OVERLAY_GEOMETRY = None
             return True
 
@@ -12307,6 +12341,7 @@ def _sync_native_titlebar_overlay(force=False):
         strip_height = max(28, min(64, int(top) - visible_top_inset))
         width = max(1, int(visible_right - visible_left))
         geometry = (int(visible_left), int(visible_top), width, strip_height)
+        was_hidden = _TITLEBAR_OVERLAY_GEOMETRY is None
         if force or geometry != _TITLEBAR_OVERLAY_GEOMETRY:
             _TITLEBAR_OVERLAY_ROOT.geometry(
                 f'{geometry[2]}x{geometry[3]}+{geometry[0]}+{geometry[1]}'
@@ -12314,9 +12349,15 @@ def _sync_native_titlebar_overlay(force=False):
             _TITLEBAR_OVERLAY_ROOT.deiconify()
             _TITLEBAR_OVERLAY_ROOT.update_idletasks()
             _TITLEBAR_OVERLAY_GEOMETRY = geometry
+        position_flags = 0x0010 | 0x0040
+        # Raise the overlay once when Skript becomes active. Afterwards retain
+        # its owned-window z-order so background apps are never covered by a
+        # titlebar that is repeatedly pushed to the front.
+        if not (was_hidden or force):
+            position_flags |= 0x0004
         user32.SetWindowPos(
             _TITLEBAR_OVERLAY_HWND, 0, geometry[0], geometry[1],
-            geometry[2], geometry[3], 0x0010 | 0x0040,
+            geometry[2], geometry[3], position_flags,
         )
         return True
     except Exception:
@@ -12387,15 +12428,80 @@ def _create_native_titlebar_overlay(browser_hwnd):
         maximise.pack(side='right', fill='y')
         minimise.pack(side='right', fill='y')
 
+        drag_state = {'cursor': None, 'window': None, 'overlay': None}
+
         def start_drag(event):
-            if getattr(event, 'num', 1) == 1:
-                _window_control('drag')
+            if getattr(event, 'num', 1) != 1:
+                return
+            try:
+                class POINT(ctypes.Structure):
+                    _fields_ = [('x', ctypes.c_long), ('y', ctypes.c_long)]
+
+                class RECT(ctypes.Structure):
+                    _fields_ = [('left', ctypes.c_long), ('top', ctypes.c_long),
+                                ('right', ctypes.c_long), ('bottom', ctypes.c_long)]
+
+                cursor = POINT()
+                target_rect = RECT()
+                if user32.IsZoomed(browser_hwnd):
+                    user32.ShowWindow(browser_hwnd, 9)  # SW_RESTORE
+                if (
+                    user32.GetCursorPos(ctypes.byref(cursor))
+                    and user32.GetWindowRect(browser_hwnd, ctypes.byref(target_rect))
+                    and _TITLEBAR_OVERLAY_GEOMETRY
+                ):
+                    drag_state['cursor'] = (int(cursor.x), int(cursor.y))
+                    drag_state['window'] = (int(target_rect.left), int(target_rect.top))
+                    drag_state['overlay'] = tuple(_TITLEBAR_OVERLAY_GEOMETRY)
+            except Exception:
+                drag_state['cursor'] = None
+
+        def continue_drag(_event):
+            global _TITLEBAR_OVERLAY_GEOMETRY
+            if not drag_state['cursor'] or not drag_state['window'] or not drag_state['overlay']:
+                return
+            try:
+                class POINT(ctypes.Structure):
+                    _fields_ = [('x', ctypes.c_long), ('y', ctypes.c_long)]
+
+                cursor = POINT()
+                if not user32.GetCursorPos(ctypes.byref(cursor)):
+                    return
+                dx = int(cursor.x) - drag_state['cursor'][0]
+                dy = int(cursor.y) - drag_state['cursor'][1]
+                target_x = drag_state['window'][0] + dx
+                target_y = drag_state['window'][1] + dy
+                overlay_x = drag_state['overlay'][0] + dx
+                overlay_y = drag_state['overlay'][1] + dy
+                user32.SetWindowPos(
+                    browser_hwnd, 0, target_x, target_y, 0, 0,
+                    0x0001 | 0x0004 | 0x0010,
+                )
+                user32.SetWindowPos(
+                    overlay_hwnd, 0, overlay_x, overlay_y,
+                    drag_state['overlay'][2], drag_state['overlay'][3],
+                    0x0004 | 0x0010 | 0x0040,
+                )
+                _TITLEBAR_OVERLAY_GEOMETRY = (
+                    overlay_x, overlay_y,
+                    drag_state['overlay'][2], drag_state['overlay'][3],
+                )
+            except Exception:
+                pass
+
+        def end_drag(event):
+            continue_drag(event)
+            drag_state['cursor'] = None
+            drag_state['window'] = None
+            drag_state['overlay'] = None
 
         def toggle_maximise(_event):
             _window_control('maximize')
 
         for widget in (bar, left, icon_label, title_label):
             widget.bind('<ButtonPress-1>', start_drag)
+            widget.bind('<B1-Motion>', continue_drag)
+            widget.bind('<ButtonRelease-1>', end_drag)
             widget.bind('<Double-Button-1>', toggle_maximise)
 
         root.update_idletasks()

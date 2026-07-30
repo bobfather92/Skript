@@ -17,6 +17,7 @@ This is the first local development package on the road to Skript 1.1. It is int
 - Block installation, update, repair and removal while any Skript version is open, requiring the user to save their work and close the app first.
 - Hold and drag the entire Skript title bar using Windows' native window movement without blocking or destabilising the interface.
 - Keep the title bar aligned to the visible window frame without extending into Windows' invisible resize border.
+- Remove the duplicate in-window title bar and keep Skript behind other applications when it is not active.
 - Clear the Recent Projects history from either the welcome screen or Recent Projects window without deleting saved project files.
 - Open all valid selected scripts even when another selected file is invalid.
 - Open the initial `com.skript.project-collection` format containing multiple script documents.
