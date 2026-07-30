@@ -1,4 +1,5 @@
 import importlib.util
+import ctypes
 from pathlib import Path
 
 
@@ -34,6 +35,20 @@ class FakeTouchUser32:
         return {94: 0x81, 95: 10}.get(metric, 0)
 
 assert module._windows_touch_capable(FakeTouchUser32()) is True
+
+
+class FakeDpiUser32:
+    def __init__(self):
+        self.contexts = []
+
+    def SetProcessDpiAwarenessContext(self, context):
+        self.contexts.append(context.value)
+        return 1
+
+
+fake_dpi = FakeDpiUser32()
+assert module._enable_windows_dpi_awareness(user32=fake_dpi) is True
+assert fake_dpi.contexts == [ctypes.c_void_p(-4).value]
 
 
 class FakeIconUser32:
@@ -197,6 +212,10 @@ assert "'/api/window-events'" in window_source
 # Chromium can hand the app window to an already-running Edge process. The
 # launcher subprocess exiting must not stop Skript's local desktop service.
 launch_source = (ROOT / "skript.py").read_text(encoding="utf-8").split("def launch():", 1)[1]
+assert launch_source.lstrip().startswith(
+    "# This must run before the splash or titlebar creates the first HWND.\n"
+    "    _enable_windows_dpi_awareness()"
+)
 assert "cwd=tempfile.gettempdir()" in window_source
 assert "_EDGE_PROC.poll()" not in launch_source
 assert "while not _APP_SHUTDOWN_EVENT.wait(0.05)" in launch_source

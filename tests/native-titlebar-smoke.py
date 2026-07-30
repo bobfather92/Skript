@@ -21,6 +21,13 @@ DWMWA_EXTENDED_FRAME_BOUNDS = 9
 
 user32 = ctypes.windll.user32
 dwmapi = ctypes.windll.dwmapi
+try:
+    user32.SetProcessDpiAwarenessContext(ctypes.c_void_p(-4))
+except Exception:
+    try:
+        user32.SetProcessDPIAware()
+    except Exception:
+        pass
 
 
 class RECT(ctypes.Structure):
@@ -117,13 +124,9 @@ def wait_for_windows(process_id, timeout):
             ),
             None,
         )
+        owner_hwnd = int(user32.GetWindow(overlay["hwnd"], 4) or 0) if overlay else 0
         browser = next(
-            (
-                item
-                for item in current
-                if item["class"].startswith("Chrome_WidgetWin")
-                and item["title"].startswith("Skript")
-            ),
+            (item for item in current if item["hwnd"] == owner_hwnd),
             None,
         )
         if overlay and browser:
@@ -136,6 +139,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("app", type=Path)
     parser.add_argument("--timeout", type=float, default=30)
+    parser.add_argument("--screenshot", type=Path)
     args = parser.parse_args()
     app = args.app.resolve()
     if os.name != "nt":
@@ -155,6 +159,24 @@ def main():
         frame_before = visible_bounds(browser["hwnd"])
         overlay_bounds = overlay["rect"]
         renderer_bounds = browser_renderer_bounds(browser["hwnd"])
+        if args.screenshot:
+            from PIL import ImageGrab
+
+            screenshot_path = args.screenshot.resolve()
+            screenshot_path.parent.mkdir(parents=True, exist_ok=True)
+            ImageGrab.grab(
+                bbox=(
+                    frame_before[0] - 16,
+                    frame_before[1] - 16,
+                    frame_before[2] + 16,
+                    min(frame_before[3] + 16, frame_before[1] + 240),
+                ),
+                all_screens=True,
+            ).save(screenshot_path)
+            print(
+                f"Captured frame={frame_before}, overlay={overlay_bounds}, "
+                f"renderer={renderer_bounds} to {screenshot_path}"
+            )
         if abs(overlay_bounds[0] - frame_before[0]) > 2:
             raise RuntimeError("The titlebar left edge does not match the Skript window.")
         if abs(overlay_bounds[2] - frame_before[2]) > 2:

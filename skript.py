@@ -12688,6 +12688,31 @@ def _hide_console():
     except Exception:
         pass
 
+
+def _enable_windows_dpi_awareness(user32=None, shcore=None):
+    """Use physical screen coordinates before creating any Skript windows."""
+    if sys.platform != 'win32' and user32 is None:
+        return False
+    try:
+        import ctypes
+
+        u32 = user32 or ctypes.windll.user32
+        try:
+            # Per-monitor v2 keeps Tk, Edge and DWM in the same coordinate
+            # space when Windows display scaling is above 100%.
+            if u32.SetProcessDpiAwarenessContext(ctypes.c_void_p(-4)):
+                return True
+        except Exception:
+            pass
+        try:
+            dpi_api = shcore or ctypes.windll.shcore
+            return int(dpi_api.SetProcessDpiAwareness(2)) in (0, -2147024891)
+        except Exception:
+            return bool(u32.SetProcessDPIAware())
+    except Exception:
+        return False
+
+
 def _detach_console():
     """Fully detach from console — call ONLY after server is running in launch mode."""
     if sys.platform != 'win32':
@@ -12846,6 +12871,8 @@ def _window_control(action: str):
 
 
 def launch():
+    # This must run before the splash or titlebar creates the first HWND.
+    _enable_windows_dpi_awareness()
     # Hide console window immediately so no terminal flashes on startup
     diagnostic_mode = os.environ.get('SKRIPT_DIAGNOSTIC') == '1'
     if not diagnostic_mode:
