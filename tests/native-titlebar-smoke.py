@@ -50,8 +50,7 @@ def windows():
     )
 
     def visit(hwnd, _lparam):
-        if not user32.IsWindowVisible(hwnd):
-            return True
+        visible = bool(user32.IsWindowVisible(hwnd))
         title = ctypes.create_unicode_buffer(512)
         class_name = ctypes.create_unicode_buffer(128)
         pid = wintypes.DWORD()
@@ -66,6 +65,7 @@ def windows():
                     "pid": int(pid.value),
                     "title": title.value,
                     "class": class_name.value,
+                    "visible": visible,
                     "rect": (rect.left, rect.top, rect.right, rect.bottom),
                 }
             )
@@ -112,6 +112,7 @@ def browser_renderer_bounds(hwnd):
 
 def wait_for_windows(process_id, timeout):
     deadline = time.time() + timeout
+    activation_attempted = False
     while time.time() < deadline:
         current = windows()
         overlay = next(
@@ -129,10 +130,30 @@ def wait_for_windows(process_id, timeout):
             (item for item in current if item["hwnd"] == owner_hwnd),
             None,
         )
+        if overlay and browser and not overlay["visible"]:
+            user32.SetForegroundWindow(browser["hwnd"])
+            if not activation_attempted:
+                left, top, right, bottom = browser["rect"]
+                user32.SetCursorPos((left + right) // 2, (top + bottom) // 2)
+                user32.mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
+                user32.mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
+                activation_attempted = True
+            time.sleep(0.05)
+            continue
         if overlay and browser:
             return overlay, browser
         time.sleep(0.1)
-    raise RuntimeError("The packaged Skript titlebar did not appear in time.")
+    diagnostics = [
+        {
+            **item,
+            "owner": int(user32.GetWindow(item["hwnd"], 4) or 0),
+        }
+        for item in windows()
+        if item["pid"] == process_id or item["title"].startswith("Skript")
+    ]
+    raise RuntimeError(
+        f"The packaged Skript titlebar did not appear in time. Windows: {diagnostics}"
+    )
 
 
 def main():
@@ -156,6 +177,21 @@ def main():
     mouse_down = False
     try:
         overlay, browser = wait_for_windows(process.pid, args.timeout)
+        # Allow the local page and the overlay's final z-order update to finish
+        # before capturing the user-visible result.
+        time.sleep(4.0)
+        overlay, browser = wait_for_windows(process.pid, 5)
+        related_windows = [
+            item for item in windows()
+            if item["visible"]
+            and item["pid"] == browser["pid"]
+            and item["class"].startswith("Chrome_WidgetWin")
+            and item["title"].startswith("Skript")
+        ]
+        if len(related_windows) != 1:
+            raise RuntimeError(
+                f"Expected one Skript browser window, found {len(related_windows)}."
+            )
         frame_before = visible_bounds(browser["hwnd"])
         overlay_bounds = overlay["rect"]
         renderer_bounds = browser_renderer_bounds(browser["hwnd"])
@@ -169,7 +205,7 @@ def main():
                     frame_before[0] - 16,
                     frame_before[1] - 16,
                     frame_before[2] + 16,
-                    min(frame_before[3] + 16, frame_before[1] + 240),
+                    frame_before[3] + 16,
                 ),
                 all_screens=True,
             ).save(screenshot_path)

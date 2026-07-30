@@ -159,6 +159,7 @@ _TITLEBAR_OVERLAY_TARGET = None
 _TITLEBAR_OVERLAY_GEOMETRY = None
 _TITLEBAR_DRAG_LOCK = threading.Lock()
 _TITLEBAR_DRAG_ACTIVE = False
+_BROWSER_PROFILE_DIR = None
 _WINDOW_EVENT_LOCK = threading.Lock()
 _WINDOW_EVENT_SEQ = 0
 _WINDOW_EVENT_NAME = ''
@@ -11479,11 +11480,14 @@ def _launch_edge(url: str, low_perf: bool = False):
     # Base flags — safe on all hardware
     base_flags = [
         '--disable-extensions',
+        '--disable-sync',
         '--no-first-run',
+        '--no-default-browser-check',
         '--disable-default-apps',
         '--disable-infobars',
         '--allow-insecure-localhost',
         '--window-name=Skript',
+        _isolated_browser_profile_flag(),
     ]
     if sys.platform == 'win32':
         # Keep Chromium out of sight until Skript's title bar is covering its
@@ -11548,11 +11552,48 @@ def _launch_chrome(url: str, low_perf: bool = False):
                 cf2 = subprocess.CREATE_NO_WINDOW
             return subprocess.Popen(
                 [cp, f'--app={url}'] + window_flags + [
-                 '--no-first-run', '--window-name=Skript'] + extra,
+                 '--disable-sync', '--no-first-run',
+                 '--no-default-browser-check', '--window-name=Skript',
+                 _isolated_browser_profile_flag()] + extra,
                 startupinfo=si2, creationflags=cf2, cwd=tempfile.gettempdir())
         except (FileNotFoundError, OSError):
             continue
     return None
+
+
+def _isolated_browser_profile_flag():
+    """Give each Skript session one clean Chromium app window."""
+    global _BROWSER_PROFILE_DIR
+    if _BROWSER_PROFILE_DIR is None:
+        _BROWSER_PROFILE_DIR = pathlib.Path(
+            tempfile.mkdtemp(prefix='SkriptBrowser-')
+        ).resolve()
+    return f'--user-data-dir={_BROWSER_PROFILE_DIR}'
+
+
+def _cleanup_isolated_browser_profile():
+    """Remove only the temporary browser profile created by this process."""
+    global _BROWSER_PROFILE_DIR
+    profile = _BROWSER_PROFILE_DIR
+    if profile is None:
+        return
+    try:
+        temp_root = pathlib.Path(tempfile.gettempdir()).resolve()
+        resolved = pathlib.Path(profile).resolve()
+        if resolved.parent != temp_root or not resolved.name.startswith('SkriptBrowser-'):
+            return
+        for _ in range(8):
+            try:
+                shutil.rmtree(resolved)
+                _BROWSER_PROFILE_DIR = None
+                return
+            except FileNotFoundError:
+                _BROWSER_PROFILE_DIR = None
+                return
+            except (PermissionError, OSError):
+                time.sleep(0.1)
+    except Exception:
+        pass
 
 
 def _browser_window_flags():
@@ -12329,16 +12370,17 @@ def _sync_native_titlebar_overlay(force=False):
         left, top, right, _bottom = _measure_browser_content_insets(
             _TITLEBAR_OVERLAY_TARGET, user32
         )
+        # GetWindowRect and the renderer measurement are both virtualised into
+        # this process's logical coordinate space. Keep them together; mixing
+        # in DWM's physical pixels causes a second, displaced titlebar at 125%
+        # or 150% Windows scaling. The one-pixel allowance retains the visible
+        # window edge while removing Chromium's invisible side resize border.
+        side_left = max(0, int(left) - 1)
+        side_right = max(0, int(right) - 1)
+        visible_left = int(outer.left) + side_left
+        visible_top = int(outer.top)
+        visible_right = int(outer.right) - side_right
         strip_height = max(28, min(64, int(top)))
-        visible = _visible_native_window_bounds(_TITLEBAR_OVERLAY_TARGET, user32)
-        if visible:
-            visible_left, visible_top, visible_right, _visible_bottom = visible
-        else:
-            visible_left, visible_top, visible_right = outer.left, outer.top, outer.right
-        # The measured renderer top is relative to GetWindowRect. Offset it
-        # when DWM has removed the invisible top resize border.
-        visible_top_inset = max(0, int(visible_top - outer.top))
-        strip_height = max(28, min(64, int(top) - visible_top_inset))
         width = max(1, int(visible_right - visible_left))
         geometry = (int(visible_left), int(visible_top), width, strip_height)
         was_hidden = _TITLEBAR_OVERLAY_GEOMETRY is None
@@ -12595,7 +12637,9 @@ def _force_centred_browser_window(browser_process=None, timeout=12.0, touch_mode
 
         deadline = time.time() + timeout
         while time.time() < deadline:
+            process_matches = []
             title_matches = []
+            expected_pid = int(browser_process.pid) if browser_process else 0
 
             def enum_window(hwnd, _lparam):
                 if not user32.IsWindowVisible(hwnd):
@@ -12607,12 +12651,18 @@ def _force_centred_browser_window(browser_process=None, timeout=12.0, touch_mode
                 title = ctypes.create_unicode_buffer(512)
                 user32.GetWindowTextW(hwnd, title, len(title))
                 if title.value.startswith('Skript'):
-                    title_matches.append(hwnd)
+                    window_pid = wt.DWORD()
+                    user32.GetWindowThreadProcessId(hwnd, ctypes.byref(window_pid))
+                    if expected_pid and int(window_pid.value) == expected_pid:
+                        process_matches.append(hwnd)
+                    else:
+                        title_matches.append(hwnd)
                 return True
 
             user32.EnumWindows(EnumWindowsProc(enum_window), 0)
-            if title_matches:
-                hwnd = title_matches[0]
+            matches = process_matches or title_matches
+            if matches:
+                hwnd = matches[0]
                 _set_windows_app_identity(hwnd)
                 _set_windows_window_icon(hwnd)
                 # Position the still-minimised app first, create Skript's native
@@ -12687,30 +12737,6 @@ def _hide_console():
             ctypes.windll.user32.ShowWindow(hwnd, 0)  # SW_HIDE
     except Exception:
         pass
-
-
-def _enable_windows_dpi_awareness(user32=None, shcore=None):
-    """Use physical screen coordinates before creating any Skript windows."""
-    if sys.platform != 'win32' and user32 is None:
-        return False
-    try:
-        import ctypes
-
-        u32 = user32 or ctypes.windll.user32
-        try:
-            # Per-monitor v2 keeps Tk, Edge and DWM in the same coordinate
-            # space when Windows display scaling is above 100%.
-            if u32.SetProcessDpiAwarenessContext(ctypes.c_void_p(-4)):
-                return True
-        except Exception:
-            pass
-        try:
-            dpi_api = shcore or ctypes.windll.shcore
-            return int(dpi_api.SetProcessDpiAwareness(2)) in (0, -2147024891)
-        except Exception:
-            return bool(u32.SetProcessDPIAware())
-    except Exception:
-        return False
 
 
 def _detach_console():
@@ -12871,8 +12897,6 @@ def _window_control(action: str):
 
 
 def launch():
-    # This must run before the splash or titlebar creates the first HWND.
-    _enable_windows_dpi_awareness()
     # Hide console window immediately so no terminal flashes on startup
     diagnostic_mode = os.environ.get('SKRIPT_DIAGNOSTIC') == '1'
     if not diagnostic_mode:
@@ -13039,6 +13063,7 @@ def launch():
     _destroy_native_titlebar_overlay()
     server.shutdown()
     server.server_close()
+    _cleanup_isolated_browser_profile()
     print('Skript stopped.')
 
 

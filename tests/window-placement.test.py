@@ -1,5 +1,4 @@
 import importlib.util
-import ctypes
 from pathlib import Path
 
 
@@ -35,20 +34,6 @@ class FakeTouchUser32:
         return {94: 0x81, 95: 10}.get(metric, 0)
 
 assert module._windows_touch_capable(FakeTouchUser32()) is True
-
-
-class FakeDpiUser32:
-    def __init__(self):
-        self.contexts = []
-
-    def SetProcessDpiAwarenessContext(self, context):
-        self.contexts.append(context.value)
-        return 1
-
-
-fake_dpi = FakeDpiUser32()
-assert module._enable_windows_dpi_awareness(user32=fake_dpi) is True
-assert fake_dpi.contexts == [ctypes.c_void_p(-4).value]
 
 
 class FakeIconUser32:
@@ -183,6 +168,8 @@ assert "SetWindowPos(hwnd, 0, x, y, width, height" in placement_source
 assert "_enable_native_app_shell(hwnd)" not in placement_source
 assert "target=_maintain_native_app_shell" not in placement_source
 assert "_create_native_titlebar_overlay(hwnd)" in placement_source
+assert "process_matches or title_matches" in placement_source
+assert "GetWindowThreadProcessId(hwnd" in placement_source
 assert "_create_native_browser_host(hwnd" not in placement_source
 assert "_resize_native_host(" not in placement_source
 control_source = window_source.split("def _window_control", 1)[1].split("def launch", 1)[0]
@@ -195,6 +182,9 @@ overlay_source = window_source.split(
     "def _sync_native_titlebar_overlay", 1
 )[1].split("def _create_native_titlebar_overlay", 1)[0]
 assert "_native_titlebar_target_is_foreground" in overlay_source
+assert "_visible_native_window_bounds" not in overlay_source
+assert "side_left = max(0, int(left) - 1)" in overlay_source
+assert "strip_height = max(28, min(64, int(top)))" in overlay_source
 assert "if not (was_hidden or force)" in overlay_source
 assert "position_flags |= 0x0004" in overlay_source
 create_overlay_source = window_source.split(
@@ -212,15 +202,15 @@ assert "'/api/window-events'" in window_source
 # Chromium can hand the app window to an already-running Edge process. The
 # launcher subprocess exiting must not stop Skript's local desktop service.
 launch_source = (ROOT / "skript.py").read_text(encoding="utf-8").split("def launch():", 1)[1]
-assert launch_source.lstrip().startswith(
-    "# This must run before the splash or titlebar creates the first HWND.\n"
-    "    _enable_windows_dpi_awareness()"
-)
+assert "_enable_windows_dpi_awareness" not in window_source
 assert "cwd=tempfile.gettempdir()" in window_source
 assert "_EDGE_PROC.poll()" not in launch_source
 assert "while not _APP_SHUTDOWN_EVENT.wait(0.05)" in launch_source
 assert "_pump_native_titlebar_overlay()" in launch_source
 assert "_destroy_native_titlebar_overlay()" in launch_source
 assert "--start-minimized" in window_source
+assert "--user-data-dir=" in window_source
+assert "'--disable-sync'" in window_source
+assert "_cleanup_isolated_browser_profile()" in launch_source
 
 print("Centred landscape desktop-window geometry tests passed.")
