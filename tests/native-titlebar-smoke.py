@@ -110,6 +110,36 @@ def browser_renderer_bounds(hwnd):
     return max(renderers, default=(0, None), key=lambda item: item[0])[1]
 
 
+def wait_for_renderer_bounds(hwnd, timeout=5):
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        renderer = browser_renderer_bounds(hwnd)
+        if renderer:
+            return renderer
+        time.sleep(0.05)
+    return None
+
+
+def assert_renderer_fills_window(frame, renderer, label):
+    if not renderer:
+        raise RuntimeError(f"{label}: Edge's editor renderer could not be found.")
+    left_gap = max(0, renderer[0] - frame[0])
+    right_gap = max(0, frame[2] - renderer[2])
+    bottom_gap = max(0, frame[3] - renderer[3])
+    if left_gap > 20 or right_gap > 20 or bottom_gap > 20:
+        raise RuntimeError(
+            f"{label}: the editor did not fill the window "
+            f"(frame={frame}, renderer={renderer}, "
+            f"gaps={left_gap},{right_gap},{bottom_gap})."
+        )
+
+
+def click_at(x, y):
+    user32.SetCursorPos(int(x), int(y))
+    user32.mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
+    user32.mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
+
+
 def wait_for_windows(process_id, timeout):
     deadline = time.time() + timeout
     activation_attempted = False
@@ -194,7 +224,7 @@ def main():
             )
         frame_before = visible_bounds(browser["hwnd"])
         overlay_bounds = overlay["rect"]
-        renderer_bounds = browser_renderer_bounds(browser["hwnd"])
+        renderer_bounds = wait_for_renderer_bounds(browser["hwnd"])
         if args.screenshot:
             from PIL import ImageGrab
 
@@ -222,6 +252,129 @@ def main():
                 "The titlebar does not fully cover Edge's own title strip "
                 f"(overlay bottom {overlay_bounds[3]}, renderer top {renderer_bounds[1]})."
             )
+        assert_renderer_fills_window(frame_before, renderer_bounds, "Normal window")
+
+        # Exercise Skript's actual maximise button. A low-level ShowWindow call
+        # can maximise Chromium's outer frame without resizing its renderer,
+        # leaving the old window-sized editor in the top-left corner.
+        click_at(overlay_bounds[2] - 72, (overlay_bounds[1] + overlay_bounds[3]) // 2)
+        deadline = time.time() + 5
+        while time.time() < deadline and not user32.IsZoomed(browser["hwnd"]):
+            time.sleep(0.05)
+        if not user32.IsZoomed(browser["hwnd"]):
+            raise RuntimeError("Skript's maximise button did not maximise the app window.")
+        time.sleep(0.5)
+        overlay_max, browser_max = wait_for_windows(process.pid, 5)
+        frame_max = visible_bounds(browser_max["hwnd"])
+        renderer_max = wait_for_renderer_bounds(browser_max["hwnd"])
+        if abs(overlay_max["rect"][0] - frame_max[0]) > 2:
+            raise RuntimeError("The titlebar left edge did not follow the maximised window.")
+        if abs(overlay_max["rect"][2] - frame_max[2]) > 2:
+            raise RuntimeError("The titlebar right edge did not follow the maximised window.")
+        assert_renderer_fills_window(frame_max, renderer_max, "Maximised window")
+
+        # Restore through the same button and confirm the editor follows again.
+        click_at(
+            overlay_max["rect"][2] - 72,
+            (overlay_max["rect"][1] + overlay_max["rect"][3]) // 2,
+        )
+        deadline = time.time() + 5
+        while time.time() < deadline and user32.IsZoomed(browser["hwnd"]):
+            time.sleep(0.05)
+        if user32.IsZoomed(browser["hwnd"]):
+            raise RuntimeError("Skript's maximise button did not restore the app window.")
+        time.sleep(0.5)
+        overlay, browser = wait_for_windows(process.pid, 5)
+        frame_before = visible_bounds(browser["hwnd"])
+        overlay_bounds = overlay["rect"]
+        assert_renderer_fills_window(
+            frame_before,
+            wait_for_renderer_bounds(browser["hwnd"]),
+            "Restored window",
+        )
+
+        # Double-clicking the draggable title area follows a separate Tk event
+        # path from the maximise button and must keep the same renderer sizing.
+        title_x = overlay_bounds[0] + min(260, (overlay_bounds[2] - overlay_bounds[0]) // 2)
+        title_y = (overlay_bounds[1] + overlay_bounds[3]) // 2
+        click_at(title_x, title_y)
+        time.sleep(0.08)
+        click_at(title_x, title_y)
+        deadline = time.time() + 5
+        while time.time() < deadline and not user32.IsZoomed(browser["hwnd"]):
+            time.sleep(0.05)
+        if not user32.IsZoomed(browser["hwnd"]):
+            raise RuntimeError("Double-clicking Skript's titlebar did not maximise the app.")
+        time.sleep(0.5)
+        overlay_double, browser_double = wait_for_windows(process.pid, 5)
+        frame_double = visible_bounds(browser_double["hwnd"])
+        assert_renderer_fills_window(
+            frame_double,
+            wait_for_renderer_bounds(browser_double["hwnd"]),
+            "Double-click maximised window",
+        )
+
+        double_x = overlay_double["rect"][0] + min(
+            260, (overlay_double["rect"][2] - overlay_double["rect"][0]) // 2
+        )
+        double_y = (overlay_double["rect"][1] + overlay_double["rect"][3]) // 2
+        click_at(double_x, double_y)
+        time.sleep(0.08)
+        click_at(double_x, double_y)
+        deadline = time.time() + 5
+        while time.time() < deadline and user32.IsZoomed(browser["hwnd"]):
+            time.sleep(0.05)
+        if user32.IsZoomed(browser["hwnd"]):
+            raise RuntimeError("Double-clicking Skript's titlebar did not restore the app.")
+        time.sleep(0.5)
+        overlay, browser = wait_for_windows(process.pid, 5)
+        frame_before = visible_bounds(browser["hwnd"])
+        overlay_bounds = overlay["rect"]
+        assert_renderer_fills_window(
+            frame_before,
+            wait_for_renderer_bounds(browser["hwnd"]),
+            "Double-click restored window",
+        )
+
+        # Dragging a maximised window first restores it, then follows the held
+        # pointer. This is the path that previously left a full-width titlebar
+        # over a smaller editor surface.
+        click_at(overlay_bounds[2] - 72, (overlay_bounds[1] + overlay_bounds[3]) // 2)
+        deadline = time.time() + 5
+        while time.time() < deadline and not user32.IsZoomed(browser["hwnd"]):
+            time.sleep(0.05)
+        if not user32.IsZoomed(browser["hwnd"]):
+            raise RuntimeError("Could not maximise Skript before the restored-drag check.")
+        time.sleep(0.4)
+        overlay_drag_max, browser_drag_max = wait_for_windows(process.pid, 5)
+        drag_max_x = overlay_drag_max["rect"][0] + min(
+            260, (overlay_drag_max["rect"][2] - overlay_drag_max["rect"][0]) // 2
+        )
+        drag_max_y = (overlay_drag_max["rect"][1] + overlay_drag_max["rect"][3]) // 2
+        user32.SetCursorPos(drag_max_x, drag_max_y)
+        user32.mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
+        mouse_down = True
+        time.sleep(0.15)
+        for step in range(1, 9):
+            user32.SetCursorPos(drag_max_x + (step * 12), drag_max_y + (step * 7))
+            time.sleep(0.03)
+        user32.mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
+        mouse_down = False
+        time.sleep(0.7)
+        if user32.IsZoomed(browser["hwnd"]):
+            raise RuntimeError("Dragging the maximised titlebar did not restore Skript.")
+        overlay, browser = wait_for_windows(process.pid, 5)
+        frame_before = visible_bounds(browser["hwnd"])
+        overlay_bounds = overlay["rect"]
+        if abs(overlay_bounds[0] - frame_before[0]) > 2:
+            raise RuntimeError("The titlebar left edge did not follow the restored drag.")
+        if abs(overlay_bounds[2] - frame_before[2]) > 2:
+            raise RuntimeError("The titlebar right edge did not follow the restored drag.")
+        assert_renderer_fills_window(
+            frame_before,
+            wait_for_renderer_bounds(browser["hwnd"]),
+            "Restored maximised drag",
+        )
 
         drag_x = overlay_bounds[0] + min(240, (overlay_bounds[2] - overlay_bounds[0]) // 2)
         drag_y = overlay_bounds[1] + max(2, (overlay_bounds[3] - overlay_bounds[1]) // 2)
@@ -285,8 +438,9 @@ def main():
             probe.destroy()
 
         print(
-            "Native titlebar smoke test passed: hold-drag moved Skript and "
-            "the bar stayed aligned without covering another foreground app."
+            "Native titlebar smoke test passed: maximise/restore kept the editor "
+            "full-sized, hold-drag moved Skript, and the bar stayed aligned "
+            "without covering another foreground app."
         )
     finally:
         if mouse_down:

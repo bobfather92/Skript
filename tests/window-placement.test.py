@@ -176,6 +176,8 @@ control_source = window_source.split("def _window_control", 1)[1].split("def lau
 assert "_titlebar_overlay_is_active" in control_source
 assert "_native_host_is_active" not in control_source
 assert "_start_native_window_drag(hwnd, u32)" in control_source
+assert "u32.SendMessageW(hwnd, WM_SYSCOMMAND, command, 0)" in control_source
+assert "ShowWindow(hwnd, SW_RESTORE if" not in control_source
 assert "threading.Thread" in window_source
 assert "GetAsyncKeyState(0x01)" in window_source
 overlay_source = window_source.split(
@@ -192,6 +194,8 @@ create_overlay_source = window_source.split(
 )[1].split("def _pump_native_titlebar_overlay", 1)[0]
 assert "widget.bind('<B1-Motion>', continue_drag)" in create_overlay_source
 assert "widget.bind('<ButtonRelease-1>', end_drag)" in create_overlay_source
+assert "if drag_state['was_zoomed'] and not drag_state['restored']" in create_overlay_source
+assert "user32.SendMessageW(browser_hwnd, 0x0112, 0xF120, 0)" in create_overlay_source
 assert "user32.SetWindowPos(\n                    browser_hwnd" in create_overlay_source
 html_injection_source = window_source.split("def _get_html", 1)[1].split("class SFHandler", 1)[0]
 assert "_SF_NATIVE_SHELL" not in html_injection_source

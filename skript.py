@@ -12470,7 +12470,10 @@ def _create_native_titlebar_overlay(browser_hwnd):
         maximise.pack(side='right', fill='y')
         minimise.pack(side='right', fill='y')
 
-        drag_state = {'cursor': None, 'window': None, 'overlay': None}
+        drag_state = {
+            'cursor': None, 'window': None, 'overlay': None,
+            'was_zoomed': False, 'restored': False,
+        }
 
         def start_drag(event):
             if getattr(event, 'num', 1) != 1:
@@ -12485,8 +12488,6 @@ def _create_native_titlebar_overlay(browser_hwnd):
 
                 cursor = POINT()
                 target_rect = RECT()
-                if user32.IsZoomed(browser_hwnd):
-                    user32.ShowWindow(browser_hwnd, 9)  # SW_RESTORE
                 if (
                     user32.GetCursorPos(ctypes.byref(cursor))
                     and user32.GetWindowRect(browser_hwnd, ctypes.byref(target_rect))
@@ -12495,6 +12496,8 @@ def _create_native_titlebar_overlay(browser_hwnd):
                     drag_state['cursor'] = (int(cursor.x), int(cursor.y))
                     drag_state['window'] = (int(target_rect.left), int(target_rect.top))
                     drag_state['overlay'] = tuple(_TITLEBAR_OVERLAY_GEOMETRY)
+                    drag_state['was_zoomed'] = bool(user32.IsZoomed(browser_hwnd))
+                    drag_state['restored'] = False
             except Exception:
                 drag_state['cursor'] = None
 
@@ -12508,6 +12511,36 @@ def _create_native_titlebar_overlay(browser_hwnd):
 
                 cursor = POINT()
                 if not user32.GetCursorPos(ctypes.byref(cursor)):
+                    return
+                if drag_state['was_zoomed'] and not drag_state['restored']:
+                    # A press can be the first half of a double-click. Do not
+                    # restore Chromium until the pointer has genuinely moved.
+                    moved_x = int(cursor.x) - drag_state['cursor'][0]
+                    moved_y = int(cursor.y) - drag_state['cursor'][1]
+                    if abs(moved_x) < 4 and abs(moved_y) < 4:
+                        return
+                    maximised_width = max(1, drag_state['overlay'][2])
+                    cursor_fraction = max(
+                        0.08,
+                        min(0.92, (drag_state['cursor'][0] - drag_state['overlay'][0]) / maximised_width),
+                    )
+                    user32.SendMessageW(browser_hwnd, 0x0112, 0xF120, 0)  # WM_SYSCOMMAND / SC_RESTORE
+                    restored_rect = RECT()
+                    if not user32.GetWindowRect(browser_hwnd, ctypes.byref(restored_rect)):
+                        return
+                    restored_width = max(1, int(restored_rect.right - restored_rect.left))
+                    title_height = max(28, int(drag_state['overlay'][3]))
+                    target_x = int(cursor.x) - round(restored_width * cursor_fraction)
+                    target_y = int(cursor.y) - (title_height // 2)
+                    user32.SetWindowPos(
+                        browser_hwnd, 0, target_x, target_y, 0, 0,
+                        0x0001 | 0x0004 | 0x0010,
+                    )
+                    _sync_native_titlebar_overlay(force=True)
+                    drag_state['cursor'] = (int(cursor.x), int(cursor.y))
+                    drag_state['window'] = (target_x, target_y)
+                    drag_state['overlay'] = tuple(_TITLEBAR_OVERLAY_GEOMETRY)
+                    drag_state['restored'] = True
                     return
                 dx = int(cursor.x) - drag_state['cursor'][0]
                 dy = int(cursor.y) - drag_state['cursor'][1]
@@ -12536,9 +12569,14 @@ def _create_native_titlebar_overlay(browser_hwnd):
             drag_state['cursor'] = None
             drag_state['window'] = None
             drag_state['overlay'] = None
+            drag_state['was_zoomed'] = False
+            drag_state['restored'] = False
 
         def toggle_maximise(_event):
-            _window_control('maximize')
+            # Run after Tk has finished the complete double-click sequence so
+            # its final ButtonRelease cannot undo Chromium's state change.
+            root.after_idle(lambda: _window_control('maximize'))
+            return 'break'
 
         for widget in (bar, left, icon_label, title_label):
             widget.bind('<ButtonPress-1>', start_drag)
@@ -12822,11 +12860,10 @@ def _window_control(action: str):
         return
     import ctypes, ctypes.wintypes
 
-    SW_MINIMIZE  = 6
-    SW_MAXIMIZE  = 3
-    SW_RESTORE   = 9
     WM_CLOSE     = 0x0010
+    SC_MINIMIZE  = 0xF020
     SC_MAXIMIZE  = 0xF030
+    SC_RESTORE   = 0xF120
     WM_SYSCOMMAND = 0x0112
 
     u32 = ctypes.windll.user32
@@ -12881,15 +12918,15 @@ def _window_control(action: str):
 
     hwnd = found_hwnd[0]
     if action == 'minimize':
-        u32.ShowWindow(hwnd, SW_MINIMIZE)
+        u32.SendMessageW(hwnd, WM_SYSCOMMAND, SC_MINIMIZE, 0)
     elif action == 'maximize':
-        # Toggle: if maximized, restore; else maximize
-        import ctypes.wintypes as wt
-        wp = (ctypes.c_int * 10)()  # WINDOWPLACEMENT is ~44 bytes / 10 ints
-        # Simple check via GetWindowPlacement
-        placement = ctypes.create_string_buffer(44)
-        ctypes.c_uint.from_buffer_copy(ctypes.c_uint(44)).value  # cbSize
-        u32.ShowWindow(hwnd, SW_RESTORE if u32.IsZoomed(hwnd) else SW_MAXIMIZE)
+        # Let Chromium process the normal Windows command. ShowWindow can
+        # resize only Edge's outer frame while leaving the editor renderer at
+        # its previous dimensions.
+        command = SC_RESTORE if u32.IsZoomed(hwnd) else SC_MAXIMIZE
+        u32.SendMessageW(hwnd, WM_SYSCOMMAND, command, 0)
+        if _titlebar_overlay_is_active():
+            _sync_native_titlebar_overlay(force=True)
     elif action == 'close':
         u32.PostMessageW(hwnd, WM_CLOSE, 0, 0)
     elif action == 'drag':

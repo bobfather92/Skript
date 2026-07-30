@@ -20,6 +20,7 @@ This is the first local development package on the road to Skript 1.1. It is int
 - Remove the duplicate/misaligned title bar on displays using Windows scaling, and keep Skript behind other applications when it is not active.
 - Start each session in an isolated browser profile so Edge cannot restore stale duplicate Skript windows.
 - Keep the Acts ribbon label aligned with File and Elements, and prevent double-clicking ribbon text from opening Edge's selection menu.
+- Keep the editor surface fitted to the whole window after maximise, restore, title-bar double-click, or dragging directly from a maximised window.
 - Clear the Recent Projects history from either the welcome screen or Recent Projects window without deleting saved project files.
 - Open all valid selected scripts even when another selected file is invalid.
 - Open the initial `com.skript.project-collection` format containing multiple script documents.
