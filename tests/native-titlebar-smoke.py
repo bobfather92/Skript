@@ -1,7 +1,8 @@
-"""Windows-only smoke test for the packaged Skript titlebar.
+"""Windows-only smoke test for Skript's native Windows titlebar.
 
-The test launches the supplied build, checks that its native overlay matches
-the visible Edge frame, performs a real mouse drag, and restores the cursor.
+The test launches a packaged build and proves that Skript does not create its
+former foreground titlebar overlay. It also exercises the genuine Windows
+caption through maximise, restore, resize, and foreground-window changes.
 """
 
 import argparse
@@ -15,8 +16,16 @@ from pathlib import Path
 
 
 WM_CLOSE = 0x0010
+WM_SYSCOMMAND = 0x0112
+SC_MAXIMIZE = 0xF030
+SC_RESTORE = 0xF120
 MOUSEEVENTF_LEFTDOWN = 0x0002
 MOUSEEVENTF_LEFTUP = 0x0004
+GWL_STYLE = -16
+WS_CAPTION = 0x00C00000
+WS_SYSMENU = 0x00080000
+WS_MINIMIZEBOX = 0x00020000
+WS_MAXIMIZEBOX = 0x00010000
 DWMWA_EXTENDED_FRAME_BOUNDS = 9
 
 user32 = ctypes.windll.user32
@@ -134,69 +143,65 @@ def assert_renderer_fills_window(frame, renderer, label):
         )
 
 
-def assert_overlay_preserves_frame(frame, overlay, label):
-    gaps = (
-        overlay[0] - frame[0],
-        overlay[1] - frame[1],
-        frame[2] - overlay[2],
-    )
-    if any(gap < 1 or gap > 2 for gap in gaps):
-        raise RuntimeError(
-            f"{label}: the titlebar did not preserve the visible Windows outline "
-            f"(frame={frame}, overlay={overlay}, gaps={gaps})."
-        )
-
-
-def click_at(x, y):
-    user32.SetCursorPos(int(x), int(y))
-    user32.mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
-    user32.mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
-
-
-def wait_for_windows(process_id, timeout):
+def wait_for_browser(process_id, timeout):
     deadline = time.time() + timeout
-    activation_attempted = False
     while time.time() < deadline:
         current = windows()
-        overlay = next(
-            (
-                item
-                for item in current
-                if item["pid"] == process_id
-                and item["class"].startswith("Tk")
-                and item["title"] == "Skript titlebar"
-            ),
-            None,
-        )
-        owner_hwnd = int(user32.GetWindow(overlay["hwnd"], 4) or 0) if overlay else 0
+        candidates = [
+            item
+            for item in current
+            if item["visible"]
+            and item["class"].startswith("Chrome_WidgetWin")
+            and item["title"].startswith("Skript")
+        ]
         browser = next(
-            (item for item in current if item["hwnd"] == owner_hwnd),
-            None,
-        )
-        if overlay and browser and not overlay["visible"]:
-            user32.SetForegroundWindow(browser["hwnd"])
-            if not activation_attempted:
-                left, top, right, bottom = browser["rect"]
-                user32.SetCursorPos((left + right) // 2, (top + bottom) // 2)
-                user32.mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
-                user32.mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
-                activation_attempted = True
-            time.sleep(0.05)
-            continue
-        if overlay and browser:
-            return overlay, browser
+            (item for item in candidates if item["pid"] == process_id), None
+        ) or next(iter(candidates), None)
+        if browser:
+            return browser
         time.sleep(0.1)
     diagnostics = [
-        {
-            **item,
-            "owner": int(user32.GetWindow(item["hwnd"], 4) or 0),
-        }
-        for item in windows()
+        item for item in windows()
         if item["pid"] == process_id or item["title"].startswith("Skript")
     ]
     raise RuntimeError(
-        f"The packaged Skript titlebar did not appear in time. Windows: {diagnostics}"
+        f"The packaged Skript window did not appear in time. Windows: {diagnostics}"
     )
+
+
+def wait_for_zoomed(hwnd, expected, timeout=5):
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        if bool(user32.IsZoomed(hwnd)) == expected:
+            return
+        time.sleep(0.05)
+    state = "maximise" if expected else "restore"
+    raise RuntimeError(f"The native Windows titlebar did not {state} Skript.")
+
+
+def assert_no_titlebar_overlay():
+    overlays = [item for item in windows() if item["title"] == "Skript titlebar"]
+    if overlays:
+        raise RuntimeError(
+            "The obsolete foreground titlebar overlay was created: "
+            f"{overlays}"
+        )
+
+
+def assert_native_caption(hwnd):
+    style = int(user32.GetWindowLongW(hwnd, GWL_STYLE)) & 0xFFFFFFFF
+    required = WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX
+    if style & required != required:
+        raise RuntimeError(
+            "Skript is missing genuine Windows titlebar controls "
+            f"(style=0x{style:08X}, required=0x{required:08X})."
+        )
+
+
+def window_process_id(hwnd):
+    pid = wintypes.DWORD()
+    user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
+    return int(pid.value)
 
 
 def main():
@@ -210,282 +215,95 @@ def main():
         raise SystemExit("This smoke test requires Windows.")
     if not app.is_file():
         raise SystemExit(f"Skript executable not found: {app}")
-    if any(item["title"] == "Skript titlebar" for item in windows()):
+    if any(
+        item["visible"]
+        and item["class"].startswith("Chrome_WidgetWin")
+        and item["title"].startswith("Skript")
+        for item in windows()
+    ):
         raise SystemExit("Close the existing Skript window before running this test.")
 
     original_cursor = POINT()
     user32.GetCursorPos(ctypes.byref(original_cursor))
-    process = subprocess.Popen([str(app)], env={**os.environ, "SKRIPT_DIAGNOSTIC": "1"})
+    process = subprocess.Popen(
+        [str(app)], env={**os.environ, "SKRIPT_DIAGNOSTIC": "1"}
+    )
     browser = None
-    mouse_down = False
     try:
-        overlay, browser = wait_for_windows(process.pid, args.timeout)
-        # Allow the local page and the overlay's final z-order update to finish
-        # before capturing the user-visible result.
+        browser = wait_for_browser(process.pid, args.timeout)
         time.sleep(4.0)
-        overlay, browser = wait_for_windows(process.pid, 5)
+        browser = wait_for_browser(process.pid, 5)
+        assert_no_titlebar_overlay()
+
         related_windows = [
-            item for item in windows()
+            item
+            for item in windows()
             if item["visible"]
-            and item["pid"] == browser["pid"]
             and item["class"].startswith("Chrome_WidgetWin")
             and item["title"].startswith("Skript")
         ]
         if len(related_windows) != 1:
             raise RuntimeError(
-                f"Expected one Skript browser window, found {len(related_windows)}."
+                f"Expected one Skript window, found {len(related_windows)}."
             )
-        frame_before = visible_bounds(browser["hwnd"])
-        overlay_bounds = overlay["rect"]
-        renderer_bounds = wait_for_renderer_bounds(browser["hwnd"])
-        assert_overlay_preserves_frame(frame_before, overlay_bounds, "Normal window")
+
+        hwnd = browser["hwnd"]
+        assert_native_caption(hwnd)
+        frame = visible_bounds(hwnd)
+        renderer = wait_for_renderer_bounds(hwnd)
+        assert_renderer_fills_window(frame, renderer, "Normal window")
+
         if args.screenshot:
             from PIL import ImageGrab
 
             screenshot_path = args.screenshot.resolve()
             screenshot_path.parent.mkdir(parents=True, exist_ok=True)
             ImageGrab.grab(
-                bbox=(
-                    frame_before[0] - 16,
-                    frame_before[1] - 16,
-                    frame_before[2] + 16,
-                    frame_before[3] + 16,
-                ),
+                bbox=(frame[0] - 16, frame[1] - 16, frame[2] + 16, frame[3] + 16),
                 all_screens=True,
             ).save(screenshot_path)
             print(
-                f"Captured frame={frame_before}, raw={browser['rect']}, "
-                f"overlay={overlay_bounds}, "
-                f"renderer={renderer_bounds} to {screenshot_path}"
+                f"Captured native frame={frame}, renderer={renderer} "
+                f"to {screenshot_path}"
             )
-        if abs(overlay_bounds[0] - frame_before[0]) > 2:
-            raise RuntimeError("The titlebar left edge does not match the Skript window.")
-        if abs(overlay_bounds[2] - frame_before[2]) > 2:
-            raise RuntimeError("The titlebar right edge does not match the Skript window.")
-        if renderer_bounds and overlay_bounds[3] < renderer_bounds[1] - 2:
-            raise RuntimeError(
-                "The titlebar does not fully cover Edge's own title strip "
-                f"(overlay bottom {overlay_bounds[3]}, renderer top {renderer_bounds[1]})."
-            )
-        assert_renderer_fills_window(frame_before, renderer_bounds, "Normal window")
 
-        # Exercise Skript's actual maximise button. A low-level ShowWindow call
-        # can maximise Chromium's outer frame without resizing its renderer,
-        # leaving the old window-sized editor in the top-left corner.
-        click_at(overlay_bounds[2] - 72, (overlay_bounds[1] + overlay_bounds[3]) // 2)
-        deadline = time.time() + 5
-        while time.time() < deadline and not user32.IsZoomed(browser["hwnd"]):
-            time.sleep(0.05)
-        if not user32.IsZoomed(browser["hwnd"]):
-            raise RuntimeError("Skript's maximise button did not maximise the app window.")
+        user32.SendMessageW(hwnd, WM_SYSCOMMAND, SC_MAXIMIZE, 0)
+        wait_for_zoomed(hwnd, True)
         time.sleep(0.5)
-        overlay_max, browser_max = wait_for_windows(process.pid, 5)
-        frame_max = visible_bounds(browser_max["hwnd"])
-        renderer_max = wait_for_renderer_bounds(browser_max["hwnd"])
-        assert_renderer_fills_window(frame_max, renderer_max, "Maximised window")
-
-        # Restore through the same button and confirm the editor follows again.
-        click_at(
-            overlay_max["rect"][2] - 72,
-            (overlay_max["rect"][1] + overlay_max["rect"][3]) // 2,
-        )
-        deadline = time.time() + 5
-        while time.time() < deadline and user32.IsZoomed(browser["hwnd"]):
-            time.sleep(0.05)
-        if user32.IsZoomed(browser["hwnd"]):
-            raise RuntimeError("Skript's maximise button did not restore the app window.")
-        time.sleep(0.5)
-        overlay, browser = wait_for_windows(process.pid, 5)
-        frame_before = visible_bounds(browser["hwnd"])
-        overlay_bounds = overlay["rect"]
-        assert_overlay_preserves_frame(frame_before, overlay_bounds, "Restored window")
+        assert_no_titlebar_overlay()
         assert_renderer_fills_window(
-            frame_before,
-            wait_for_renderer_bounds(browser["hwnd"]),
-            "Restored window",
+            visible_bounds(hwnd),
+            wait_for_renderer_bounds(hwnd),
+            "Maximised window",
         )
 
-        # Double-clicking the draggable title area follows a separate Tk event
-        # path from the maximise button and must keep the same renderer sizing.
-        title_x = overlay_bounds[0] + min(260, (overlay_bounds[2] - overlay_bounds[0]) // 2)
-        title_y = (overlay_bounds[1] + overlay_bounds[3]) // 2
-        click_at(title_x, title_y)
-        time.sleep(0.08)
-        click_at(title_x, title_y)
-        deadline = time.time() + 5
-        while time.time() < deadline and not user32.IsZoomed(browser["hwnd"]):
-            time.sleep(0.05)
-        if not user32.IsZoomed(browser["hwnd"]):
-            raise RuntimeError("Double-clicking Skript's titlebar did not maximise the app.")
+        user32.SendMessageW(hwnd, WM_SYSCOMMAND, SC_RESTORE, 0)
+        wait_for_zoomed(hwnd, False)
         time.sleep(0.5)
-        overlay_double, browser_double = wait_for_windows(process.pid, 5)
-        frame_double = visible_bounds(browser_double["hwnd"])
+        assert_no_titlebar_overlay()
+        frame = visible_bounds(hwnd)
         assert_renderer_fills_window(
-            frame_double,
-            wait_for_renderer_bounds(browser_double["hwnd"]),
-            "Double-click maximised window",
+            frame, wait_for_renderer_bounds(hwnd), "Restored window"
         )
 
-        double_x = overlay_double["rect"][0] + min(
-            260, (overlay_double["rect"][2] - overlay_double["rect"][0]) // 2
-        )
-        double_y = (overlay_double["rect"][1] + overlay_double["rect"][3]) // 2
-        click_at(double_x, double_y)
-        time.sleep(0.08)
-        click_at(double_x, double_y)
-        deadline = time.time() + 5
-        while time.time() < deadline and user32.IsZoomed(browser["hwnd"]):
-            time.sleep(0.05)
-        if user32.IsZoomed(browser["hwnd"]):
-            raise RuntimeError("Double-clicking Skript's titlebar did not restore the app.")
-        time.sleep(0.5)
-        overlay, browser = wait_for_windows(process.pid, 5)
-        frame_before = visible_bounds(browser["hwnd"])
-        overlay_bounds = overlay["rect"]
-        assert_overlay_preserves_frame(
-            frame_before, overlay_bounds, "Double-click restored window"
-        )
-        assert_renderer_fills_window(
-            frame_before,
-            wait_for_renderer_bounds(browser["hwnd"]),
-            "Double-click restored window",
-        )
-
-        # Dragging a maximised window first restores it, then follows the held
-        # pointer. This is the path that previously left a full-width titlebar
-        # over a smaller editor surface.
-        click_at(overlay_bounds[2] - 72, (overlay_bounds[1] + overlay_bounds[3]) // 2)
-        deadline = time.time() + 5
-        while time.time() < deadline and not user32.IsZoomed(browser["hwnd"]):
-            time.sleep(0.05)
-        if not user32.IsZoomed(browser["hwnd"]):
-            raise RuntimeError("Could not maximise Skript before the restored-drag check.")
-        time.sleep(0.4)
-        overlay_drag_max, browser_drag_max = wait_for_windows(process.pid, 5)
-        drag_max_x = overlay_drag_max["rect"][0] + min(
-            260, (overlay_drag_max["rect"][2] - overlay_drag_max["rect"][0]) // 2
-        )
-        drag_max_y = (overlay_drag_max["rect"][1] + overlay_drag_max["rect"][3]) // 2
-        user32.SetCursorPos(drag_max_x, drag_max_y)
-        user32.mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
-        mouse_down = True
-        time.sleep(0.15)
-        for step in range(1, 9):
-            user32.SetCursorPos(drag_max_x + (step * 12), drag_max_y + (step * 7))
-            time.sleep(0.03)
-        user32.mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
-        mouse_down = False
-        time.sleep(0.7)
-        if user32.IsZoomed(browser["hwnd"]):
-            raise RuntimeError("Dragging the maximised titlebar did not restore Skript.")
-        overlay, browser = wait_for_windows(process.pid, 5)
-        frame_before = visible_bounds(browser["hwnd"])
-        overlay_bounds = overlay["rect"]
-        assert_overlay_preserves_frame(
-            frame_before, overlay_bounds, "Restored maximised drag"
-        )
-        assert_renderer_fills_window(
-            frame_before,
-            wait_for_renderer_bounds(browser["hwnd"]),
-            "Restored maximised drag",
-        )
-
-        drag_x = overlay_bounds[0] + min(240, (overlay_bounds[2] - overlay_bounds[0]) // 2)
-        drag_y = overlay_bounds[1] + max(2, (overlay_bounds[3] - overlay_bounds[1]) // 2)
-        user32.SetCursorPos(drag_x, drag_y)
-        hit_window = int(user32.WindowFromPoint(POINT(drag_x, drag_y)))
-        hit_root = int(user32.GetAncestor(hit_window, 2))
-        user32.mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
-        mouse_down = True
-        time.sleep(0.15)
-        for step in range(1, 11):
-            user32.SetCursorPos(drag_x + (step * 10), drag_y + (step * 6))
-            time.sleep(0.025)
-        user32.mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
-        mouse_down = False
-        time.sleep(0.5)
-
-        frame_after = visible_bounds(browser["hwnd"])
-        moved_x = frame_after[0] - frame_before[0]
-        moved_y = frame_after[1] - frame_before[1]
-        if moved_x < 70 or moved_y < 35:
-            direct_result = user32.SetWindowPos(
-                browser["hwnd"], 0, frame_before[0] + 40, frame_before[1] + 40,
-                0, 0, 0x0001 | 0x0004 | 0x0010,
-            )
-            time.sleep(0.3)
-            direct_after = visible_bounds(browser["hwnd"])
-            raise RuntimeError(
-                "Holding the titlebar did not move Skript "
-                f"(moved {moved_x}, {moved_y}; hit={hit_window}; root={hit_root}; "
-                f"overlay={overlay['hwnd']}; direct={direct_result}; "
-                f"direct-move={direct_after[0] - frame_before[0]},"
-                f"{direct_after[1] - frame_before[1]})."
-            )
-
-        overlay_after, _browser_after = wait_for_windows(process.pid, 5)
-        renderer_after = wait_for_renderer_bounds(browser["hwnd"], 2)
-        alignment_bounds = renderer_after or frame_after
-        tolerance = 1 if renderer_after else 3
-        if abs(overlay_after["rect"][0] - alignment_bounds[0]) > tolerance:
-            raise RuntimeError(
-                "The titlebar did not follow the moved window "
-                f"(frame={frame_after}, raw={_browser_after['rect']}, "
-                f"renderer={renderer_after}, overlay={overlay_after['rect']})."
-            )
-        if abs(overlay_after["rect"][2] - alignment_bounds[2]) > tolerance:
-            raise RuntimeError(
-                "The titlebar width changed after moving the window "
-                f"(frame={frame_after}, raw={_browser_after['rect']}, "
-                f"renderer={renderer_after}, overlay={overlay_after['rect']})."
-            )
-
-        # A real outer-frame resize must invalidate cached Chromium insets at
-        # once. This protects the caption buttons from retaining the previous
-        # wider geometry and extending beyond the app's new right edge.
-        raw_after = _browser_after["rect"]
-        old_width = raw_after[2] - raw_after[0]
-        old_height = raw_after[3] - raw_after[1]
+        raw = RECT()
+        if not user32.GetWindowRect(hwnd, ctypes.byref(raw)):
+            raise RuntimeError("Could not read Skript's raw window bounds.")
+        old_width = raw.right - raw.left
+        old_height = raw.bottom - raw.top
         resized_width = max(900, old_width - 320)
         if not user32.SetWindowPos(
-            browser["hwnd"], 0, raw_after[0], raw_after[1],
-            resized_width, old_height, 0x0004 | 0x0010,
+            hwnd, 0, raw.left, raw.top, resized_width, old_height, 0x0004 | 0x0010
         ):
             raise RuntimeError("Windows rejected the Skript resize test.")
-        deadline = time.time() + 3
-        resize_result = None
-        while time.time() < deadline:
-            overlay_resized, browser_resized = wait_for_windows(process.pid, 1)
-            frame_resized = visible_bounds(browser_resized["hwnd"])
-            gaps = (
-                overlay_resized["rect"][0] - frame_resized[0],
-                overlay_resized["rect"][1] - frame_resized[1],
-                frame_resized[2] - overlay_resized["rect"][2],
-            )
-            width_reduced = (
-                overlay_resized["rect"][2] - overlay_resized["rect"][0]
-                < overlay_after["rect"][2] - overlay_after["rect"][0] - 200
-            )
-            outline_preserved = (
-                0 <= gaps[0] <= 3
-                and 1 <= gaps[1] <= 2
-                and 1 <= gaps[2] <= 2
-            )
-            if width_reduced and outline_preserved:
-                resize_result = (overlay_resized, browser_resized, frame_resized)
-                break
-            time.sleep(0.05)
-        if resize_result is None:
-            raise RuntimeError(
-                "The titlebar controls extended beyond the resized app frame "
-                f"(frame={frame_resized}, overlay={overlay_resized['rect']}, "
-                f"gaps={gaps})."
-            )
-        overlay_after, _browser_after, frame_after = resize_result
+        time.sleep(0.7)
+        resized_frame = visible_bounds(hwnd)
+        if resized_frame[2] - resized_frame[0] > frame[2] - frame[0] - 200:
+            raise RuntimeError("The native Skript window did not resize as expected.")
+        assert_no_titlebar_overlay()
+        assert_native_caption(hwnd)
         assert_renderer_fills_window(
-            frame_after,
-            wait_for_renderer_bounds(browser["hwnd"], 2),
-            "Resized window",
+            resized_frame, wait_for_renderer_bounds(hwnd), "Resized window"
         )
 
         probe = tk.Tk()
@@ -496,28 +314,40 @@ def main():
             probe.update()
             probe_widget = int(probe.winfo_id())
             probe_hwnd = int(user32.GetParent(probe_widget) or probe_widget)
-            user32.SetForegroundWindow(probe_hwnd)
+            probe_rect = RECT()
+            if not user32.GetWindowRect(probe_hwnd, ctypes.byref(probe_rect)):
+                raise RuntimeError("Could not read the focus-test window bounds.")
+            # Windows may reject a programmatic SetForegroundWindow request.
+            # A physical click exercises the exact action reported by users.
+            user32.SetCursorPos(
+                (probe_rect.left + probe_rect.right) // 2,
+                (probe_rect.top + probe_rect.bottom) // 2,
+            )
+            user32.mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
+            user32.mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
             deadline = time.time() + 2
-            while time.time() < deadline and user32.IsWindowVisible(overlay["hwnd"]):
+            while time.time() < deadline:
                 probe.update()
+                foreground = int(user32.GetForegroundWindow())
+                if window_process_id(foreground) == os.getpid():
+                    break
                 time.sleep(0.05)
-            if user32.IsWindowVisible(overlay["hwnd"]):
-                raise RuntimeError(
-                    "Skript's titlebar remained above another foreground application."
-                )
-            user32.SetForegroundWindow(browser["hwnd"])
-            wait_for_windows(process.pid, 3)
+            if window_process_id(int(user32.GetForegroundWindow())) != os.getpid():
+                raise RuntimeError("Another application could not take focus from Skript.")
+            time.sleep(0.4)
+            probe.update()
+            if window_process_id(int(user32.GetForegroundWindow())) != os.getpid():
+                raise RuntimeError("Skript forced itself back into the foreground.")
+            assert_no_titlebar_overlay()
         finally:
             probe.destroy()
 
         print(
-            "Native titlebar smoke test passed: maximise/restore kept the editor "
-            "full-sized, hold-drag moved Skript, and the bar stayed aligned "
-            "without covering another foreground app."
+            "Native Windows titlebar smoke test passed: no foreground overlay "
+            "was created, Windows caption controls remained active, maximise/restore "
+            "and resize kept the editor fitted, and another app could take focus."
         )
     finally:
-        if mouse_down:
-            user32.mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
         user32.SetCursorPos(original_cursor.x, original_cursor.y)
         if browser:
             user32.PostMessageW(browser["hwnd"], WM_CLOSE, 0, 0)

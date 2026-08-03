@@ -337,7 +337,8 @@ assert "_set_windows_app_identity(hwnd)" in placement_source
 assert "SetWindowPos(hwnd, 0, x, y, width, height" in placement_source
 assert "_enable_native_app_shell(hwnd)" not in placement_source
 assert "target=_maintain_native_app_shell" not in placement_source
-assert "_create_native_titlebar_overlay(hwnd)" in placement_source
+assert "_create_native_titlebar_overlay(hwnd)" not in placement_source
+assert "Keep Edge's genuine Windows titlebar" in placement_source
 assert "process_matches or title_matches" in placement_source
 assert "GetWindowThreadProcessId(hwnd" in placement_source
 assert "_create_native_browser_host(hwnd" not in placement_source
@@ -382,8 +383,9 @@ assert "'font': ('Segoe UI Symbol', 16)" in create_overlay_source
 assert "'width': 3" in create_overlay_source
 html_injection_source = window_source.split("def _get_html", 1)[1].split("class SFHandler", 1)[0]
 assert "_SF_NATIVE_SHELL" not in html_injection_source
-assert "_SF_NATIVE_TITLEBAR_OVERLAY" in html_injection_source
-assert 'classList.add("sf-native-titlebar-overlay")' in html_injection_source
+assert "window._SF_NATIVE_TITLEBAR=" in html_injection_source
+assert "window._SF_NATIVE_TITLEBAR_OVERLAY=false" in html_injection_source
+assert 'classList.add("sf-native-titlebar")' in html_injection_source
 assert "'/api/window-events'" in window_source
 
 # Chromium can hand the app window to an already-running Edge process. The
@@ -392,9 +394,9 @@ launch_source = (ROOT / "skript.py").read_text(encoding="utf-8").split("def laun
 assert "_enable_windows_dpi_awareness" not in window_source
 assert "cwd=tempfile.gettempdir()" in window_source
 assert "_EDGE_PROC.poll()" not in launch_source
-assert "while not _APP_SHUTDOWN_EVENT.wait(0.05)" in launch_source
-assert "_pump_native_titlebar_overlay()" in launch_source
-assert "_destroy_native_titlebar_overlay()" in launch_source
+assert "_APP_SHUTDOWN_EVENT.wait()" in launch_source
+assert "_pump_native_titlebar_overlay()" not in launch_source
+assert "_destroy_native_titlebar_overlay()" not in launch_source
 assert "--start-minimized" in window_source
 assert "--user-data-dir=" in window_source
 assert "'--disable-sync'" in window_source
