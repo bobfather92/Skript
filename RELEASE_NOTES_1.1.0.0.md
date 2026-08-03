@@ -21,6 +21,9 @@ This is the first local development package on the road to Skript 1.1. It is int
 - Start each session in an isolated browser profile so Edge cannot restore stale duplicate Skript windows.
 - Keep the Acts ribbon label aligned with File and Elements, and prevent double-clicking ribbon text from opening Edge's selection menu.
 - Keep the editor surface fitted to the whole window after maximise, restore, title-bar double-click, or dragging directly from a maximised window.
+- Preserve the rounded Windows outline around the active title bar and avoid repeatedly re-measuring or repositioning an unchanged window.
+- Keep the minimise, maximise, and close controls inside the app frame immediately after resizing, maximising, restoring, or changing display scaling.
+- Enter the reduced-memory performance profile when Windows reports severe memory pressure, even on a computer with otherwise capable hardware.
 - Clear the Recent Projects history from either the welcome screen or Recent Projects window without deleting saved project files.
 - Open all valid selected scripts even when another selected file is invalid.
 - Open the initial `com.skript.project-collection` format containing multiple script documents.

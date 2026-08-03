@@ -157,6 +157,9 @@ _TITLEBAR_OVERLAY_ROOT = None
 _TITLEBAR_OVERLAY_HWND = None
 _TITLEBAR_OVERLAY_TARGET = None
 _TITLEBAR_OVERLAY_GEOMETRY = None
+_TITLEBAR_OVERLAY_INSETS = None
+_TITLEBAR_OVERLAY_NEXT_INSET_CHECK = 0.0
+_TITLEBAR_OVERLAY_TARGET_STATE = None
 _TITLEBAR_DRAG_LOCK = threading.Lock()
 _TITLEBAR_DRAG_ACTIVE = False
 _BROWSER_PROFILE_DIR = None
@@ -11147,6 +11150,7 @@ def _detect_low_spec() -> bool:
         cpu_logical = os.cpu_count() or 4
         ram_gb = 8.0  # assume sufficient unless we detect otherwise
 
+        memory_pressure = False
         if sys.platform == 'win32':
             # --- RAM via GlobalMemoryStatusEx (ctypes, no extra deps) ---
             import ctypes
@@ -11166,13 +11170,15 @@ def _detect_low_spec() -> bool:
             stat.dwLength = ctypes.sizeof(stat)
             ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(stat))
             ram_gb = stat.ullTotalPhys / (1024 ** 3)
+            available_gb = stat.ullAvailPhys / (1024 ** 3)
+            memory_pressure = stat.dwMemoryLoad >= 85 or available_gb < 1.5
 
         # Low-spec: ≤4 logical CPUs AND ≤10.5 GB RAM
         # Surface Go (4 GB or 8 GB), Intel Atom / Celeron N-series (4 GB),
         # budget AMD APUs (4–8 GB).  Threshold raised to 10.5 GB so that
         # 8 GB Surface Go models are caught (8 < 10.5 ✓) while skipping
         # mainstream 16 GB laptops (16 > 10.5 ✗).
-        return cpu_logical <= 4 and ram_gb <= 10.5
+        return memory_pressure or (cpu_logical <= 4 and ram_gb <= 10.5)
     except Exception:
         return False
 
@@ -12337,15 +12343,49 @@ def _native_titlebar_target_is_foreground(target_hwnd, overlay_hwnd, user32=None
         return True
 
 
-def _sync_native_titlebar_overlay(force=False):
-    """Keep the small native Skript bar over Edge's client-drawn strip."""
-    global _TITLEBAR_OVERLAY_GEOMETRY
-    if not _titlebar_overlay_is_active():
+def _apply_titlebar_overlay_region(hwnd, width, height, target_hwnd, user32):
+    """Round only the overlay's top corners so Edge's frame remains visible."""
+    if sys.platform != 'win32' or not hwnd:
         return False
     try:
         import ctypes
 
-        user32 = ctypes.windll.user32
+        if user32.IsZoomed(target_hwnd):
+            user32.SetWindowRgn(hwnd, 0, True)
+            return True
+        # A region twice as tall puts the lower rounded corners outside the
+        # actual overlay, leaving its bottom edge square over Edge's title strip.
+        region = ctypes.windll.gdi32.CreateRoundRectRgn(
+            0, 0, max(1, int(width)) + 1, max(2, int(height) * 2), 12, 12,
+        )
+        if not region:
+            return False
+        # SetWindowRgn owns the region after a successful call.
+        if not user32.SetWindowRgn(hwnd, region, True):
+            ctypes.windll.gdi32.DeleteObject(region)
+            return False
+        return True
+    except Exception:
+        return False
+
+
+def _sync_native_titlebar_overlay(
+    force=False, user32=None, clock=None, measure_insets=None, apply_region=None
+):
+    """Keep the small native Skript bar over Edge's client-drawn strip."""
+    global _TITLEBAR_OVERLAY_GEOMETRY, _TITLEBAR_OVERLAY_INSETS
+    global _TITLEBAR_OVERLAY_NEXT_INSET_CHECK, _TITLEBAR_OVERLAY_TARGET_STATE
+    if sys.platform != 'win32':
+        return False
+    try:
+        import ctypes
+
+        user32 = user32 or ctypes.windll.user32
+        if not _titlebar_overlay_is_active(user32):
+            return False
+        clock = clock or time.monotonic
+        measure_insets = measure_insets or _measure_browser_content_insets
+        apply_region = apply_region or _apply_titlebar_overlay_region
 
         class RECT(ctypes.Structure):
             _fields_ = [('left', ctypes.c_long), ('top', ctypes.c_long),
@@ -12367,9 +12407,40 @@ def _sync_native_titlebar_overlay(force=False):
         outer = RECT()
         if not user32.GetWindowRect(_TITLEBAR_OVERLAY_TARGET, ctypes.byref(outer)):
             return False
-        left, top, right, _bottom = _measure_browser_content_insets(
-            _TITLEBAR_OVERLAY_TARGET, user32
+        now = clock()
+        target_width = max(1, int(outer.right - outer.left))
+        target_height = max(1, int(outer.bottom - outer.top))
+        target_dpi = 0
+        try:
+            get_dpi = getattr(user32, 'GetDpiForWindow', None)
+            if get_dpi:
+                target_dpi = int(get_dpi(_TITLEBAR_OVERLAY_TARGET) or 0)
+        except Exception:
+            target_dpi = 0
+        target_state = (
+            target_width,
+            target_height,
+            bool(user32.IsZoomed(_TITLEBAR_OVERLAY_TARGET)),
+            target_dpi,
         )
+        target_state_changed = target_state != _TITLEBAR_OVERLAY_TARGET_STATE
+        # Enumerating Chromium's renderer children is comparatively expensive.
+        # Cache stable insets, but refresh immediately when maximise, resize or
+        # DPI changes can alter Edge's right border. Position-only movement is
+        # intentionally excluded so dragging remains lightweight.
+        should_measure = (
+            force
+            or _TITLEBAR_OVERLAY_INSETS is None
+            or target_state_changed
+            or now >= _TITLEBAR_OVERLAY_NEXT_INSET_CHECK
+        )
+        if should_measure:
+            _TITLEBAR_OVERLAY_INSETS = measure_insets(
+                _TITLEBAR_OVERLAY_TARGET, user32
+            )
+            _TITLEBAR_OVERLAY_NEXT_INSET_CHECK = now + 1.0
+        _TITLEBAR_OVERLAY_TARGET_STATE = target_state
+        left, top, right, _bottom = _TITLEBAR_OVERLAY_INSETS
         # GetWindowRect and the renderer measurement are both virtualised into
         # this process's logical coordinate space. Keep them together; mixing
         # in DWM's physical pixels causes a second, displaced titlebar at 125%
@@ -12377,20 +12448,30 @@ def _sync_native_titlebar_overlay(force=False):
         # window edge while removing Chromium's invisible side resize border.
         side_left = max(0, int(left) - 1)
         side_right = max(0, int(right) - 1)
-        visible_left = int(outer.left) + side_left
-        visible_top = int(outer.top)
-        visible_right = int(outer.right) - side_right
-        strip_height = max(28, min(64, int(top)))
+        frame_gap = 1
+        visible_left = int(outer.left) + side_left + frame_gap
+        visible_top = int(outer.top) + frame_gap
+        visible_right = int(outer.right) - side_right - frame_gap
+        strip_height = max(28, min(64, int(top) - frame_gap))
         width = max(1, int(visible_right - visible_left))
         geometry = (int(visible_left), int(visible_top), width, strip_height)
         was_hidden = _TITLEBAR_OVERLAY_GEOMETRY is None
-        if force or geometry != _TITLEBAR_OVERLAY_GEOMETRY:
+        geometry_changed = geometry != _TITLEBAR_OVERLAY_GEOMETRY
+        if force or was_hidden or geometry_changed:
             _TITLEBAR_OVERLAY_ROOT.geometry(
                 f'{geometry[2]}x{geometry[3]}+{geometry[0]}+{geometry[1]}'
             )
             _TITLEBAR_OVERLAY_ROOT.deiconify()
             _TITLEBAR_OVERLAY_ROOT.update_idletasks()
             _TITLEBAR_OVERLAY_GEOMETRY = geometry
+            apply_region(
+                _TITLEBAR_OVERLAY_HWND, width, strip_height,
+                _TITLEBAR_OVERLAY_TARGET, user32,
+            )
+        else:
+            # Most pump cycles land here: no child-window enumeration, Tk
+            # geometry update or redundant cross-process SetWindowPos call.
+            return True
         position_flags = 0x0010 | 0x0040
         # Raise the overlay once when Skript becomes active. Afterwards retain
         # its owned-window z-order so background apps are never covered by a
@@ -12410,6 +12491,8 @@ def _create_native_titlebar_overlay(browser_hwnd):
     """Cover Edge's internal title strip without reparenting its window."""
     global _TITLEBAR_OVERLAY_ROOT, _TITLEBAR_OVERLAY_HWND
     global _TITLEBAR_OVERLAY_TARGET, _TITLEBAR_OVERLAY_GEOMETRY
+    global _TITLEBAR_OVERLAY_INSETS, _TITLEBAR_OVERLAY_NEXT_INSET_CHECK
+    global _TITLEBAR_OVERLAY_TARGET_STATE
     if sys.platform != 'win32' or threading.current_thread() is not threading.main_thread():
         return False
     if _titlebar_overlay_is_active():
@@ -12606,6 +12689,9 @@ def _create_native_titlebar_overlay(browser_hwnd):
         _TITLEBAR_OVERLAY_HWND = overlay_hwnd
         _TITLEBAR_OVERLAY_TARGET = int(browser_hwnd)
         _TITLEBAR_OVERLAY_GEOMETRY = None
+        _TITLEBAR_OVERLAY_INSETS = None
+        _TITLEBAR_OVERLAY_NEXT_INSET_CHECK = 0.0
+        _TITLEBAR_OVERLAY_TARGET_STATE = None
         root.protocol('WM_DELETE_WINDOW', lambda: _publish_window_event('request-close'))
         _sync_native_titlebar_overlay(force=True)
         return True
@@ -12619,6 +12705,9 @@ def _create_native_titlebar_overlay(browser_hwnd):
         _TITLEBAR_OVERLAY_HWND = None
         _TITLEBAR_OVERLAY_TARGET = None
         _TITLEBAR_OVERLAY_GEOMETRY = None
+        _TITLEBAR_OVERLAY_INSETS = None
+        _TITLEBAR_OVERLAY_NEXT_INSET_CHECK = 0.0
+        _TITLEBAR_OVERLAY_TARGET_STATE = None
         return False
 
 
@@ -12636,6 +12725,8 @@ def _pump_native_titlebar_overlay():
 def _destroy_native_titlebar_overlay():
     global _TITLEBAR_OVERLAY_ROOT, _TITLEBAR_OVERLAY_HWND
     global _TITLEBAR_OVERLAY_TARGET, _TITLEBAR_OVERLAY_GEOMETRY
+    global _TITLEBAR_OVERLAY_INSETS, _TITLEBAR_OVERLAY_NEXT_INSET_CHECK
+    global _TITLEBAR_OVERLAY_TARGET_STATE
     if _TITLEBAR_OVERLAY_ROOT is not None:
         try:
             _TITLEBAR_OVERLAY_ROOT.destroy()
@@ -12645,6 +12736,9 @@ def _destroy_native_titlebar_overlay():
     _TITLEBAR_OVERLAY_HWND = None
     _TITLEBAR_OVERLAY_TARGET = None
     _TITLEBAR_OVERLAY_GEOMETRY = None
+    _TITLEBAR_OVERLAY_INSETS = None
+    _TITLEBAR_OVERLAY_NEXT_INSET_CHECK = 0.0
+    _TITLEBAR_OVERLAY_TARGET_STATE = None
 
 
 def _force_centred_browser_window(browser_process=None, timeout=12.0, touch_mode=None):

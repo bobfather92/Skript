@@ -134,6 +134,19 @@ def assert_renderer_fills_window(frame, renderer, label):
         )
 
 
+def assert_overlay_preserves_frame(frame, overlay, label):
+    gaps = (
+        overlay[0] - frame[0],
+        overlay[1] - frame[1],
+        frame[2] - overlay[2],
+    )
+    if any(gap < 1 or gap > 2 for gap in gaps):
+        raise RuntimeError(
+            f"{label}: the titlebar did not preserve the visible Windows outline "
+            f"(frame={frame}, overlay={overlay}, gaps={gaps})."
+        )
+
+
 def click_at(x, y):
     user32.SetCursorPos(int(x), int(y))
     user32.mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
@@ -225,6 +238,7 @@ def main():
         frame_before = visible_bounds(browser["hwnd"])
         overlay_bounds = overlay["rect"]
         renderer_bounds = wait_for_renderer_bounds(browser["hwnd"])
+        assert_overlay_preserves_frame(frame_before, overlay_bounds, "Normal window")
         if args.screenshot:
             from PIL import ImageGrab
 
@@ -240,7 +254,8 @@ def main():
                 all_screens=True,
             ).save(screenshot_path)
             print(
-                f"Captured frame={frame_before}, overlay={overlay_bounds}, "
+                f"Captured frame={frame_before}, raw={browser['rect']}, "
+                f"overlay={overlay_bounds}, "
                 f"renderer={renderer_bounds} to {screenshot_path}"
             )
         if abs(overlay_bounds[0] - frame_before[0]) > 2:
@@ -267,10 +282,6 @@ def main():
         overlay_max, browser_max = wait_for_windows(process.pid, 5)
         frame_max = visible_bounds(browser_max["hwnd"])
         renderer_max = wait_for_renderer_bounds(browser_max["hwnd"])
-        if abs(overlay_max["rect"][0] - frame_max[0]) > 2:
-            raise RuntimeError("The titlebar left edge did not follow the maximised window.")
-        if abs(overlay_max["rect"][2] - frame_max[2]) > 2:
-            raise RuntimeError("The titlebar right edge did not follow the maximised window.")
         assert_renderer_fills_window(frame_max, renderer_max, "Maximised window")
 
         # Restore through the same button and confirm the editor follows again.
@@ -287,6 +298,7 @@ def main():
         overlay, browser = wait_for_windows(process.pid, 5)
         frame_before = visible_bounds(browser["hwnd"])
         overlay_bounds = overlay["rect"]
+        assert_overlay_preserves_frame(frame_before, overlay_bounds, "Restored window")
         assert_renderer_fills_window(
             frame_before,
             wait_for_renderer_bounds(browser["hwnd"]),
@@ -330,6 +342,9 @@ def main():
         overlay, browser = wait_for_windows(process.pid, 5)
         frame_before = visible_bounds(browser["hwnd"])
         overlay_bounds = overlay["rect"]
+        assert_overlay_preserves_frame(
+            frame_before, overlay_bounds, "Double-click restored window"
+        )
         assert_renderer_fills_window(
             frame_before,
             wait_for_renderer_bounds(browser["hwnd"]),
@@ -366,10 +381,9 @@ def main():
         overlay, browser = wait_for_windows(process.pid, 5)
         frame_before = visible_bounds(browser["hwnd"])
         overlay_bounds = overlay["rect"]
-        if abs(overlay_bounds[0] - frame_before[0]) > 2:
-            raise RuntimeError("The titlebar left edge did not follow the restored drag.")
-        if abs(overlay_bounds[2] - frame_before[2]) > 2:
-            raise RuntimeError("The titlebar right edge did not follow the restored drag.")
+        assert_overlay_preserves_frame(
+            frame_before, overlay_bounds, "Restored maximised drag"
+        )
         assert_renderer_fills_window(
             frame_before,
             wait_for_renderer_bounds(browser["hwnd"]),
@@ -410,10 +424,69 @@ def main():
             )
 
         overlay_after, _browser_after = wait_for_windows(process.pid, 5)
-        if abs(overlay_after["rect"][0] - frame_after[0]) > 2:
-            raise RuntimeError("The titlebar did not follow the moved window.")
-        if abs(overlay_after["rect"][2] - frame_after[2]) > 2:
-            raise RuntimeError("The titlebar width changed after moving the window.")
+        renderer_after = wait_for_renderer_bounds(browser["hwnd"], 2)
+        alignment_bounds = renderer_after or frame_after
+        tolerance = 1 if renderer_after else 3
+        if abs(overlay_after["rect"][0] - alignment_bounds[0]) > tolerance:
+            raise RuntimeError(
+                "The titlebar did not follow the moved window "
+                f"(frame={frame_after}, raw={_browser_after['rect']}, "
+                f"renderer={renderer_after}, overlay={overlay_after['rect']})."
+            )
+        if abs(overlay_after["rect"][2] - alignment_bounds[2]) > tolerance:
+            raise RuntimeError(
+                "The titlebar width changed after moving the window "
+                f"(frame={frame_after}, raw={_browser_after['rect']}, "
+                f"renderer={renderer_after}, overlay={overlay_after['rect']})."
+            )
+
+        # A real outer-frame resize must invalidate cached Chromium insets at
+        # once. This protects the caption buttons from retaining the previous
+        # wider geometry and extending beyond the app's new right edge.
+        raw_after = _browser_after["rect"]
+        old_width = raw_after[2] - raw_after[0]
+        old_height = raw_after[3] - raw_after[1]
+        resized_width = max(900, old_width - 320)
+        if not user32.SetWindowPos(
+            browser["hwnd"], 0, raw_after[0], raw_after[1],
+            resized_width, old_height, 0x0004 | 0x0010,
+        ):
+            raise RuntimeError("Windows rejected the Skript resize test.")
+        deadline = time.time() + 3
+        resize_result = None
+        while time.time() < deadline:
+            overlay_resized, browser_resized = wait_for_windows(process.pid, 1)
+            frame_resized = visible_bounds(browser_resized["hwnd"])
+            gaps = (
+                overlay_resized["rect"][0] - frame_resized[0],
+                overlay_resized["rect"][1] - frame_resized[1],
+                frame_resized[2] - overlay_resized["rect"][2],
+            )
+            width_reduced = (
+                overlay_resized["rect"][2] - overlay_resized["rect"][0]
+                < overlay_after["rect"][2] - overlay_after["rect"][0] - 200
+            )
+            outline_preserved = (
+                0 <= gaps[0] <= 3
+                and 1 <= gaps[1] <= 2
+                and 1 <= gaps[2] <= 2
+            )
+            if width_reduced and outline_preserved:
+                resize_result = (overlay_resized, browser_resized, frame_resized)
+                break
+            time.sleep(0.05)
+        if resize_result is None:
+            raise RuntimeError(
+                "The titlebar controls extended beyond the resized app frame "
+                f"(frame={frame_resized}, overlay={overlay_resized['rect']}, "
+                f"gaps={gaps})."
+            )
+        overlay_after, _browser_after, frame_after = resize_result
+        assert_renderer_fills_window(
+            frame_after,
+            wait_for_renderer_bounds(browser["hwnd"], 2),
+            "Resized window",
+        )
 
         probe = tk.Tk()
         try:

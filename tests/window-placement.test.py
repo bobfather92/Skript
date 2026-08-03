@@ -158,6 +158,132 @@ assert module._native_titlebar_target_is_foreground(
 ) is True
 
 
+class FakeOverlayRoot:
+    def __init__(self):
+        self.geometries = []
+        self.deiconified = 0
+        self.idle_updates = 0
+
+    def geometry(self, value):
+        self.geometries.append(value)
+
+    def deiconify(self):
+        self.deiconified += 1
+
+    def update_idletasks(self):
+        self.idle_updates += 1
+
+    def withdraw(self):
+        pass
+
+
+class FakeOverlayUser32(FakeForegroundUser32):
+    def __init__(self):
+        super().__init__(100)
+        self.positions = []
+        self.overlay_rect = (105, 201, 995, 240)
+        self.target_rect = (100, 200, 1000, 800)
+        self.zoomed = False
+        self.dpi = 96
+
+    def IsWindow(self, _hwnd):
+        return True
+
+    def IsIconic(self, _hwnd):
+        return False
+
+    def IsZoomed(self, _hwnd):
+        return self.zoomed
+
+    def GetDpiForWindow(self, _hwnd):
+        return self.dpi
+
+    def IsWindowVisible(self, _hwnd):
+        return True
+
+    def GetWindowRect(self, hwnd, pointer):
+        rect = self.overlay_rect if hwnd == 200 else self.target_rect
+        pointer._obj.left, pointer._obj.top, pointer._obj.right, pointer._obj.bottom = rect
+        return True
+
+    def SetWindowPos(self, hwnd, insert_after, x, y, width, height, flags):
+        self.positions.append((hwnd, insert_after, x, y, width, height, flags))
+        if hwnd == 200:
+            self.overlay_rect = (x, y, x + width, y + height)
+        return True
+
+
+fake_overlay_root = FakeOverlayRoot()
+fake_overlay_user32 = FakeOverlayUser32()
+measure_calls = []
+clock_values = iter((0.0, 0.1, 1.1, 1.2, 1.3, 1.4))
+module._TITLEBAR_OVERLAY_ROOT = fake_overlay_root
+module._TITLEBAR_OVERLAY_HWND = 200
+module._TITLEBAR_OVERLAY_TARGET = 100
+module._TITLEBAR_OVERLAY_GEOMETRY = None
+module._TITLEBAR_OVERLAY_INSETS = None
+module._TITLEBAR_OVERLAY_NEXT_INSET_CHECK = 0.0
+module._TITLEBAR_OVERLAY_TARGET_STATE = None
+
+
+def fake_measure(_hwnd, _user32):
+    measure_calls.append(True)
+    return (5, 40, 5, 5)
+
+
+for force in (True, False, False):
+    assert module._sync_native_titlebar_overlay(
+        force=force,
+        user32=fake_overlay_user32,
+        clock=lambda: next(clock_values),
+        measure_insets=fake_measure,
+        apply_region=lambda *_args: True,
+    )
+
+# Resizing must invalidate the cached right inset immediately, rather than
+# leaving the caption controls wider than Edge's newly sized frame.
+fake_overlay_user32.target_rect = (100, 200, 900, 800)
+assert module._sync_native_titlebar_overlay(
+    user32=fake_overlay_user32,
+    clock=lambda: next(clock_values),
+    measure_insets=fake_measure,
+    apply_region=lambda *_args: True,
+)
+
+# Position-only movement repositions the overlay without re-enumerating Edge's
+# renderer children. A DPI change does invalidate the measurement.
+fake_overlay_user32.target_rect = (150, 250, 950, 850)
+assert module._sync_native_titlebar_overlay(
+    user32=fake_overlay_user32,
+    clock=lambda: next(clock_values),
+    measure_insets=fake_measure,
+    apply_region=lambda *_args: True,
+)
+fake_overlay_user32.dpi = 120
+assert module._sync_native_titlebar_overlay(
+    user32=fake_overlay_user32,
+    clock=lambda: next(clock_values),
+    measure_insets=fake_measure,
+    apply_region=lambda *_args: True,
+)
+
+assert len(measure_calls) == 4
+assert len(fake_overlay_user32.positions) == 3
+assert fake_overlay_root.geometries == [
+    "890x39+105+201",
+    "790x39+105+201",
+    "790x39+155+251",
+]
+
+module._TITLEBAR_OVERLAY_ROOT = None
+module._TITLEBAR_OVERLAY_HWND = None
+module._TITLEBAR_OVERLAY_TARGET = None
+module._TITLEBAR_OVERLAY_GEOMETRY = None
+module._TITLEBAR_OVERLAY_INSETS = None
+module._TITLEBAR_OVERLAY_NEXT_INSET_CHECK = 0.0
+module._TITLEBAR_OVERLAY_TARGET_STATE = None
+
+
 window_source = (ROOT / "skript.py").read_text(encoding="utf-8")
 placement_source = window_source.split(
     "def _force_centred_browser_window", 1
@@ -186,9 +312,18 @@ overlay_source = window_source.split(
 assert "_native_titlebar_target_is_foreground" in overlay_source
 assert "_visible_native_window_bounds" not in overlay_source
 assert "side_left = max(0, int(left) - 1)" in overlay_source
-assert "strip_height = max(28, min(64, int(top)))" in overlay_source
+assert "frame_gap = 1" in overlay_source
+assert "visible_top = int(outer.top) + frame_gap" in overlay_source
+assert "strip_height = max(28, min(64, int(top) - frame_gap))" in overlay_source
+assert "_TITLEBAR_OVERLAY_NEXT_INSET_CHECK = now + 1.0" in overlay_source
+assert "target_state_changed" in overlay_source
+assert "Position-only movement is" in overlay_source
+assert "no child-window enumeration, Tk" in overlay_source
 assert "if not (was_hidden or force)" in overlay_source
 assert "position_flags |= 0x0004" in overlay_source
+assert "def _apply_titlebar_overlay_region" in window_source
+assert "CreateRoundRectRgn" in window_source
+assert "SetWindowRgn" in window_source
 create_overlay_source = window_source.split(
     "def _create_native_titlebar_overlay", 1
 )[1].split("def _pump_native_titlebar_overlay", 1)[0]
@@ -216,5 +351,6 @@ assert "--start-minimized" in window_source
 assert "--user-data-dir=" in window_source
 assert "'--disable-sync'" in window_source
 assert "_cleanup_isolated_browser_profile()" in launch_source
+assert "stat.dwMemoryLoad >= 85 or available_gb < 1.5" in window_source
 
 print("Centred landscape desktop-window geometry tests passed.")
