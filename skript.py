@@ -12370,7 +12370,8 @@ def _apply_titlebar_overlay_region(hwnd, width, height, target_hwnd, user32):
 
 
 def _sync_native_titlebar_overlay(
-    force=False, user32=None, clock=None, measure_insets=None, apply_region=None
+    force=False, user32=None, clock=None, measure_insets=None, apply_region=None,
+    visible_bounds=None,
 ):
     """Keep the small native Skript bar over Edge's client-drawn strip."""
     global _TITLEBAR_OVERLAY_GEOMETRY, _TITLEBAR_OVERLAY_INSETS
@@ -12386,6 +12387,7 @@ def _sync_native_titlebar_overlay(
         clock = clock or time.monotonic
         measure_insets = measure_insets or _measure_browser_content_insets
         apply_region = apply_region or _apply_titlebar_overlay_region
+        visible_bounds = visible_bounds or _visible_native_window_bounds
 
         class RECT(ctypes.Structure):
             _fields_ = [('left', ctypes.c_long), ('top', ctypes.c_long),
@@ -12482,6 +12484,34 @@ def _sync_native_titlebar_overlay(
             _TITLEBAR_OVERLAY_HWND, 0, geometry[0], geometry[1],
             geometry[2], geometry[3], position_flags,
         )
+        # Tk and Chromium can use different logical-to-physical scaling when
+        # Skript is moved to a monitor with another DPI. Compare their actual
+        # DWM frames after positioning and trim the overlay if Windows rendered
+        # it past Edge's right edge. Keeping the cached requested geometry
+        # prevents this feedback correction from becoming an idle resize loop.
+        target_frame = visible_bounds(
+            _TITLEBAR_OVERLAY_TARGET, user32=user32
+        )
+        overlay_frame = visible_bounds(
+            _TITLEBAR_OVERLAY_HWND, user32=user32
+        )
+        if target_frame and overlay_frame:
+            rendered_width = max(1, int(overlay_frame[2] - overlay_frame[0]))
+            allowed_width = max(
+                1, int(target_frame[2] - frame_gap - overlay_frame[0])
+            )
+            if rendered_width > allowed_width:
+                corrected_width = max(
+                    1, min(width, round(width * allowed_width / rendered_width))
+                )
+                user32.SetWindowPos(
+                    _TITLEBAR_OVERLAY_HWND, 0, geometry[0], geometry[1],
+                    corrected_width, geometry[3], position_flags,
+                )
+                apply_region(
+                    _TITLEBAR_OVERLAY_HWND, corrected_width, strip_height,
+                    _TITLEBAR_OVERLAY_TARGET, user32,
+                )
         return True
     except Exception:
         return False
@@ -12544,7 +12574,11 @@ def _create_native_titlebar_overlay(browser_hwnd):
         minimise = tk.Button(bar, text='—', command=lambda: _window_control('minimize'), **button_options)
         maximise = tk.Button(bar, text='□', command=lambda: _window_control('maximize'), **button_options)
         close_options = dict(button_options)
-        close_options.update({'activebackground': '#c42b1c'})
+        close_options.update({
+            'activebackground': '#c42b1c',
+            'font': ('Segoe UI Symbol', 16),
+            'width': 3,
+        })
         close = tk.Button(
             bar, text='×', command=lambda: _publish_window_event('request-close'),
             **close_options,

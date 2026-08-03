@@ -284,6 +284,50 @@ module._TITLEBAR_OVERLAY_NEXT_INSET_CHECK = 0.0
 module._TITLEBAR_OVERLAY_TARGET_STATE = None
 
 
+# A monitor-scale mismatch can make Tk's physical titlebar wider than the
+# logical width requested through SetWindowPos. The physical-frame feedback
+# must issue one narrower correction so the close button remains inside Edge.
+scaled_overlay_root = FakeOverlayRoot()
+scaled_overlay_user32 = FakeOverlayUser32()
+scaled_regions = []
+module._TITLEBAR_OVERLAY_ROOT = scaled_overlay_root
+module._TITLEBAR_OVERLAY_HWND = 200
+module._TITLEBAR_OVERLAY_TARGET = 100
+module._TITLEBAR_OVERLAY_GEOMETRY = None
+module._TITLEBAR_OVERLAY_INSETS = None
+module._TITLEBAR_OVERLAY_NEXT_INSET_CHECK = 0.0
+module._TITLEBAR_OVERLAY_TARGET_STATE = None
+
+
+def scaled_visible_bounds(hwnd, user32=None):
+    del user32
+    if hwnd == 100:
+        return (100, 200, 1000, 800)
+    return (105, 201, 1028, 240)
+
+
+assert module._sync_native_titlebar_overlay(
+    force=True,
+    user32=scaled_overlay_user32,
+    clock=lambda: 0.0,
+    measure_insets=lambda *_args: (5, 40, 5, 5),
+    apply_region=lambda _hwnd, width, *_args: scaled_regions.append(width),
+    visible_bounds=scaled_visible_bounds,
+)
+assert len(scaled_overlay_user32.positions) == 2
+assert scaled_overlay_user32.positions[0][4] == 890
+assert scaled_overlay_user32.positions[1][4] < 890
+assert scaled_regions[-1] == scaled_overlay_user32.positions[1][4]
+
+module._TITLEBAR_OVERLAY_ROOT = None
+module._TITLEBAR_OVERLAY_HWND = None
+module._TITLEBAR_OVERLAY_TARGET = None
+module._TITLEBAR_OVERLAY_GEOMETRY = None
+module._TITLEBAR_OVERLAY_INSETS = None
+module._TITLEBAR_OVERLAY_NEXT_INSET_CHECK = 0.0
+module._TITLEBAR_OVERLAY_TARGET_STATE = None
+
+
 window_source = (ROOT / "skript.py").read_text(encoding="utf-8")
 placement_source = window_source.split(
     "def _force_centred_browser_window", 1
@@ -310,7 +354,9 @@ overlay_source = window_source.split(
     "def _sync_native_titlebar_overlay", 1
 )[1].split("def _create_native_titlebar_overlay", 1)[0]
 assert "_native_titlebar_target_is_foreground" in overlay_source
-assert "_visible_native_window_bounds" not in overlay_source
+assert "visible_bounds = visible_bounds or _visible_native_window_bounds" in overlay_source
+assert "logical-to-physical scaling" in overlay_source
+assert "corrected_width" in overlay_source
 assert "side_left = max(0, int(left) - 1)" in overlay_source
 assert "frame_gap = 1" in overlay_source
 assert "visible_top = int(outer.top) + frame_gap" in overlay_source
@@ -332,6 +378,8 @@ assert "widget.bind('<ButtonRelease-1>', end_drag)" in create_overlay_source
 assert "if drag_state['was_zoomed'] and not drag_state['restored']" in create_overlay_source
 assert "user32.SendMessageW(browser_hwnd, 0x0112, 0xF120, 0)" in create_overlay_source
 assert "user32.SetWindowPos(\n                    browser_hwnd" in create_overlay_source
+assert "'font': ('Segoe UI Symbol', 16)" in create_overlay_source
+assert "'width': 3" in create_overlay_source
 html_injection_source = window_source.split("def _get_html", 1)[1].split("class SFHandler", 1)[0]
 assert "_SF_NATIVE_SHELL" not in html_injection_source
 assert "_SF_NATIVE_TITLEBAR_OVERLAY" in html_injection_source
