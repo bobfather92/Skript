@@ -12,18 +12,18 @@ This is the first local development package on the road to Skript 1.1. It is int
 - Export WriterDuet scripts with BBC-style A4 margins and 12-point spacing, proper continuation pages, top-right page headers, no browser-generated footers, and clean Act page breaks.
 - Create and export Film, TV, BBC Radio Scene Style and BBC Stage scripts using the corresponding BBC layout conventions.
 - Choose whether Notes elements are included in PDF, Word, Fountain, Final Draft and printed script output; Notes are excluded by default.
-- Keep Edge's Downloads icon and browser controls hidden behind Skript's own Windows title bar.
-- Replace Edge's unsaved-work box with a Skript exit window offering **Continue writing**, **Exit without saving**, and **Save and exit**.
+- Run the editor in a Skript-owned native WebView2 window so Windows Task Manager identifies the main application as Skript, with renderer helpers grouped underneath it.
+- Use Skript's unsaved-work window offering **Continue writing**, **Exit without saving**, and **Save and exit**.
 - Block installation, update, repair and removal while any Skript version is open, requiring the user to save their work and close the app first.
 - Hold and drag the entire Skript title bar using Windows' native window movement without blocking or destabilising the interface.
 - Keep the title bar aligned to the visible window frame without extending into Windows' invisible resize border.
-- Remove the duplicate/misaligned title bar on displays using Windows scaling, and keep Skript behind other applications when it is not active.
-- Start each session in an isolated browser profile so Edge cannot restore stale duplicate Skript windows.
-- Keep the Acts ribbon label aligned with File and Elements, and prevent double-clicking ribbon text from opening Edge's selection menu.
+- Use one native title bar on displays using Windows scaling, and keep Skript behind other applications when it is not active.
+- Start each session with a private embedded WebView2 profile so stale desktop windows cannot be restored.
+- Keep the Acts ribbon label aligned with File and Elements, and prevent double-clicking ribbon text from opening a browser selection menu.
 - Keep the editor surface fitted to the whole window after maximise, restore, title-bar double-click, or dragging directly from a maximised window.
 - Preserve the rounded Windows outline around the active title bar and avoid repeatedly re-measuring or repositioning an unchanged window.
 - Keep the minimise, maximise, and close controls inside the app frame immediately after resizing, maximising, restoring, or changing display scaling.
-- Use Edge's genuine Windows titlebar exclusively, removing the separate foreground titlebar overlay and the duplicate in-page titlebar.
+- Use the Skript host's genuine Windows titlebar exclusively, removing the separate foreground overlay and duplicate in-page titlebar.
 - Enter the reduced-memory performance profile when Windows reports severe memory pressure, even on a computer with otherwise capable hardware.
 - Clear the Recent Projects history from either the welcome screen or Recent Projects window without deleting saved project files.
 - Select several storyboard cards or frame-editor objects using Shift-click, Ctrl-click, Select All, or a drag-selection box.
@@ -65,7 +65,7 @@ This is the first local development package on the road to Skript 1.1. It is int
 ## System requirements
 
 - Windows 10 or Windows 11.
-- Microsoft Edge or Google Chrome.
+- Microsoft Edge WebView2 Runtime.
 - A per-user installation; administrator access is normally not required.
 
 Python and the supported PDF, OCR and Word engines are included in the Windows development package.
@@ -74,8 +74,8 @@ Python and the supported PDF, OCR and Word engines are included in the Windows d
 
 - 12 JavaScript regression suites passed.
 - 9 Python regression suites passed.
-- Complete browser workflow: 117 passed, 11 intentionally skipped, 0 failed across desktop and compact-touch configurations, including the guided storyboard setup, arrangement, history, linking, rich frame information, board settings and media editing coverage.
-- Packaged Windows title-bar smoke test passed for hold-drag movement and visible-frame alignment.
+- Complete browser workflow: 121 passed, 11 intentionally skipped, 0 failed across desktop and compact-touch configurations, including the guided storyboard setup, arrangement, history, linking, rich frame information, board settings and media editing coverage.
+- Packaged Windows desktop-shell smoke test confirmed that `Skript.exe` owns the top-level window, with native caption controls, correct renderer sizing and normal application switching.
 - Python compilation and embedded HTML syntax checks passed.
 
 ## Development-build warning

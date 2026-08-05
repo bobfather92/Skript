@@ -198,6 +198,7 @@ for required in (
     "Windows is holding the folder — switching replacement method",
     "_replace_application_contents", "_cleanup_old_application_paths",
     "_detach_installer_working_directory", "Skript-Setup.log",
+    "find_webview2_runtime_version", "Microsoft Edge WebView2 Runtime",
 ):
     assert required in source
 assert "Get-CimInstance Win32_Process" not in source
@@ -211,6 +212,7 @@ assert "_build_tk.Tcl()" in installer_spec
 app_spec = (ROOT / "Skript.spec").read_text(encoding="utf-8")
 assert "project_root / 'assets' / 'skript.ico'" in app_spec
 assert "payload / APP_RUNTIME_DIR / 'assets' / 'skript.ico'" in source
+assert "Microsoft.Web.WebView2.Core.dll" in source
 assert "contents_directory='_runtime_1_1_0_0'" in app_spec
 
 print("Installer repair and project-preserving replacement tests passed.")

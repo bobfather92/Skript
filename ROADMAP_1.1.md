@@ -1,5 +1,12 @@
 # Skript 1.1 Roadmap
 
+## High priority: native desktop shell
+
+- Replace the external Edge app-mode window with a Skript-owned WebView2 window.
+- Show Skript as the main application in Task Manager, with WebView2 helpers grouped underneath it.
+- Preserve the native Windows title bar, window controls, drag/snap behaviour and custom save-before-exit flow.
+- Package and validate the WebView2 host components and runtime prerequisite.
+
 Skript 1.1 is planned as the first feature release after the stable 1.0 launch. The internal release target is `1.1.0.0`.
 
 Development takes place on the `feature/1.1` branch. The stable 1.0 release remains on `main` until the 1.1 acceptance checks pass.

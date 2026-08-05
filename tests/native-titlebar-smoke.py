@@ -1,8 +1,8 @@
-"""Windows-only smoke test for Skript's native Windows titlebar.
+"""Windows-only smoke test for Skript's native WebView2 desktop shell.
 
-The test launches a packaged build and proves that Skript does not create its
-former foreground titlebar overlay. It also exercises the genuine Windows
-caption through maximise, restore, resize, and foreground-window changes.
+The test proves the top-level window belongs to Skript.exe rather than an Edge
+app-mode process. It also exercises the genuine Windows caption through
+maximise, restore, resize, and foreground-window changes.
 """
 
 import argparse
@@ -151,12 +151,10 @@ def wait_for_browser(process_id, timeout):
             item
             for item in current
             if item["visible"]
-            and item["class"].startswith("Chrome_WidgetWin")
             and item["title"].startswith("Skript")
+            and item["pid"] == process_id
         ]
-        browser = next(
-            (item for item in candidates if item["pid"] == process_id), None
-        ) or next(iter(candidates), None)
+        browser = next(iter(candidates), None)
         if browser:
             return browser
         time.sleep(0.1)
@@ -217,8 +215,7 @@ def main():
         raise SystemExit(f"Skript executable not found: {app}")
     if any(
         item["visible"]
-        and item["class"].startswith("Chrome_WidgetWin")
-        and item["title"].startswith("Skript")
+        and item["title"].startswith("Skript — Professional Screenwriting")
         for item in windows()
     ):
         raise SystemExit("Close the existing Skript window before running this test.")
@@ -239,8 +236,8 @@ def main():
             item
             for item in windows()
             if item["visible"]
-            and item["class"].startswith("Chrome_WidgetWin")
             and item["title"].startswith("Skript")
+            and item["pid"] == process.pid
         ]
         if len(related_windows) != 1:
             raise RuntimeError(
@@ -248,6 +245,14 @@ def main():
             )
 
         hwnd = browser["hwnd"]
+        if browser["pid"] != process.pid:
+            raise RuntimeError(
+                "The top-level Skript window is owned by another executable."
+            )
+        if browser["class"].startswith("Chrome_WidgetWin"):
+            raise RuntimeError(
+                "Skript is still using an external Edge app-mode window."
+            )
         assert_native_caption(hwnd)
         frame = visible_bounds(hwnd)
         renderer = wait_for_renderer_bounds(hwnd)
@@ -343,9 +348,10 @@ def main():
             probe.destroy()
 
         print(
-            "Native Windows titlebar smoke test passed: no foreground overlay "
-            "was created, Windows caption controls remained active, maximise/restore "
-            "and resize kept the editor fitted, and another app could take focus."
+            "Native WebView2 desktop-shell smoke test passed: Skript.exe owned "
+            "the top-level window, no foreground overlay was created, Windows "
+            "caption controls remained active, maximise/restore and resize kept "
+            "the editor fitted, and another app could take focus."
         )
     finally:
         user32.SetCursorPos(original_cursor.x, original_cursor.y)

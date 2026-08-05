@@ -73,6 +73,7 @@ jobs:
           python -m pip install --upgrade pip
           $env:PYINSTALLER_COMPILE_BOOTLOADER = '1'
           python -m pip install --no-cache-dir --no-binary PyInstaller PyInstaller==6.21.0
+          python -m pip install --no-cache-dir -r requirements-desktop.txt
           corepack enable
           pnpm install --frozen-lockfile
 
@@ -100,7 +101,7 @@ jobs:
 
       - name: Build Skript without executable compression
         shell: pwsh
-        run: pyinstaller --noconfirm --clean --noupx --distpath build_artifacts/app --workpath build_artifacts/work-app Skript.spec
+        run: pyinstaller --noconfirm --clean --distpath build_artifacts/app --workpath build_artifacts/work-app Skript.spec
 
       - name: Sign in to Azure for Artifact Signing
         if: env.SIGN_RELEASE == 'true'
@@ -132,7 +133,7 @@ jobs:
 
       - name: Build Windows setup around signed payload
         shell: pwsh
-        run: pyinstaller --noconfirm --clean --noupx --distpath build_artifacts/installer --workpath build_artifacts/work-installer SkriptInstaller.spec
+        run: pyinstaller --noconfirm --clean --distpath build_artifacts/installer --workpath build_artifacts/work-installer SkriptInstaller.spec
 
       - name: Sign Windows setup
         if: env.SIGN_RELEASE == 'true'

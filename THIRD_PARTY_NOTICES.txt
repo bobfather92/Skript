@@ -38,6 +38,21 @@ Copyright PyInstaller Development Team
 GNU General Public License with the PyInstaller bootloader exception
 https://pyinstaller.org/en/stable/license.html
 
+pywebview 6.2.1
+Copyright (c) Roman Sirokov and contributors
+BSD 3-Clause License
+https://github.com/r0x0r/pywebview/blob/master/LICENSE.md
+
+pythonnet and clr-loader
+Copyright the Python.NET and clr-loader contributors
+MIT License
+https://github.com/pythonnet/pythonnet/blob/master/LICENSE
+
+Microsoft Edge WebView2 SDK components
+Copyright Microsoft Corporation
+Microsoft Software License Terms
+https://www.nuget.org/packages/Microsoft.Web.WebView2/License
+
 Tcl/Tk
 Copyright the Regents of the University of California, Sun Microsystems,
 Scriptics Corporation, ActiveState Corporation and other parties

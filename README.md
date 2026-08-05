@@ -4,7 +4,7 @@ Skript is a Windows desktop application for professional screenwriting, story de
 
 ## Install
 
-Download the signed `Skript-Setup-1.0.0.4.exe` installer from the repository's Releases page. Skript supports Windows 10 and Windows 11 and uses Microsoft Edge or Google Chrome for its isolated desktop window.
+Download the signed `Skript-Setup-1.0.0.4.exe` installer from the repository's Releases page. Skript supports Windows 10 and Windows 11 and uses Microsoft Edge WebView2 inside its own native desktop window.
 
 The installer is per-user, normally requires no administrator access and includes Python plus the PDF, OCR and Word import/export engines. Verify the publisher shown by Windows before running a downloaded installer.
 
@@ -16,7 +16,7 @@ Scripts, preferences, recovery copies and backups remain on the user's computer 
 
 1. Install Python 3.11 or newer.
 2. Run `python skript.py`.
-3. Skript opens in an isolated desktop browser window and keeps project data locally.
+3. Skript opens in its native WebView2 desktop window and keeps project data locally.
 
 PDF import uses the bundled PDF.js and Tesseract.js files in `vendor`; text extraction and English OCR for scanned pages run locally without uploading scripts or requiring a network connection.
 Modern Word `.docx` imports are also processed locally. Legacy `.doc` imports use Microsoft Word or LibreOffice when either is installed.
@@ -42,6 +42,7 @@ Version 1.1 is being developed on the `feature/1.1` branch. The first work cover
 Build the Windows application from the repository root with PyInstaller:
 
 ```powershell
+python -m pip install -r requirements-desktop.txt
 python tools/embed_html.py --check
 pyinstaller --noconfirm --clean Skript.spec
 ```

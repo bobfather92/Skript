@@ -328,27 +328,59 @@ module._TITLEBAR_OVERLAY_NEXT_INSET_CHECK = 0.0
 module._TITLEBAR_OVERLAY_TARGET_STATE = None
 
 
+class FakeDesktopWindow:
+    native = None
+
+    def __init__(self):
+        self.actions = []
+
+    def minimize(self):
+        self.actions.append('minimize')
+
+    def maximize(self):
+        self.actions.append('maximize')
+
+    def restore(self):
+        self.actions.append('restore')
+
+    def destroy(self):
+        self.actions.append('destroy')
+
+
+fake_desktop = FakeDesktopWindow()
+module._DESKTOP_WINDOW = fake_desktop
+module._DESKTOP_CLOSE_APPROVED = False
+assert module._window_control('minimize') is True
+assert module._window_control('maximize') is True
+assert module._window_control('close') is True
+assert fake_desktop.actions == ['minimize', 'maximize', 'destroy']
+assert module._DESKTOP_CLOSE_APPROVED is True
+module._DESKTOP_WINDOW = None
+module._DESKTOP_CLOSE_APPROVED = False
+
+
 window_source = (ROOT / "skript.py").read_text(encoding="utf-8")
-placement_source = window_source.split(
-    "def _force_centred_browser_window", 1
-)[1].split("def _find_free_port", 1)[0]
-assert placement_source.count("_set_windows_window_icon(hwnd)") == 1
-assert "_set_windows_app_identity(hwnd)" in placement_source
-assert "SetWindowPos(hwnd, 0, x, y, width, height" in placement_source
-assert "_enable_native_app_shell(hwnd)" not in placement_source
-assert "target=_maintain_native_app_shell" not in placement_source
-assert "_create_native_titlebar_overlay(hwnd)" not in placement_source
-assert "Keep Edge's genuine Windows titlebar" in placement_source
-assert "process_matches or title_matches" in placement_source
-assert "GetWindowThreadProcessId(hwnd" in placement_source
-assert "_create_native_browser_host(hwnd" not in placement_source
-assert "_resize_native_host(" not in placement_source
+embedded_source = window_source.split(
+    "def _run_embedded_webview", 1
+)[1].split("def _enable_native_app_shell", 1)[0]
+assert "import webview" in embedded_source
+assert "webview.create_window(" in embedded_source
+assert "webview.start(" in embedded_source
+assert "gui='edgechromium'" in embedded_source
+assert "private_mode=True" in embedded_source
+assert "window.events.closing += closing" in embedded_source
+assert "_publish_window_event('request-close')" in embedded_source
+assert "_set_windows_window_icon(hwnd)" in embedded_source
+assert "_set_windows_app_identity(hwnd)" in embedded_source
+assert "--app=" not in embedded_source
 control_source = window_source.split("def _window_control", 1)[1].split("def launch", 1)[0]
-assert "_titlebar_overlay_is_active" in control_source
-assert "_native_host_is_active" not in control_source
-assert "_start_native_window_drag(hwnd, u32)" in control_source
-assert "u32.SendMessageW(hwnd, WM_SYSCOMMAND, command, 0)" in control_source
-assert "ShowWindow(hwnd, SW_RESTORE if" not in control_source
+assert "window = _DESKTOP_WINDOW" in control_source
+assert "window.minimize()" in control_source
+assert "window.maximize()" in control_source
+assert "window.restore()" in control_source
+assert "window.destroy()" in control_source
+assert "_DESKTOP_CLOSE_APPROVED = True" in control_source
+assert "_EDGE_PROC" not in control_source
 assert "threading.Thread" in window_source
 assert "GetAsyncKeyState(0x01)" in window_source
 overlay_source = window_source.split(
@@ -388,19 +420,24 @@ assert "window._SF_NATIVE_TITLEBAR_OVERLAY=false" in html_injection_source
 assert 'classList.add("sf-native-titlebar")' in html_injection_source
 assert "'/api/window-events'" in window_source
 
-# Chromium can hand the app window to an already-running Edge process. The
-# launcher subprocess exiting must not stop Skript's local desktop service.
+# Skript owns the native top-level process. WebView2 is only its renderer.
 launch_source = (ROOT / "skript.py").read_text(encoding="utf-8").split("def launch():", 1)[1]
 assert "_enable_windows_dpi_awareness" not in window_source
-assert "cwd=tempfile.gettempdir()" in window_source
 assert "_EDGE_PROC.poll()" not in launch_source
-assert "_APP_SHUTDOWN_EVENT.wait()" in launch_source
+assert "_set_windows_process_identity()" in launch_source
+assert "_run_embedded_webview(url, low_perf)" in launch_source
+assert "_APP_SHUTDOWN_EVENT.wait(1.5)" in launch_source
+assert "_launch_edge(" not in launch_source
+assert "_launch_chrome(" not in launch_source
+assert "webbrowser.open(" not in launch_source
 assert "_pump_native_titlebar_overlay()" not in launch_source
 assert "_destroy_native_titlebar_overlay()" not in launch_source
-assert "--start-minimized" in window_source
-assert "--user-data-dir=" in window_source
-assert "'--disable-sync'" in window_source
-assert "_cleanup_isolated_browser_profile()" in launch_source
+assert "_cleanup_isolated_browser_profile()" not in launch_source
 assert "stat.dwMemoryLoad >= 85 or available_gb < 1.5" in window_source
+
+spec_source = (ROOT / "Skript.spec").read_text(encoding="utf-8")
+assert "'webview'" in spec_source
+assert "'webview.platforms.winforms'" in spec_source
+assert "'webview.platforms.edgechromium'" in spec_source
 
 print("Centred landscape desktop-window geometry tests passed.")

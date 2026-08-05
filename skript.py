@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 """
 Skript — Professional Screenwriting
-Zero-dependency desktop app.  Works with Python 3.8 through 3.14+.
-No pip installs required at runtime.
+Windows desktop app. Works with Python 3.10 through 3.14+.
 
 How it works:
   - The full Skript HTML/CSS/JS is compressed and embedded below.
   - A tiny stdlib HTTP server handles file dialogs and PDF decompression.
-  - Microsoft Edge (built into every Windows 10/11 PC) opens in --app mode:
-    no address bar, no tabs, looks and feels like a native application.
-  - On macOS/Linux it opens in the default browser as fallback.
+  - A Skript-owned native window embeds the Microsoft Edge WebView2 control.
+  - WebView2 renderer helpers run beneath Skript instead of masquerading as
+    the main application process.
 
 Run:   python skript.py
 Build: python skript.py --build    (creates a standalone EXE via PyInstaller)
@@ -143,7 +142,9 @@ _COLLAB_LOCK     = threading.RLock()
 _COLLAB_EVENTS   = {}   # session_id -> {seq, events}; never persisted or exposed directly
 _COLLAB_EVENT_CONDITION = threading.Condition(_COLLAB_LOCK)
 _MAIN_PORT_VAL   = None   # set in launch() so collab routes know it
-_EDGE_PROC       = None   # Edge/Chrome subprocess — used for window control
+_EDGE_PROC       = None   # Legacy external-browser compatibility only
+_DESKTOP_WINDOW  = None   # Skript-owned pywebview window
+_DESKTOP_CLOSE_APPROVED = False
 _WINDOW_ICON_HANDLES = []  # Keep Win32 icon handles alive while Edge uses them
 _NATIVE_HOST_ROOT = None   # Tk-owned outer window; Edge is clipped inside it
 _NATIVE_HOST_HWND = None
@@ -9973,9 +9974,8 @@ class SFHandler(BaseHTTPRequestHandler):
                 if mode not in ('desktop', 'touch'):
                     raise ValueError('Unknown window layout mode')
                 threading.Thread(
-                    target=_force_centred_browser_window,
-                    args=(_EDGE_PROC,),
-                    kwargs={'timeout': 3.0, 'touch_mode': mode == 'touch'},
+                    target=_resize_embedded_window,
+                    kwargs={'touch_mode': mode == 'touch'},
                     daemon=True,
                 ).start()
                 self._json({'ok': True, 'mode': mode})
@@ -12256,6 +12256,151 @@ def _set_windows_app_identity(hwnd, executable_path=None):
         return False
 
 
+def _set_windows_process_identity():
+    """Register the Skript host process before any desktop UI is created."""
+    if sys.platform != 'win32':
+        return False
+    try:
+        import ctypes
+
+        result = ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
+            'JakeMcNeil.Skript'
+        )
+        return int(result) >= 0
+    except Exception:
+        return False
+
+
+def _embedded_window_geometry(touch_mode=False):
+    """Return DPI-aware logical coordinates for the native WebView2 host."""
+    if sys.platform != 'win32':
+        return 80, 50, 1280, 720
+    try:
+        import ctypes
+
+        class RECT(ctypes.Structure):
+            _fields_ = [('left', ctypes.c_long), ('top', ctypes.c_long),
+                        ('right', ctypes.c_long), ('bottom', ctypes.c_long)]
+
+        user32 = ctypes.windll.user32
+        work = RECT()
+        if not user32.SystemParametersInfoW(0x0030, 0, ctypes.byref(work), 0):
+            work.left = work.top = 0
+            work.right = user32.GetSystemMetrics(0)
+            work.bottom = user32.GetSystemMetrics(1)
+        dpi = 96
+        get_dpi = getattr(user32, 'GetDpiForSystem', None)
+        if get_dpi:
+            dpi = max(96, int(get_dpi() or 96))
+        scale = dpi / 96.0
+        logical = tuple(round(value / scale) for value in (
+            work.left, work.top, work.right, work.bottom
+        ))
+        return _adaptive_desktop_geometry(
+            *logical, touch_mode=bool(touch_mode)
+        )
+    except Exception:
+        return 80, 50, 1280, 720
+
+
+def _embedded_window_hwnd(window=None):
+    """Return the WinForms handle for Skript's native desktop window."""
+    window = window or _DESKTOP_WINDOW
+    try:
+        return int(window.native.Handle.ToInt32()) if window and window.native else None
+    except Exception:
+        return None
+
+
+def _resize_embedded_window(touch_mode=False):
+    """Apply Skript's responsive desktop/touch size to the native host."""
+    window = _DESKTOP_WINDOW
+    if window is None:
+        return False
+    try:
+        x, y, width, height = _embedded_window_geometry(touch_mode)
+        window.restore()
+        window.resize(width, height)
+        window.move(x, y)
+        return True
+    except Exception:
+        return False
+
+
+def _run_embedded_webview(url: str, low_perf: bool = False):
+    """Run Skript inside a Skript-owned native WebView2 window."""
+    global _DESKTOP_WINDOW, _DESKTOP_CLOSE_APPROVED
+    try:
+        import webview
+    except Exception as exc:
+        raise RuntimeError(
+            'The Skript desktop components are incomplete. Reinstall Skript '
+            'to restore the embedded WebView2 window.'
+        ) from exc
+
+    if sys.platform != 'win32':
+        raise RuntimeError('The embedded Skript desktop shell requires Windows.')
+
+    _DESKTOP_CLOSE_APPROVED = False
+    x, y, width, height = _embedded_window_geometry(
+        _windows_touch_capable()
+    )
+    if low_perf:
+        existing = os.environ.get('WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS', '').strip()
+        performance_flags = (
+            '--renderer-process-limit=2 --js-flags=--max-old-space-size=256 '
+            '--disk-cache-size=52428800 --media-cache-size=1 '
+            '--enable-low-end-device-mode --disable-smooth-scrolling'
+        )
+        os.environ['WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS'] = (
+            f'{existing} {performance_flags}'.strip()
+        )
+
+    window = webview.create_window(
+        'Skript — Professional Screenwriting',
+        url=url,
+        width=width,
+        height=height,
+        x=x,
+        y=y,
+        min_size=(900, 620),
+        resizable=True,
+        confirm_close=False,
+        background_color='#101116',
+        text_select=True,
+        zoomable=False,
+    )
+    if window is None:
+        raise RuntimeError('Skript could not create its native desktop window.')
+    _DESKTOP_WINDOW = window
+
+    def before_show(native_window):
+        hwnd = _embedded_window_hwnd(native_window)
+        if hwnd:
+            _set_windows_window_icon(hwnd)
+            _set_windows_app_identity(hwnd)
+
+    def closing():
+        if _DESKTOP_CLOSE_APPROVED:
+            return True
+        _publish_window_event('request-close')
+        return False
+
+    window.events.before_show += before_show
+    window.events.closing += closing
+
+    icon_path = _resource_path('assets', 'skript.ico')
+    try:
+        webview.start(
+            gui='edgechromium',
+            debug=False,
+            private_mode=True,
+            icon=str(icon_path),
+        )
+    finally:
+        _DESKTOP_WINDOW = None
+
+
 def _enable_native_app_shell(hwnd, user32=None):
     """Remove Edge's caption so Skript's own title bar owns close behaviour."""
     if user32 is None and sys.platform != 'win32':
@@ -13456,87 +13601,44 @@ def _start_native_window_drag(hwnd, user32=None, thread_factory=None):
 
 
 def _window_control(action: str):
-    """Send minimize / maximize / close to the Edge app window via Win32 API."""
-    if sys.platform != 'win32':
-        return
-    import ctypes, ctypes.wintypes
-
-    WM_CLOSE     = 0x0010
-    SC_MINIMIZE  = 0xF020
-    SC_MAXIMIZE  = 0xF030
-    SC_RESTORE   = 0xF120
-    WM_SYSCOMMAND = 0x0112
-
-    u32 = ctypes.windll.user32
-    pid = _EDGE_PROC.pid if _EDGE_PROC else None
-
-    # Skript's titlebar keeps an exact handle to the Edge app window.
-    if _titlebar_overlay_is_active():
-        hwnd = _TITLEBAR_OVERLAY_TARGET
-        found_hwnd = [hwnd]
-    else:
-        found_hwnd = []
-
-    # Enumerate top-level windows to find our app window by PID
-    EnumWindowsProc = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.wintypes.HWND, ctypes.wintypes.LPARAM)
-
-    def _enum_cb(hwnd, lParam):
-        if not ctypes.windll.user32.IsWindowVisible(hwnd):
+    """Control Skript's native desktop window."""
+    global _DESKTOP_CLOSE_APPROVED
+    window = _DESKTOP_WINDOW
+    if window is None:
+        return False
+    try:
+        if action == 'minimize':
+            window.minimize()
+        elif action == 'maximize':
+            hwnd = _embedded_window_hwnd(window)
+            if hwnd and sys.platform == 'win32':
+                import ctypes
+                if ctypes.windll.user32.IsZoomed(hwnd):
+                    window.restore()
+                else:
+                    window.maximize()
+            else:
+                window.maximize()
+        elif action == 'close':
+            _DESKTOP_CLOSE_APPROVED = True
+            window.destroy()
+        elif action == 'drag':
+            # The native Windows title bar owns drag, snap and system-menu
+            # behaviour. The hidden legacy HTML title bar never calls this.
             return True
-        # Get PID for this window
-        w_pid = ctypes.wintypes.DWORD(0)
-        ctypes.windll.user32.GetWindowThreadProcessId(hwnd, ctypes.byref(w_pid))
-        # Match by PID (direct process) or by window title as fallback
-        if pid and w_pid.value == pid:
-            found_hwnd.append(hwnd)
-            return False  # stop enumeration
-        # Fallback: match by title
-        buf = ctypes.create_unicode_buffer(256)
-        ctypes.windll.user32.GetWindowTextW(hwnd, buf, 256)
-        if ('Skript' in buf.value or ('Script' + 'Forge') in buf.value) and buf.value != '':
-            found_hwnd.append(hwnd)
+        else:
             return False
         return True
-
-    if not found_hwnd:
-        ctypes.windll.user32.EnumWindows(EnumWindowsProc(_enum_cb), 0)
-
-    if not found_hwnd:
-        # Last resort: enumerate all child/related windows by process
-        all_hwnds = []
-        def _enum_all(hwnd, lParam):
-            w_pid = ctypes.wintypes.DWORD(0)
-            ctypes.windll.user32.GetWindowThreadProcessId(hwnd, ctypes.byref(w_pid))
-            if pid and w_pid.value == pid:
-                all_hwnds.append(hwnd)
-            return True
-        ctypes.windll.user32.EnumWindows(EnumWindowsProc(_enum_all), 0)
-        if all_hwnds:
-            found_hwnd = [all_hwnds[0]]
-
-    if not found_hwnd:
-        return
-
-    hwnd = found_hwnd[0]
-    if action == 'minimize':
-        u32.SendMessageW(hwnd, WM_SYSCOMMAND, SC_MINIMIZE, 0)
-    elif action == 'maximize':
-        # Let Chromium process the normal Windows command. ShowWindow can
-        # resize only Edge's outer frame while leaving the editor renderer at
-        # its previous dimensions.
-        command = SC_RESTORE if u32.IsZoomed(hwnd) else SC_MAXIMIZE
-        u32.SendMessageW(hwnd, WM_SYSCOMMAND, command, 0)
-        if _titlebar_overlay_is_active():
-            _sync_native_titlebar_overlay(force=True)
-    elif action == 'close':
-        u32.PostMessageW(hwnd, WM_CLOSE, 0, 0)
-    elif action == 'drag':
-        _start_native_window_drag(hwnd, u32)
+    except Exception:
+        if action == 'close':
+            _DESKTOP_CLOSE_APPROVED = False
+        return False
 
 
 def launch():
     # Hide console window immediately so no terminal flashes on startup
     diagnostic_mode = os.environ.get('SKRIPT_DIAGNOSTIC') == '1'
+    _set_windows_process_identity()
     if not diagnostic_mode:
         _hide_console()
 
@@ -13622,50 +13724,14 @@ def launch():
         server.server_close()
         _show_startup_error(
             'The local Skript service did not respond within 60 seconds.\n\n'
-            'Restart Skript. If this continues, allow Skript and Microsoft Edge '
-            'through your firewall or security software.'
+            'Restart Skript. If this continues, allow Skript to use its local '
+            'service through your firewall or security software.'
         )
         return
 
     url = f'http://127.0.0.1:{port}/'
 
-    # ── 4. Launch Edge / Chrome in --app mode ────────────────────────────
-    global _EDGE_PROC
-    _EDGE_PROC = _launch_edge(url, low_perf)
-    launched   = _EDGE_PROC
-    if not launched:
-        _EDGE_PROC = _launch_chrome(url, low_perf)
-        launched   = _EDGE_PROC
-    if not launched:
-        webbrowser.open(url)
-
-    # Chromium may ignore --window-position/--window-size when it restores a
-    # prior app-window placement. Enforce the requested landscape rectangle
-    # through Win32 after the real window has been created.
-    if launched:
-        _force_centred_browser_window(launched)
-
-    # On slow devices keep the splash visible for a further ~2 s so there
-    # is no naked gap between the Python splash closing and Edge's window
-    # appearing with the in-browser boot screen.
-    if low_perf and launched:
-        try:
-            import tkinter as _tk2
-            _gap = _tk2.Tk()
-            _gap.overrideredirect(True)
-            _gap.attributes('-topmost', True)
-            _gap.configure(bg='#0d0d18')
-            _sw = _gap.winfo_screenwidth()
-            _sh = _gap.winfo_screenheight()
-            _gap.geometry(f'1x1+{_sw//2}+{_sh//2}')  # 1×1 invisible keeper
-            for _ in range(18):   # ~2.2 s
-                _gap.update()
-                time.sleep(0.12)
-            _gap.destroy()
-        except Exception:
-            time.sleep(2.0)   # plain sleep fallback
-
-    # ── 5. Silence stdout/stderr then detach console ─────────────────────
+    # ── 4. Silence stdout/stderr then detach console ─────────────────────
     if not diagnostic_mode:
         try:
             import os as _os
@@ -13676,19 +13742,27 @@ def launch():
             pass
         _detach_console()
 
-    # ── 6. Write session.lock — absence at next launch = clean exit ────────
+    # ── 5. Track clean/unsaved shutdown while the native host is open ─────
     userdata_dir, _ = _get_dirs()
     lock_path = userdata_dir / 'session.lock'
 
-    # ── 7. Keep Python alive so the server stays up ──────────────────────
+    # ── 6. Run the Skript-owned WebView2 desktop window ──────────────────
     clean_exit = False
     try:
-        # With no foreground overlay to pump, sleep until the browser or page
-        # requests shutdown instead of waking the launcher twenty times a second.
-        _APP_SHUTDOWN_EVENT.wait()
+        _run_embedded_webview(url, low_perf)
+        # Allow the pagehide keepalive request to finish before stopping the
+        # local service. A closed host without /api/end-session is treated as
+        # an interrupted exit so recovery data is retained.
+        _APP_SHUTDOWN_EVENT.wait(1.5)
         clean_exit = _APP_SHUTDOWN_EVENT.is_set()
-    except (KeyboardInterrupt, Exception):
+    except KeyboardInterrupt:
         pass
+    except Exception as exc:
+        _show_startup_error(
+            f'Skript could not start its embedded WebView2 window.\n\n{exc}\n\n'
+            'Repair or reinstall Skript, and ensure Microsoft Edge WebView2 '
+            'Runtime is installed.'
+        )
 
     # ── Clean exit: remove lock file and recovery snapshot ───────────────
     if clean_exit and not _PRESERVE_RECOVERY_ON_EXIT:
@@ -13701,7 +13775,6 @@ def launch():
 
     server.shutdown()
     server.server_close()
-    _cleanup_isolated_browser_profile()
     print('Skript stopped.')
 
 
@@ -13710,7 +13783,19 @@ def release_self_test():
     report_path = os.environ.get('SKRIPT_SELF_TEST_REPORT', '').strip()
     report = {'ok': False, 'checks': []}
     server = None
+
+    def checkpoint(stage):
+        report['stage'] = stage
+        if report_path:
+            try:
+                target = pathlib.Path(report_path)
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text(json.dumps(report, indent=2), encoding='utf-8')
+            except Exception:
+                pass
+
     try:
+        checkpoint('version')
         version_file = _resource_path('VERSION.txt')
         version = version_file.read_text(encoding='utf-8').strip()
         if not re.fullmatch(r'\d+\.\d+\.\d+\.\d+', version):
@@ -13718,6 +13803,7 @@ def release_self_test():
         report['version'] = version
         report['checks'].append('version')
 
+        checkpoint('resources')
         for relative in (
             ('vendor', 'pdfjs', 'pdf.min.mjs'),
             ('vendor', 'pdfjs', 'pdf.worker.min.mjs'),
@@ -13738,11 +13824,13 @@ def release_self_test():
                 raise RuntimeError(f'Missing packaged resource: {"/".join(relative)}')
         report['checks'].append('resources')
 
+        checkpoint('tkinter')
         import tkinter as _self_test_tk
         tcl = _self_test_tk.Tcl()
         report['tcl'] = str(tcl.eval('info patchlevel'))
         report['checks'].append('tkinter')
 
+        checkpoint('embedded-html')
         global _MAIN_PORT_VAL, _API_TOKEN
         server = ThreadingHTTPServer(('127.0.0.1', 0), SFHandler)
         _MAIN_PORT_VAL = int(server.server_address[1])
@@ -13762,9 +13850,11 @@ def release_self_test():
             raise RuntimeError('Packaged local service did not return the expected version.')
         report['checks'].extend(['embedded-html', 'loopback-service'])
         report['ok'] = True
+        checkpoint('complete')
         return 0
     except Exception as error:
         report['error'] = f'{type(error).__name__}: {error}'
+        checkpoint('failed')
         return 1
     finally:
         if server is not None:
@@ -13786,16 +13876,16 @@ def build_exe():
     print('  Skript — Building standalone EXE')
     print('=' * 60)
     print()
-    print('This script is self-contained — no HTML files, no assets.')
-    print('The EXE will be a single file that runs on any Windows PC.')
+    print('The editor HTML is embedded and WebView2 is hosted by Skript.')
+    print('The build requires the desktop dependencies listed in the repository.')
     print()
 
     this_file = os.path.abspath(__file__)
     out_dir = os.path.join(os.path.dirname(this_file), 'dist')
 
-    print('[1/3] Installing PyInstaller...')
+    print('[1/3] Installing build and desktop-shell dependencies...')
     subprocess.check_call([sys.executable, '-m', 'pip', 'install',
-                           'pyinstaller', '--upgrade', '-q'])
+                           'pyinstaller', 'pywebview==6.2.1', '--upgrade', '-q'])
     print('      Done.')
     print()
 
@@ -13811,6 +13901,8 @@ def build_exe():
         '--specpath', os.path.join(os.path.dirname(this_file), '_build'),
         '--hidden-import', 'tkinter',
         '--hidden-import', 'tkinter.filedialog',
+        '--hidden-import', 'webview.platforms.winforms',
+        '--hidden-import', 'webview.platforms.edgechromium',
         this_file,
     ])
 
@@ -13825,7 +13917,7 @@ def build_exe():
             print(f'  Size: {size_mb:.1f} MB')
             print()
             print('  Double-click Skript.exe to run.')
-            print('  Copy it to any Windows 10/11 PC — no Python needed.')
+            print('  Python is not required on the destination computer.')
             print()
             # Note: "Launch now?" prompt is handled by BUILD_EXE.bat (CHOICE command).
             # Running build_exe() directly? Manually open dist/Skript.exe.

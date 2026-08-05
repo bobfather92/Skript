@@ -28,7 +28,10 @@ a = Analysis(
         (str(project_root / 'VERSION.txt'), '.'),
         (str(project_root / 'THIRD_PARTY_NOTICES.txt'), '.'),
     ],
-    hiddenimports=['tkinter', 'tkinter.filedialog'],
+    hiddenimports=[
+        'tkinter', 'tkinter.filedialog',
+        'webview', 'webview.platforms.winforms', 'webview.platforms.edgechromium',
+    ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

@@ -156,21 +156,29 @@ def remove_shortcuts():
         pass
 
 
-def find_supported_browser():
-    candidates = [
-        pathlib.Path(os.environ.get('PROGRAMFILES(X86)', '')) / 'Microsoft' / 'Edge' / 'Application' / 'msedge.exe',
-        pathlib.Path(os.environ.get('PROGRAMFILES', '')) / 'Microsoft' / 'Edge' / 'Application' / 'msedge.exe',
-        pathlib.Path(os.environ.get('PROGRAMFILES', '')) / 'Google' / 'Chrome' / 'Application' / 'chrome.exe',
-        pathlib.Path(os.environ.get('PROGRAMFILES(X86)', '')) / 'Google' / 'Chrome' / 'Application' / 'chrome.exe',
-    ]
-    for candidate in candidates:
-        if candidate.is_file():
-            return candidate
-    for command in ('msedge.exe', 'chrome.exe'):
-        located = shutil.which(command)
-        if located:
-            return pathlib.Path(located)
-    return None
+WEBVIEW2_CLIENT_ID = '{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}'
+
+
+def find_webview2_runtime_version():
+    """Return the installed Evergreen WebView2 Runtime version, if present."""
+    locations = (
+        (winreg.HKEY_LOCAL_MACHINE,
+         rf'SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{WEBVIEW2_CLIENT_ID}'),
+        (winreg.HKEY_LOCAL_MACHINE,
+         rf'SOFTWARE\Microsoft\EdgeUpdate\Clients\{WEBVIEW2_CLIENT_ID}'),
+        (winreg.HKEY_CURRENT_USER,
+         rf'Software\Microsoft\EdgeUpdate\Clients\{WEBVIEW2_CLIENT_ID}'),
+    )
+    for hive, key_path in locations:
+        try:
+            with winreg.OpenKey(hive, key_path) as key:
+                version, _ = winreg.QueryValueEx(key, 'pv')
+            version = str(version or '').strip()
+            if version and version != '0.0.0.0':
+                return version
+        except (FileNotFoundError, OSError):
+            continue
+    return ''
 
 
 def check_prerequisites(payload, progress):
@@ -184,14 +192,18 @@ def check_prerequisites(payload, progress):
         payload / 'Skript.exe',
         payload / APP_RUNTIME_DIR / 'assets' / 'skript-icon.png',
         payload / APP_RUNTIME_DIR / 'assets' / 'skript.ico',
+        payload / APP_RUNTIME_DIR / 'webview' / 'lib' / 'Microsoft.Web.WebView2.Core.dll',
         payload / APP_RUNTIME_DIR / 'vendor' / 'pdfjs' / 'pdf.min.mjs',
         payload / APP_RUNTIME_DIR / 'vendor' / 'pdfjs' / 'pdf.worker.min.mjs',
     ]
     missing = [path.name for path in required if not path.is_file()]
     if missing:
         raise RuntimeError('The setup payload is incomplete: ' + ', '.join(missing))
-    if not find_supported_browser():
-        raise RuntimeError('Microsoft Edge or Google Chrome is required. Install one browser, then run setup again.')
+    if not find_webview2_runtime_version():
+        raise RuntimeError(
+            'Microsoft Edge WebView2 Runtime is required. Install the Evergreen '
+            'WebView2 Runtime from Microsoft, then run setup again.'
+        )
     if not shutil.which('powershell.exe'):
         raise RuntimeError('Windows PowerShell is required to create application shortcuts.')
 
