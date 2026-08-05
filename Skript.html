@@ -24777,6 +24777,49 @@ var __async = (__this, __arguments, generator) => {
     transition: box-shadow 0.15s;
   }
   .sb-frame:hover { box-shadow: 0 2px 16px rgba(0,0,0,0.22); }
+  .sb-frame.sb-frame-selected {
+    border-color: #5b9bd5;
+    box-shadow: 0 0 0 3px rgba(91,155,213,0.32), 0 4px 18px rgba(0,0,0,0.2);
+  }
+  .sb-frame.sb-frame-dragging { opacity: 0.45; }
+  .sb-frame.sb-frame-drop-before::before,
+  .sb-frame.sb-frame-drop-after::after {
+    content: ''; position: absolute; top: 0; bottom: 0; width: 4px;
+    background: #5b9bd5; z-index: 12; border-radius: 3px;
+  }
+  .sb-frame.sb-frame-drop-before::before { left: -4px; }
+  .sb-frame.sb-frame-drop-after::after { right: -4px; }
+  .sb-frame-select, .sb-frame-drag-handle {
+    position: absolute; top: 6px; z-index: 11; width: 25px; height: 25px;
+    display: flex; align-items: center; justify-content: center; padding: 0;
+    border: 1px solid rgba(255,255,255,0.35); border-radius: 5px;
+    background: rgba(15,18,25,0.78); color: #fff; cursor: pointer;
+    opacity: 0; transition: opacity 0.15s, background 0.15s;
+  }
+  .sb-frame-select { left: 6px; }
+  .sb-frame-drag-handle { right: 6px; cursor: grab; font-size: 17px; }
+  .sb-frame-drag-handle:active { cursor: grabbing; }
+  .sb-frame:hover .sb-frame-select, .sb-frame:hover .sb-frame-drag-handle,
+  .sb-frame-select.active { opacity: 1; }
+  html.sf-touch .sb-frame-select, html.sf-touch .sb-frame-drag-handle { opacity: 1; }
+  .sb-frame-select.active { background: #356fc2; border-color: #80b2f1; }
+
+  .sb-card-menu { position: relative; flex: 0 0 auto; }
+  .sb-card-menu > summary { list-style: none; }
+  .sb-card-menu > summary::-webkit-details-marker { display: none; }
+  .sb-card-menu-panel {
+    position: absolute; top: calc(100% + 6px); left: 0; z-index: 80;
+    min-width: 176px; padding: 6px; display: grid; gap: 3px;
+    border: 1px solid var(--border2); border-radius: 7px;
+    background: var(--surface2); box-shadow: 0 10px 28px rgba(0,0,0,0.34);
+  }
+  .sb-card-menu-panel button {
+    min-height: 29px; padding: 5px 9px; border: 0; border-radius: 4px;
+    background: transparent; color: var(--text-2); text-align: left; cursor: pointer;
+  }
+  .sb-card-menu-panel button:hover { background: var(--surface3); color: var(--text); }
+  .sb-card-menu-panel button.danger { color: var(--danger); }
+  #sb-toolbar .top-btn:disabled { opacity: 0.38; cursor: default; }
 
   /* Edit overlay — hidden by default, revealed on frame hover */
   .sb-frame-edit-icon {
@@ -27352,6 +27395,7 @@ button, .rb, .ribbon-tab, .tab, .add-doc-item,
   .fe-iconbtn svg { width: 14px; height: 14px; flex-shrink: 0; }
   .fe-iconbtn:hover { background: #28283a; border-color: #3a3a4a; color: #e0e0f0; }
   .fe-iconbtn:active { background: #1a1a2e; }
+  .fe-iconbtn:disabled { opacity: 0.35; cursor: default; }
   .fe-iconbtn span { font-size: 11px; }
   .fe-cancel { color: #ff7070; border-color: #3a2a2a; }
   .fe-cancel:hover { background: #2a1a1a; border-color: #6a2a2a; color: #ff9090; }
@@ -27360,6 +27404,25 @@ button, .rb, .ribbon-tab, .tab, .add-doc-item,
   .fe-import-btn { background: #1a1e2e; border-color: #2a2a3a; color: #7090c0; }
   .fe-import-btn:hover { background: #1e2438; border-color: #3a3a5a; color: #90aae0; }
   .fe-divider { width: 1px; height: 24px; background: #2a2a36; margin: 0 2px; flex-shrink: 0; }
+  .fe-arrange-menu { position: relative; }
+  .fe-arrange-menu > summary { list-style: none; }
+  .fe-arrange-menu > summary::-webkit-details-marker { display: none; }
+  .fe-arrange-menu > summary::before { content: '⌗'; margin-right: 4px; font-size: 15px; }
+  .fe-arrange-panel {
+    position: absolute; top: calc(100% + 7px); right: 0; z-index: 120;
+    width: 284px; padding: 10px; border: 1px solid #3a3a46; border-radius: 7px;
+    background: #17171d; box-shadow: 0 14px 36px rgba(0,0,0,0.48); color: #d0d0da;
+  }
+  .fe-arrange-heading { margin: 7px 0 5px; color: #858594; font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+  .fe-arrange-heading:first-child { margin-top: 0; }
+  .fe-arrange-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 5px; }
+  .fe-arrange-grid.two { grid-template-columns: repeat(2,1fr); }
+  .fe-arrange-grid button {
+    min-height: 29px; border: 1px solid #30303b; border-radius: 4px;
+    background: #202029; color: #c4c4cf; cursor: pointer; font-size: 10px;
+  }
+  .fe-arrange-grid button:hover, .fe-arrange-grid button.active { border-color: #5b9bd5; background: #24334a; color: #e7f2ff; }
+  .fe-arrange-help { margin-top: 9px; color: #777786; font-size: 9px; line-height: 1.45; }
 
   /* ── Frame Editor Tool Palette ── */
   .fe-pstool {
@@ -30144,7 +30207,7 @@ body[data-script-direction="rtl"] .script-page .line-parenthetical { margin-left
   #fe-topbar {
     padding: 0 8px !important;
     gap: 8px;
-    overflow: hidden;
+    overflow: visible;
   }
   #fe-topbar > div:last-child {
     min-width: 0;
@@ -30159,6 +30222,7 @@ body[data-script-direction="rtl"] .script-page .line-parenthetical { margin-left
     flex-shrink: 0;
   }
   #fe-topbar .fe-iconbtn span { display: none; }
+  #fe-topbar .fe-arrange-menu > summary::before { margin-right: 0; }
   #fe-topbar .fe-divider { margin: 0; }
   #fe-canvasinfo { display: none; }
   #fe-zoom-pct,
@@ -32264,10 +32328,14 @@ button.primary:hover,
             <div class="opt-section"><strong>Whole imported dialogue</strong><div class="opt-note" style="margin-top:5px;">Keep long imported dialogue as one selectable and editable paragraph, including Word soft line breaks and dialogue that visually extends past a page.</div></div>
             <div class="opt-section"><strong>BBC-format script creation</strong><div class="opt-note" style="margin-top:5px;">Align Film, TV, Radio Scene Style and Stage projects with the BBC guides, including A4 screenplay margins, regular parentheticals, right-aligned transitions, radio cue columns, page numbering, and fresh pages for Acts and stage scenes.</div></div>
             <div class="opt-section"><strong>Optional Notes in exports</strong><div class="opt-note" style="margin-top:5px;">Choose whether Notes elements are included in PDF, Word, Fountain, Final Draft and printed script output. Notes stay private by default.</div></div>
+            <div class="opt-section"><strong>Storyboard multi-selection and arranging</strong><div class="opt-note" style="margin-top:5px;">Select several cards or frame objects, then align, distribute, copy, duplicate, delete or move them together.</div></div>
+            <div class="opt-section"><strong>Snapping and smart guides</strong><div class="opt-note" style="margin-top:5px;">Snap objects to the canvas, grid and other objects while live guide lines show matching edges and centres.</div></div>
+            <div class="opt-section"><strong>Storyboard Undo and Redo</strong><div class="opt-note" style="margin-top:5px;">Undo and redo drawing, object, layer, card deletion, duplication and reordering changes with toolbar buttons or standard keyboard shortcuts.</div></div>
+            <div class="opt-section"><strong>Frame and card management</strong><div class="opt-note" style="margin-top:5px;">Copy, paste, duplicate, delete and drag-reorder storyboard cards without separating their artwork, captions or script links.</div></div>
             <div class="opt-section"><strong>Multi-script project foundation</strong><div class="opt-note" style="margin-top:5px;">Introduces the project-collection format used to group multiple script documents under one project identity.</div></div>
             <div class="opt-section"><strong>Safer batch handling</strong><div class="opt-note" style="margin-top:5px;">A damaged or invalid file no longer prevents other valid files in the same selection from opening.</div></div>
             <div class="opt-section"><strong>Recovery accessibility</strong><div class="opt-note" style="margin-top:5px;">Keeps keyboard focus inside the Recovery Centre when it is opened over the startup recovery prompt.</div></div>
-            <div class="opt-section"><strong>Development verification</strong><div class="opt-note" style="margin-top:5px;">All source checks pass, with 104 browser workflows passing across desktop and compact-touch layouts and 10 intentional platform-specific skips.</div></div>
+            <div class="opt-section"><strong>Development verification</strong><div class="opt-note" style="margin-top:5px;">Source and browser regression checks cover desktop, compact-touch, storyboard arranging, deletion and history restoration.</div></div>
           </section>
         </div>
       </div>
@@ -32436,10 +32504,45 @@ button.primary:hover,
         <span style="font-size:10px;color:#666;font-family:'Courier Prime',monospace;" id="fe-canvasinfo"></span>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
-        <button class="fe-iconbtn" onclick="feUndo()" title="Undo (Ctrl+Z)">
+        <button class="fe-iconbtn" id="fe-undo-btn" onclick="feUndo()" title="Undo (Ctrl+Z)" disabled>
           <svg viewBox="0 0 20 20"><path d="M7 4L2 9l5 5M2 9h10a6 6 0 010 12H4" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
           <span>Undo</span>
         </button>
+        <button class="fe-iconbtn" id="fe-redo-btn" onclick="feRedo()" title="Redo (Ctrl+Y)" disabled>
+          <svg viewBox="0 0 20 20"><path d="M13 4l5 5-5 5M18 9H8a6 6 0 000 12h8" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Redo</span>
+        </button>
+        <details class="fe-arrange-menu">
+          <summary class="fe-iconbtn" title="Align and distribute selected objects"><span>Arrange</span></summary>
+          <div class="fe-arrange-panel">
+            <div class="fe-arrange-heading">Objects</div>
+            <div class="fe-arrange-grid">
+              <button type="button" onclick="feSelectAllObjects()">Select all</button>
+              <button type="button" onclick="feDuplicateSelectedObjects()">Duplicate</button>
+              <button type="button" onclick="feDeleteSelectedObjects()">Delete</button>
+            </div>
+            <div class="fe-arrange-heading">Align</div>
+            <div class="fe-arrange-grid">
+              <button type="button" onclick="feAlignSelection('left')">Left</button>
+              <button type="button" onclick="feAlignSelection('hcenter')">Centre</button>
+              <button type="button" onclick="feAlignSelection('right')">Right</button>
+              <button type="button" onclick="feAlignSelection('top')">Top</button>
+              <button type="button" onclick="feAlignSelection('vcenter')">Middle</button>
+              <button type="button" onclick="feAlignSelection('bottom')">Bottom</button>
+            </div>
+            <div class="fe-arrange-heading">Distribute</div>
+            <div class="fe-arrange-grid two">
+              <button type="button" onclick="feDistributeSelection('horizontal')">Horizontal</button>
+              <button type="button" onclick="feDistributeSelection('vertical')">Vertical</button>
+            </div>
+            <div class="fe-arrange-heading">Guides</div>
+            <div class="fe-arrange-grid two">
+              <button type="button" class="active" id="fe-snap-toggle" onclick="feToggleSnap()">Snap on</button>
+              <button type="button" id="fe-grid-toggle" onclick="feToggleGrid()">Grid</button>
+            </div>
+            <div class="fe-arrange-help">Shift-click or drag a box to select several objects. Hold Ctrl while dragging to ignore snapping.</div>
+          </div>
+        </details>
         <button class="fe-iconbtn" onclick="clearEditorCanvas()" title="Clear Canvas">
           <svg viewBox="0 0 20 20"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><rect x="2" y="2" width="16" height="16" rx="3" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.4"/></svg>
           <span>Clear</span>
@@ -32774,7 +32877,7 @@ button.primary:hover,
               <div style="display:flex;align-items:center;gap:4px;">
                 <span style="font-size:9px;color:#666;">Opacity</span>
                 <input type="range" id="fe-layer-opacity-slider" min="0" max="100" value="100"
-                  style="width:52px;accent-color:#4a7fd4;" oninput="feSetActiveLayerOpacity(+this.value)">
+                  style="width:52px;accent-color:#4a7fd4;" onpointerdown="feHistoryPush()" oninput="feSetActiveLayerOpacity(+this.value)">
                 <span id="fe-layer-opacity-val" style="font-size:9px;color:#888;font-family:'Courier Prime',monospace;min-width:28px;">100%</span>
               </div>
             </div>
@@ -34934,7 +35037,7 @@ async function saveAndCloseDesktop() {
 let nativeWindowEventSeq = 0;
 let nativeWindowEventBusy = false;
 async function pollNativeWindowEvents() {
-  if (!window._SF_NATIVE_TITLEBAR_OVERLAY || nativeWindowEventBusy) return;
+  if (!window._SF_NATIVE_TITLEBAR || nativeWindowEventBusy) return;
   nativeWindowEventBusy = true;
   try {
     const response = await sfApiFetch('/api/window-events', {timeoutMs: 1500});
@@ -34950,7 +35053,7 @@ async function pollNativeWindowEvents() {
     nativeWindowEventBusy = false;
   }
 }
-if (window._SF_NATIVE_TITLEBAR_OVERLAY) {
+if (window._SF_NATIVE_TITLEBAR) {
   setInterval(pollNativeWindowEvents, 250);
   setTimeout(pollNativeWindowEvents, 0);
 }
@@ -35388,6 +35491,8 @@ document.getElementById('modal')?.addEventListener('click', (e) => {
 //  KEYBOARD SHORTCUTS (GLOBAL)
 // ═══════════════════════════════════════
 document.addEventListener('keydown', (e) => {
+  if (typeof feHandleKeyboardShortcut === 'function' && feHandleKeyboardShortcut(e)) return;
+  if (typeof sbHandleKeyboardShortcut === 'function' && sbHandleKeyboardShortcut(e)) return;
   // Esc exits focus mode
   if (e.key === 'Escape' && appState.focusMode) { toggleFocusMode(); return; }
 
@@ -37054,8 +37159,17 @@ function openOptionsWithSceneNav() {
 const sb = {
   orientation: 'portrait', cols: 3, captions: true, frameCount: 6,
   boards: [],          // [{id, name, orientation, cols, captions, frames:[]}]
-  activeBoardId: null
+  activeBoardId: null,
+  selectedFrameIds: new Set(),
+  frameClipboard: [],
+  history: [], redoHistory: [], historyMax: 40
 };
+
+let _storyboardFrameSequence = 0;
+function makeStoryboardFrameId() {
+  _storyboardFrameSequence += 1;
+  return `sb-frame-${Date.now().toString(36)}-${_storyboardFrameSequence.toString(36)}`;
+}
 
 function getStoryboardSceneRefs() {
   const container = getLinesContainer(activeTabId);
@@ -37074,10 +37188,90 @@ function getStoryboardShotRefs() {
 
 function makeStoryboardFrame(frameIndex) {
   return {
+    id: makeStoryboardFrameId(),
     imageData: null, caption: '', layers: null,
     sceneLineId: null,
     shotId: null
   };
+}
+
+function ensureStoryboardFrameIds(board) {
+  board?.frames?.forEach(frame => {
+    if (!frame.id) frame.id = makeStoryboardFrameId();
+  });
+}
+
+function storyboardSerializableBoards() {
+  return sb.boards.map(board => ({
+    id: board.id,
+    name: board.name,
+    orientation: board.orientation,
+    cols: board.cols,
+    captions: board.captions,
+    currentPage: board.currentPage || 0,
+    frames: (board.frames || []).map(frame => ({
+      id: frame.id || makeStoryboardFrameId(),
+      caption: frame.caption || '',
+      imageData: frame.imageData || null,
+      sceneLineId: frame.sceneLineId || null,
+      shotId: frame.shotId || null,
+      orphanedScene: frame.orphanedScene || null,
+      layers: frame.layers ? frame.layers.map(layer => ({
+        ...layer,
+        objects: (layer.objects || []).map(object => ({ ...object, _img: undefined }))
+      })) : null
+    }))
+  }));
+}
+
+function sbCaptureState() {
+  sb.boards.forEach(ensureStoryboardFrameIds);
+  return JSON.parse(JSON.stringify({
+    boards: storyboardSerializableBoards(),
+    activeBoardId: sb.activeBoardId
+  }));
+}
+
+function sbHistoryPush() {
+  sb.history.push(sbCaptureState());
+  if (sb.history.length > sb.historyMax) sb.history.shift();
+  sb.redoHistory = [];
+  sbUpdateHistoryButtons();
+}
+
+function sbRestoreState(snapshot) {
+  if (!snapshot) return;
+  sb.boards = snapshot.boards || [];
+  sb.boards.forEach(ensureStoryboardFrameIds);
+  sb.activeBoardId = snapshot.activeBoardId || sb.boards[0]?.id || null;
+  sb.selectedFrameIds.clear();
+  saveStoryboardToStorage();
+  renderBoardList();
+  if (sb.activeBoardId) renderStoryboard();
+  else hideStoryboardArea();
+  if (typeof SL !== 'undefined' && typeof SL.render === 'function') SL.render();
+  sbUpdateHistoryButtons();
+}
+
+function sbUndo() {
+  if (!sb.history.length) return;
+  sb.redoHistory.push(sbCaptureState());
+  sbRestoreState(sb.history.pop());
+  showToast('Storyboard change undone');
+}
+
+function sbRedo() {
+  if (!sb.redoHistory.length) return;
+  sb.history.push(sbCaptureState());
+  sbRestoreState(sb.redoHistory.pop());
+  showToast('Storyboard change restored');
+}
+
+function sbUpdateHistoryButtons() {
+  const undo = document.getElementById('sb-undo-btn');
+  const redo = document.getElementById('sb-redo-btn');
+  if (undo) undo.disabled = !sb.history.length;
+  if (redo) redo.disabled = !sb.redoHistory.length;
 }
 
 function getStoryboardFrameContext(frame) {
@@ -37101,6 +37295,7 @@ function setStoryboardFrameScene(boardId, frameIndex, lineId) {
   const board = sb.boards.find(item => item.id === boardId);
   const frame = board?.frames?.[frameIndex];
   if (!frame) return;
+  sbHistoryPush();
   frame.sceneLineId = lineId || null;
   const scene = getStoryboardSceneRefs().find(item => item.lineId === frame.sceneLineId);
   const shot = getStoryboardShotRefs().find(item => item.id === frame.shotId);
@@ -37113,6 +37308,7 @@ function setStoryboardFrameShot(boardId, frameIndex, shotId) {
   const board = sb.boards.find(item => item.id === boardId);
   const frame = board?.frames?.[frameIndex];
   if (!frame) return;
+  sbHistoryPush();
   frame.shotId = shotId || null;
   const shot = getStoryboardShotRefs().find(item => item.id === frame.shotId);
   const scene = shot ? getStoryboardSceneRefs().find(item =>
@@ -37214,12 +37410,14 @@ function removeStoryboardFrame(boardId, frameIndex) {
   if (!frame) return;
   const context = getStoryboardFrameContext(frame);
   const label = context.scene ? `Scene ${context.scene.idx}` : `frame ${frameIndex + 1}`;
-  if (!confirm(`Remove ${label} from this storyboard? Any artwork in this frame will also be deleted.`)) return;
+  sbHistoryPush();
   board.frames.splice(frameIndex, 1);
   if (!board.frames.length) board.frames.push(makeStoryboardFrame(0));
+  sb.selectedFrameIds.delete(frame.id);
   saveStoryboardToStorage();
   renderStoryboard(board);
   if (typeof SL !== 'undefined' && typeof SL.render === 'function') SL.render();
+  showToast(`${label} removed - Undo is available`);
 }
 
 function getStoryboardFramesForShot(shotId) {
@@ -37584,26 +37782,7 @@ function showStoryboardArea() {
 function saveStoryboardToStorage() {
   try {
     localStorage.setItem('sf-storyboard', JSON.stringify({
-      boards: sb.boards.map(b => ({
-        id:          b.id,
-        name:        b.name,
-        orientation: b.orientation,
-        cols:        b.cols,
-        captions:    b.captions,
-        currentPage: b.currentPage || 0,
-        frames:      b.frames.map(f => ({
-          caption:   f.caption || '',
-          imageData: f.imageData || null,
-          sceneLineId: f.sceneLineId || null,
-          shotId:      f.shotId || null,
-          orphanedScene: f.orphanedScene || null,
-          // strip non-serialisable _img refs from layer objects
-          layers: f.layers ? f.layers.map(l => ({
-            ...l,
-            objects: (l.objects || []).map(o => ({ ...o, _img: undefined }))
-          })) : null
-        }))
-      })),
+      boards: storyboardSerializableBoards(),
       activeBoardId: sb.activeBoardId
     }));
   } catch(e) { console.warn('Storyboard save error:', e); }
@@ -37616,6 +37795,7 @@ function loadStoryboardFromStorage() {
     const data = JSON.parse(raw);
     if (!data || !Array.isArray(data.boards)) return;
     sb.boards = data.boards;
+    sb.boards.forEach(ensureStoryboardFrameIds);
     sb.activeBoardId = data.activeBoardId || (data.boards[0]?.id ?? null);
     if (data.boards.length) {
       const navSection = document.getElementById('sb-storyboard-section');
@@ -37655,6 +37835,7 @@ function renderBoardList() {
 
 function switchToBoard(boardId) {
   sb.activeBoardId = boardId;
+  sb.selectedFrameIds.clear();
   showStoryboardArea();
   renderStoryboard();
   renderBoardList();
@@ -37684,6 +37865,7 @@ function addMoreFrames() {
   const board = sb.boards.find(b => b.id === sb.activeBoardId);
   if (!board) return;
   const count = parseInt(prompt('How many frames to add?', '6')) || 6;
+  sbHistoryPush();
   for (let i = 0; i < count; i++) {
     board.frames.push(makeStoryboardFrame(board.frames.length));
   }
@@ -37692,6 +37874,179 @@ function addMoreFrames() {
   saveStoryboardToStorage();
   renderStoryboard(board);
   showToast('+ ' + count + ' frames added');
+}
+
+function sbGetSelectedFrameEntries(board = sb.boards.find(item => item.id === sb.activeBoardId)) {
+  if (!board) return [];
+  ensureStoryboardFrameIds(board);
+  return board.frames
+    .map((frame, index) => ({ frame, index }))
+    .filter(entry => sb.selectedFrameIds.has(entry.frame.id));
+}
+
+function sbToggleFrameSelection(boardId, frameId, additive) {
+  const board = sb.boards.find(item => String(item.id) === String(boardId));
+  if (!board) return;
+  if (!additive) {
+    const wasOnlySelection = sb.selectedFrameIds.size === 1 && sb.selectedFrameIds.has(frameId);
+    sb.selectedFrameIds.clear();
+    if (!wasOnlySelection) sb.selectedFrameIds.add(frameId);
+  } else if (sb.selectedFrameIds.has(frameId)) {
+    sb.selectedFrameIds.delete(frameId);
+  } else {
+    sb.selectedFrameIds.add(frameId);
+  }
+  renderStoryboard(board);
+}
+
+function sbSelectAllFrames() {
+  const board = sb.boards.find(item => item.id === sb.activeBoardId);
+  if (!board) return;
+  ensureStoryboardFrameIds(board);
+  sb.selectedFrameIds = new Set(board.frames.map(frame => frame.id));
+  renderStoryboard(board);
+}
+
+function sbClearFrameSelection() {
+  if (!sb.selectedFrameIds.size) return;
+  sb.selectedFrameIds.clear();
+  renderStoryboard();
+}
+
+function sbCopySelectedFrames() {
+  const selected = sbGetSelectedFrameEntries();
+  if (!selected.length) return showToast('Select one or more frames first');
+  sb.frameClipboard = JSON.parse(JSON.stringify(
+    selected.map(entry => entry.frame),
+    (key, value) => key === '_img' ? undefined : value
+  ));
+  showToast(`${selected.length} frame${selected.length === 1 ? '' : 's'} copied`);
+}
+
+function sbPasteFrames() {
+  const board = sb.boards.find(item => item.id === sb.activeBoardId);
+  if (!board || !sb.frameClipboard.length) return showToast('No copied frames to paste');
+  sbHistoryPush();
+  const selected = sbGetSelectedFrameEntries(board);
+  const insertAt = selected.length ? Math.max(...selected.map(entry => entry.index)) + 1 : board.frames.length;
+  const copies = JSON.parse(JSON.stringify(sb.frameClipboard)).map(frame => ({ ...frame, id: makeStoryboardFrameId() }));
+  board.frames.splice(insertAt, 0, ...copies);
+  sb.selectedFrameIds = new Set(copies.map(frame => frame.id));
+  saveStoryboardToStorage();
+  renderStoryboard(board);
+  showToast(`${copies.length} frame${copies.length === 1 ? '' : 's'} pasted`);
+}
+
+function sbDuplicateSelectedFrames() {
+  const selected = sbGetSelectedFrameEntries();
+  if (!selected.length) return showToast('Select one or more frames first');
+  sbCopySelectedFrames();
+  sbPasteFrames();
+}
+
+function sbDeleteSelectedFrames() {
+  const board = sb.boards.find(item => item.id === sb.activeBoardId);
+  const selected = sbGetSelectedFrameEntries(board);
+  if (!board || !selected.length) return showToast('Select one or more frames first');
+  sbHistoryPush();
+  const selectedIds = new Set(selected.map(entry => entry.frame.id));
+  board.frames = board.frames.filter(frame => !selectedIds.has(frame.id));
+  if (!board.frames.length) board.frames.push(makeStoryboardFrame(0));
+  sb.selectedFrameIds.clear();
+  saveStoryboardToStorage();
+  renderStoryboard(board);
+  if (typeof SL !== 'undefined' && typeof SL.render === 'function') SL.render();
+  showToast(`${selected.length} frame${selected.length === 1 ? '' : 's'} deleted - Undo is available`);
+}
+
+function sbMoveSelectedFrames(direction) {
+  const board = sb.boards.find(item => item.id === sb.activeBoardId);
+  const selected = sbGetSelectedFrameEntries(board);
+  if (!board || !selected.length) return showToast('Select one or more frames first');
+  const selectedIds = new Set(selected.map(entry => entry.frame.id));
+  const before = board.frames.map(frame => frame.id).join('|');
+  const frames = board.frames.slice();
+  if (direction < 0) {
+    for (let index = 1; index < frames.length; index++) {
+      if (selectedIds.has(frames[index].id) && !selectedIds.has(frames[index - 1].id)) {
+        [frames[index - 1], frames[index]] = [frames[index], frames[index - 1]];
+      }
+    }
+  } else {
+    for (let index = frames.length - 2; index >= 0; index--) {
+      if (selectedIds.has(frames[index].id) && !selectedIds.has(frames[index + 1].id)) {
+        [frames[index], frames[index + 1]] = [frames[index + 1], frames[index]];
+      }
+    }
+  }
+  if (frames.map(frame => frame.id).join('|') === before) return;
+  sbHistoryPush();
+  board.frames = frames;
+  saveStoryboardToStorage();
+  renderStoryboard(board);
+}
+
+function sbFrameDragStart(event, boardId, frameId) {
+  if (!sb.selectedFrameIds.has(frameId)) {
+    sb.selectedFrameIds.clear();
+    sb.selectedFrameIds.add(frameId);
+  }
+  event.dataTransfer.effectAllowed = 'move';
+  event.dataTransfer.setData('text/plain', String(frameId));
+  event.currentTarget.closest('.sb-frame')?.classList.add('sb-frame-dragging');
+}
+
+function sbFrameDragEnd(event) {
+  event.currentTarget.closest('.sb-frame')?.classList.remove('sb-frame-dragging');
+  document.querySelectorAll('.sb-frame-drop-before,.sb-frame-drop-after').forEach(card =>
+    card.classList.remove('sb-frame-drop-before', 'sb-frame-drop-after'));
+}
+
+function sbFrameDragOver(event) {
+  event.preventDefault();
+  const card = event.currentTarget;
+  const rect = card.getBoundingClientRect();
+  const after = event.clientX > rect.left + rect.width / 2;
+  card.classList.toggle('sb-frame-drop-before', !after);
+  card.classList.toggle('sb-frame-drop-after', after);
+}
+
+function sbFrameDrop(event, boardId, targetFrameId) {
+  event.preventDefault();
+  const board = sb.boards.find(item => String(item.id) === String(boardId));
+  if (!board || sb.selectedFrameIds.has(targetFrameId)) return sbFrameDragEnd(event);
+  const selected = board.frames.filter(frame => sb.selectedFrameIds.has(frame.id));
+  if (!selected.length) return;
+  const target = board.frames.find(frame => frame.id === targetFrameId);
+  const remaining = board.frames.filter(frame => !sb.selectedFrameIds.has(frame.id));
+  let insertAt = remaining.indexOf(target);
+  const rect = event.currentTarget.getBoundingClientRect();
+  if (event.clientX > rect.left + rect.width / 2) insertAt += 1;
+  sbHistoryPush();
+  remaining.splice(Math.max(0, insertAt), 0, ...selected);
+  board.frames = remaining;
+  saveStoryboardToStorage();
+  renderStoryboard(board);
+  showToast(`${selected.length} frame${selected.length === 1 ? '' : 's'} reordered`);
+}
+
+function sbHandleKeyboardShortcut(event) {
+  const storyboard = document.getElementById('storyboard-area');
+  if (!storyboard?.classList.contains('active')) return false;
+  if (event.target?.matches?.('input,textarea,select,[contenteditable="true"]')) return true;
+  const modifier = event.ctrlKey || event.metaKey;
+  const key = String(event.key || '').toLowerCase();
+  if (modifier && key === 'z' && !event.shiftKey) { event.preventDefault(); sbUndo(); return true; }
+  if ((modifier && key === 'y') || (modifier && event.shiftKey && key === 'z')) { event.preventDefault(); sbRedo(); return true; }
+  if (modifier && key === 'a') { event.preventDefault(); sbSelectAllFrames(); return true; }
+  if (modifier && key === 'c') { event.preventDefault(); sbCopySelectedFrames(); return true; }
+  if (modifier && key === 'v') { event.preventDefault(); sbPasteFrames(); return true; }
+  if (modifier && key === 'd') { event.preventDefault(); sbDuplicateSelectedFrames(); return true; }
+  if (key === 'delete' || key === 'backspace') { event.preventDefault(); sbDeleteSelectedFrames(); return true; }
+  if (key === 'arrowleft' && event.altKey) { event.preventDefault(); sbMoveSelectedFrames(-1); return true; }
+  if (key === 'arrowright' && event.altKey) { event.preventDefault(); sbMoveSelectedFrames(1); return true; }
+  if (key === 'escape' && sb.selectedFrameIds.size) { event.preventDefault(); sbClearFrameSelection(); return true; }
+  return false;
 }
 
 function createStoryboard() {
@@ -37712,6 +38067,7 @@ function createStoryboard() {
     frames: Array.from({ length: sb.frameCount }, (_, index) => makeStoryboardFrame(index))
   };
 
+  sbHistoryPush();
   sb.boards.push(board);
   sb.activeBoardId = boardId;
   const navSection = document.getElementById('sb-storyboard-section');
@@ -37744,6 +38100,9 @@ function renderStoryboard(boardOverride) {
 
   const board = boardOverride || sb.boards.find(b => b.id === sb.activeBoardId);
   if (!board) return;
+  ensureStoryboardFrameIds(board);
+  const validFrameIds = new Set(board.frames.map(frame => frame.id));
+  sb.selectedFrameIds = new Set(Array.from(sb.selectedFrameIds).filter(id => validFrameIds.has(id)));
 
   const tab = tabs.find(t => t.id === activeTabId);
   const title = board.name || (tab ? tab.title : 'UNTITLED SCRIPT');
@@ -37751,10 +38110,26 @@ function renderStoryboard(boardOverride) {
   // Populate the static toolbar bar (lives outside the scrollable storyboard area)
   const toolbar = document.getElementById('sb-toolbar');
   const currentBoardId = board.id;
+  const selectedCount = sbGetSelectedFrameEntries(board).length;
   if (toolbar) {
     toolbar.innerHTML = `
       <button class="top-btn" onclick="newStoryboard()">＋ New Board</button>
       <button class="top-btn" onclick="addMoreFrames()">＋ Add Frames</button>
+      <button class="top-btn" id="sb-undo-btn" onclick="sbUndo()" title="Undo storyboard change" ${sb.history.length ? '' : 'disabled'}>↶ Undo</button>
+      <button class="top-btn" id="sb-redo-btn" onclick="sbRedo()" title="Redo storyboard change" ${sb.redoHistory.length ? '' : 'disabled'}>↷ Redo</button>
+      <details class="sb-card-menu">
+        <summary class="top-btn">Cards${selectedCount ? ` (${selectedCount})` : ''} ▾</summary>
+        <div class="sb-card-menu-panel">
+          <button type="button" onclick="sbSelectAllFrames()">Select all</button>
+          <button type="button" onclick="sbClearFrameSelection()">Clear selection</button>
+          <button type="button" onclick="sbCopySelectedFrames()">Copy</button>
+          <button type="button" onclick="sbPasteFrames()">Paste</button>
+          <button type="button" onclick="sbDuplicateSelectedFrames()">Duplicate</button>
+          <button type="button" onclick="sbMoveSelectedFrames(-1)">Move earlier</button>
+          <button type="button" onclick="sbMoveSelectedFrames(1)">Move later</button>
+          <button type="button" class="danger" onclick="sbDeleteSelectedFrames()">Delete selected</button>
+        </div>
+      </details>
       <button class="top-btn" onclick="linkStoryboardToShotList()" title="Connect frames to shots in script order">🔗 Link Shots</button>
       <button class="top-btn" onclick="openStoryboardAnimatic()" title="Play storyboard frames as an animatic">▶ Animatic</button>
       <button class="top-btn primary" onclick="printStoryboard()">🖨 Print</button>
@@ -37827,8 +38202,16 @@ function sbGoToPage(delta) {
 
 function buildFrameEl(frame, idx, boardId) {
   const wrap = document.createElement('div');
-  wrap.className = 'sb-frame';
+  const board = sb.boards.find(item => String(item.id) === String(boardId));
+  if (!frame.id) frame.id = makeStoryboardFrameId();
+  const frameId = frame.id;
+  const isSelected = sb.selectedFrameIds.has(frameId);
+  wrap.className = 'sb-frame' + (isSelected ? ' sb-frame-selected' : '');
   wrap.dataset.frameIndex = idx;
+  wrap.dataset.frameId = frameId;
+  wrap.setAttribute('ondragover', 'sbFrameDragOver(event)');
+  wrap.setAttribute('ondragleave', "this.classList.remove('sb-frame-drop-before','sb-frame-drop-after')");
+  wrap.setAttribute('ondrop', `sbFrameDrop(event,${boardId},'${frameId}')`);
   const context = getStoryboardFrameContext(frame);
   const sceneText = context.scene
     ? `Scene ${context.scene.idx} · ${context.scene.text}`
@@ -37848,6 +38231,11 @@ function buildFrameEl(frame, idx, boardId) {
 
   wrap.innerHTML = `
     <div class="sb-frame-num-badge">${idx + 1}</div>
+    <button type="button" class="sb-frame-select${isSelected ? ' active' : ''}"
+      aria-pressed="${isSelected}" title="${isSelected ? 'Remove from selection' : 'Select frame'}"
+      onclick="event.stopPropagation();sbToggleFrameSelection(${boardId},'${frameId}',event.shiftKey||event.ctrlKey||event.metaKey)">${isSelected ? '✓' : ''}</button>
+    <button type="button" class="sb-frame-drag-handle" draggable="true" title="Drag to reorder selected frames"
+      ondragstart="sbFrameDragStart(event,${boardId},'${frameId}')" ondragend="sbFrameDragEnd(event)" onclick="event.stopPropagation()">⠿</button>
     <button class="sb-frame-edit-icon" onclick="openFrameEditor(${idx},${boardId})" title="Open frame editor">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 20h9"/>
@@ -37873,7 +38261,7 @@ function buildFrameEl(frame, idx, boardId) {
       </select>
       ${frame.sceneLineId || frame.shotId ? `<button type="button" class="sb-frame-unlink" onclick="removeStoryboardFrame(${boardId},${idx})">Remove scene from storyboard</button>` : ''}
     </div>
-    ${sb.captions ? `<textarea class="sb-caption" placeholder="Shot description, dialogue…" id="sb-caption-${idx}"
+    ${board.captions ? `<textarea class="sb-caption" placeholder="Shot description, dialogue…" id="sb-caption-${idx}"
       oninput="feUpdateCaption(${boardId}, ${idx}, this.value)">${frame.caption || ''}</textarea>` : ''}
   `;
 
@@ -37922,7 +38310,7 @@ const fe = {
   startX: 0, startY: 0, lastX: 0, lastY: 0,
   layers: [],        // [{name, type, visible, objects:[], activeObjIdx, imageData}]
   activeLayerIdx: 0,
-  history: [], historyMax: 30,
+  history: [], redoHistory: [], historyMax: 50,
   canvasW: 1920, canvasH: 1080,
   session: 0,        // incremented on each openFrameEditor — used to discard stale async callbacks
   dirty: false,
@@ -37936,7 +38324,99 @@ const fe = {
   resizeAnchorX: 0, resizeAnchorY: 0,
   // Selection handles
   selection: null,
+  selectedObjectIds: [], primaryObjectId: null,
+  clipboard: [], marquee: null,
+  dragStartObjects: [], dragStarted: false,
+  resizeStarted: false,
+  snapEnabled: true, gridEnabled: false, gridSize: 40,
+  smartGuides: []
 };
+
+let _feObjectSequence = 0;
+function feMakeObjectId() {
+  _feObjectSequence += 1;
+  return `fe-object-${Date.now().toString(36)}-${_feObjectSequence.toString(36)}`;
+}
+
+function feEnsureObjectIds() {
+  fe.layers.forEach(layer => (layer.objects || []).forEach(object => {
+    if (!object.id) object.id = feMakeObjectId();
+  }));
+}
+
+function feAllObjectRefs(visibleOnly = false) {
+  const refs = [];
+  fe.layers.forEach((layer, layerIndex) => {
+    if (visibleOnly && !layer.visible) return;
+    (layer.objects || []).forEach((obj, objectIndex) => {
+      if (!obj.id) obj.id = feMakeObjectId();
+      refs.push({ layer, layerIndex, objectIndex, obj });
+    });
+  });
+  return refs;
+}
+
+function feGetSelectedRefs() {
+  const ids = new Set(fe.selectedObjectIds);
+  return feAllObjectRefs(true).filter(ref => ids.has(ref.obj.id));
+}
+
+function feSetActiveObjectRef(ref) {
+  fe.layers.forEach(layer => { layer.activeObjIdx = -1; });
+  if (!ref) return;
+  fe.activeLayerIdx = ref.layerIndex;
+  ref.layer.activeObjIdx = ref.objectIndex;
+  fe.primaryObjectId = ref.obj.id;
+}
+
+function feSetSelection(refs, primaryRef) {
+  const unique = [];
+  const seen = new Set();
+  refs.forEach(ref => {
+    if (ref?.obj?.id && !seen.has(ref.obj.id)) {
+      seen.add(ref.obj.id);
+      unique.push(ref);
+    }
+  });
+  fe.selectedObjectIds = unique.map(ref => ref.obj.id);
+  const primary = primaryRef && seen.has(primaryRef.obj.id) ? primaryRef : unique[unique.length - 1] || null;
+  fe.primaryObjectId = primary?.obj?.id || null;
+  feSetActiveObjectRef(primary);
+  feDrawSelectionHandles();
+  renderLayerList();
+  feSyncTextPanel();
+}
+
+function feClearObjectSelection() {
+  fe.selectedObjectIds = [];
+  fe.primaryObjectId = null;
+  fe.layers.forEach(layer => { layer.activeObjIdx = -1; });
+  fe.marquee = null;
+  fe.smartGuides = [];
+  feClearSelectionHandles();
+  feSyncTextPanel();
+}
+
+function feRefreshSelectionAfterLayerChange() {
+  const ids = new Set(feAllObjectRefs().map(ref => ref.obj.id));
+  fe.selectedObjectIds = fe.selectedObjectIds.filter(id => ids.has(id));
+  if (!fe.selectedObjectIds.includes(fe.primaryObjectId)) {
+    fe.primaryObjectId = fe.selectedObjectIds[fe.selectedObjectIds.length - 1] || null;
+  }
+  const primary = feAllObjectRefs().find(ref => ref.obj.id === fe.primaryObjectId);
+  feSetActiveObjectRef(primary || null);
+  feDrawSelectionHandles();
+  feSyncTextPanel();
+}
+
+function feSelectionBounds(refs = feGetSelectedRefs()) {
+  if (!refs.length) return null;
+  const left = Math.min(...refs.map(ref => ref.obj.x));
+  const top = Math.min(...refs.map(ref => ref.obj.y));
+  const right = Math.max(...refs.map(ref => ref.obj.x + (ref.obj.w || 120)));
+  const bottom = Math.max(...refs.map(ref => ref.obj.y + (ref.obj.h || (ref.obj.fontSize || 18) + 8)));
+  return { x: left, y: top, w: right - left, h: bottom - top, right, bottom };
+}
 
 // ─── Layer type helpers ──────────────────────────────────────
 function feNewLayer(name, type='drawing') {
@@ -37949,6 +38429,7 @@ function feAutoSaveCurrentFrame() {
   if (fe.idx < 0) return;
   const board = sb.boards.find(b => b.id === fe.boardId);
   if (!board || !board.frames[fe.idx]) return;
+  if (fe.dirty) sbHistoryPush();
   // Capture raster data from each drawing layer
   fe.layers.forEach((layer, i) => {
     if (layer.type === 'drawing') {
@@ -37969,6 +38450,7 @@ function feAutoSaveCurrentFrame() {
   board.frames[fe.idx].imageData = flat.toDataURL('image/png');
   board.frames[fe.idx].layers = fe.layers.map(l => ({
     name: l.name, type: l.type, visible: l.visible,
+    opacity: l.opacity !== undefined ? l.opacity : 1,
     objects: l.objects.map(o => ({...o, _img: undefined})),
     imageData: l.imageData
   }));
@@ -37976,12 +38458,11 @@ function feAutoSaveCurrentFrame() {
 }
 
 function feNavFrame(delta) {
-  // Navigate to adjacent frame, auto-saving the current one first
+  // openFrameEditor snapshots the current frame before switching.
   const board = sb.boards.find(b => b.id === fe.boardId);
   if (!board) return;
   const newIdx = fe.idx + delta;
   if (newIdx < 0 || newIdx >= board.frames.length) return;
-  feAutoSaveCurrentFrame();
   openFrameEditor(newIdx, fe.boardId);
 }
 
@@ -38010,6 +38491,8 @@ function openFrameEditor(idx, boardId) {
   fe.canvasH = 1080;
   const initZoom = 0.44;
   fe.zoom = 1; fe.dragging = false; fe.selection = null;
+  fe.selectedObjectIds = []; fe.primaryObjectId = null;
+  fe.marquee = null; fe.smartGuides = [];
   fe.textEditor = null;
 
   feSetupCanvas();
@@ -38021,6 +38504,7 @@ function openFrameEditor(idx, boardId) {
       name: l.name || 'Layer',
       type: l.type || 'drawing',
       visible: l.visible !== false,
+      opacity: l.opacity !== undefined ? l.opacity : 1,
       objects: (l.objects || []).map(o => ({...o})),
       activeObjIdx: -1,
       imageData: l.imageData || null
@@ -38031,6 +38515,7 @@ function openFrameEditor(idx, boardId) {
     fe.layers.push(base);
   }
   if (!fe.layers.length) fe.layers.push(feNewLayer('Layer 1', 'drawing'));
+  feEnsureObjectIds();
   fe.activeLayerIdx = fe.layers.length - 1;
 
   // Pass skipSnapshot=true — fe.layers is already set to the new frame's saved data.
@@ -38063,6 +38548,10 @@ function openFrameEditor(idx, boardId) {
   if (_prevBtn) _prevBtn.style.opacity = fe.idx === 0 ? '0.3' : '1';
   if (_nextBtn) _nextBtn.style.opacity = fe.idx >= _total - 1 ? '0.3' : '1';
   fe.history = [];
+  fe.redoHistory = [];
+  feUpdateHistoryButtons();
+  document.getElementById('fe-snap-toggle')?.classList.toggle('active', fe.snapEnabled);
+  document.getElementById('fe-grid-toggle')?.classList.toggle('active', fe.gridEnabled);
   fe.dirty = false;
 }
 
@@ -38392,32 +38881,86 @@ function feDrawSelectionHandles(obj) {
   if (!cv) return;
   const ctx = cv.getContext('2d');
   ctx.clearRect(0, 0, cv.width, cv.height);
-  if (!obj) return;
+  if (fe.gridEnabled) {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(74,144,226,0.16)';
+    ctx.lineWidth = 1;
+    for (let x = fe.gridSize; x < fe.canvasW; x += fe.gridSize) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, fe.canvasH); ctx.stroke();
+    }
+    for (let y = fe.gridSize; y < fe.canvasH; y += fe.gridSize) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(fe.canvasW, y); ctx.stroke();
+    }
+    ctx.restore();
+  }
 
+  fe.smartGuides.forEach(guide => {
+    ctx.save();
+    ctx.strokeStyle = '#ff3f8e';
+    ctx.lineWidth = 2 / Math.max(fe.zoom, 0.2);
+    ctx.setLineDash([8, 5]);
+    ctx.beginPath();
+    if (guide.axis === 'x') { ctx.moveTo(guide.value, 0); ctx.lineTo(guide.value, fe.canvasH); }
+    else { ctx.moveTo(0, guide.value); ctx.lineTo(fe.canvasW, guide.value); }
+    ctx.stroke();
+    ctx.restore();
+  });
+
+  if (fe.marquee) {
+    const x = Math.min(fe.marquee.startX, fe.marquee.x);
+    const y = Math.min(fe.marquee.startY, fe.marquee.y);
+    const w = Math.abs(fe.marquee.x - fe.marquee.startX);
+    const h = Math.abs(fe.marquee.y - fe.marquee.startY);
+    ctx.fillStyle = 'rgba(74,144,226,0.12)';
+    ctx.fillRect(x, y, w, h);
+    ctx.strokeStyle = '#4a90e2';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([7, 4]);
+    ctx.strokeRect(x, y, w, h);
+    ctx.setLineDash([]);
+  }
+
+  if (obj && !fe.selectedObjectIds.includes(obj.id)) {
+    const ref = feAllObjectRefs().find(candidate => candidate.obj === obj);
+    if (ref) {
+      if (!obj.id) obj.id = feMakeObjectId();
+      fe.selectedObjectIds = [obj.id];
+      fe.primaryObjectId = obj.id;
+      feSetActiveObjectRef(ref);
+    }
+  }
+
+  const refs = feGetSelectedRefs();
+  if (!refs.length) return;
+  ctx.save();
+  refs.forEach(ref => {
+    ctx.strokeStyle = 'rgba(74,144,226,0.55)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.strokeRect(ref.obj.x, ref.obj.y, ref.obj.w || 120, ref.obj.h || (ref.obj.fontSize || 18) + 8);
+  });
+  const bounds = feSelectionBounds(refs);
   const pad = 4;
-  const x = obj.x - pad, y = obj.y - pad;
-  const w = (obj.w || 100) + pad * 2;
-  const h = (obj.h || 24)  + pad * 2;
-
-  // Dashed selection border
-  ctx.strokeStyle = 'rgba(74, 144, 226, 0.9)';
-  ctx.lineWidth = 1.5;
-  ctx.setLineDash([5, 3]);
-  ctx.strokeRect(x, y, w, h);
+  ctx.strokeStyle = 'rgba(74,144,226,0.95)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6, 4]);
+  ctx.strokeRect(bounds.x - pad, bounds.y - pad, bounds.w + pad * 2, bounds.h + pad * 2);
   ctx.setLineDash([]);
 
-  // 8 resize handles — filled squares with white centre
-  const handles = feGetHandlePositions(obj);
-  handles.forEach(([hx, hy], i) => {
-    const R = 5;
-    ctx.fillStyle = '#4a90e2';
-    ctx.fillRect(hx - R, hy - R, R * 2, R * 2);
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(hx - R + 2, hy - R + 2, (R - 2) * 2, (R - 2) * 2);
-    ctx.strokeStyle = '#2563c7';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(hx - R, hy - R, R * 2, R * 2);
-  });
+  if (refs.length === 1) {
+    const handles = feGetHandlePositions(refs[0].obj);
+    handles.forEach(([hx, hy]) => {
+      const R = 5;
+      ctx.fillStyle = '#4a90e2';
+      ctx.fillRect(hx - R, hy - R, R * 2, R * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(hx - R + 2, hy - R + 2, (R - 2) * 2, (R - 2) * 2);
+      ctx.strokeStyle = '#2563c7';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(hx - R, hy - R, R * 2, R * 2);
+    });
+  }
+  ctx.restore();
 }
 function feClearSelectionHandles() {
   const cv = document.getElementById('fe-sel-canvas');
@@ -38492,6 +39035,11 @@ function feCloseInlineTextEditor(commit) {
     renderLayerList();
     feDrawSelectionHandles(obj);
     feSyncTextPanel();
+    if (state.historyCaptured) {
+      fe.history.pop();
+      fe.redoHistory = state.redoBefore || [];
+      feUpdateHistoryButtons();
+    }
     return;
   }
 
@@ -38504,8 +39052,7 @@ function feCloseInlineTextEditor(commit) {
     feRenderLayer(state.layerIndex);
   }
   renderLayerList();
-  feClearSelectionHandles();
-  feSyncTextPanel();
+  feRefreshSelectionAfterLayerChange();
 }
 
 function feBeginInlineTextEdit(layerIndex, objectIndex, options = {}) {
@@ -38522,6 +39069,10 @@ function feBeginInlineTextEdit(layerIndex, objectIndex, options = {}) {
   editor.value = obj.text || '';
   editor.addEventListener('pointerdown', event => event.stopPropagation());
   editor.addEventListener('input', () => {
+    if (fe.textEditor && !fe.textEditor.historyCaptured) {
+      feHistoryPush();
+      fe.textEditor.historyCaptured = true;
+    }
     obj.text = editor.value;
     feMeasureTextObject(obj, true);
     layer.name = editor.value.trim() ? 'Text: ' + editor.value.trim().slice(0, 14) : 'Text';
@@ -38546,8 +39097,13 @@ function feBeginInlineTextEdit(layerIndex, objectIndex, options = {}) {
     layerIndex,
     objectIndex,
     isNew: !!options.isNew,
+    historyCaptured: !!options.isNew,
+    redoBefore: fe.redoHistory.slice(),
     originalText: obj.text || ''
   };
+  if (!obj.id) obj.id = feMakeObjectId();
+  fe.selectedObjectIds = [obj.id];
+  fe.primaryObjectId = obj.id;
   fe.activeLayerIdx = layerIndex;
   layer.activeObjIdx = objectIndex;
   feSyncTextPanel();
@@ -38586,7 +39142,81 @@ function feFindTopObjectAt(x, y) {
   return null;
 }
 
+function feTranslateObject(obj, dx, dy) {
+  obj.x += dx;
+  obj.y += dy;
+  if (obj.type === 'shape') {
+    obj.x1 += dx; obj.y1 += dy;
+    obj.x2 += dx; obj.y2 += dy;
+  }
+}
+
+function feRenderObjectRefs(refs) {
+  Array.from(new Set(refs.map(ref => ref.layerIndex))).forEach(feRenderLayer);
+  feDrawSelectionHandles();
+}
+
+function feGetSnappedMoveDelta(bounds, dx, dy, event) {
+  fe.smartGuides = [];
+  if (!fe.snapEnabled || event?.ctrlKey || event?.metaKey) return { dx, dy };
+  const threshold = 10 / Math.max(fe.zoom, 0.2);
+  const selectedIds = new Set(fe.selectedObjectIds);
+  const xTargets = [0, fe.canvasW / 2, fe.canvasW];
+  const yTargets = [0, fe.canvasH / 2, fe.canvasH];
+  feAllObjectRefs(true).forEach(ref => {
+    if (selectedIds.has(ref.obj.id)) return;
+    const width = ref.obj.w || 120;
+    const height = ref.obj.h || (ref.obj.fontSize || 18) + 8;
+    xTargets.push(ref.obj.x, ref.obj.x + width / 2, ref.obj.x + width);
+    yTargets.push(ref.obj.y, ref.obj.y + height / 2, ref.obj.y + height);
+  });
+  if (fe.gridEnabled) {
+    const proposedX = bounds.x + dx;
+    const proposedY = bounds.y + dy;
+    xTargets.push(Math.round(proposedX / fe.gridSize) * fe.gridSize);
+    yTargets.push(Math.round(proposedY / fe.gridSize) * fe.gridSize);
+  }
+
+  const movingX = [bounds.x + dx, bounds.x + bounds.w / 2 + dx, bounds.right + dx];
+  const movingY = [bounds.y + dy, bounds.y + bounds.h / 2 + dy, bounds.bottom + dy];
+  let bestX = null;
+  let bestY = null;
+  xTargets.forEach(target => movingX.forEach(value => {
+    const adjust = target - value;
+    if (Math.abs(adjust) <= threshold && (!bestX || Math.abs(adjust) < Math.abs(bestX.adjust))) {
+      bestX = { adjust, target };
+    }
+  }));
+  yTargets.forEach(target => movingY.forEach(value => {
+    const adjust = target - value;
+    if (Math.abs(adjust) <= threshold && (!bestY || Math.abs(adjust) < Math.abs(bestY.adjust))) {
+      bestY = { adjust, target };
+    }
+  }));
+  if (bestX) { dx += bestX.adjust; fe.smartGuides.push({ axis: 'x', value: bestX.target }); }
+  if (bestY) { dy += bestY.adjust; fe.smartGuides.push({ axis: 'y', value: bestY.target }); }
+  return { dx, dy };
+}
+
+function feToggleSnap() {
+  fe.snapEnabled = !fe.snapEnabled;
+  if (!fe.snapEnabled) fe.smartGuides = [];
+  const button = document.getElementById('fe-snap-toggle');
+  button?.classList.toggle('active', fe.snapEnabled);
+  if (button) button.textContent = fe.snapEnabled ? 'Snap on' : 'Snap off';
+  feDrawSelectionHandles();
+  showToast(`Snapping ${fe.snapEnabled ? 'on' : 'off'}`);
+}
+
+function feToggleGrid() {
+  fe.gridEnabled = !fe.gridEnabled;
+  document.getElementById('fe-grid-toggle')?.classList.toggle('active', fe.gridEnabled);
+  feDrawSelectionHandles();
+}
+
 function feGetSelectedTextRef() {
+  const primary = feAllObjectRefs().find(ref => ref.obj.id === fe.primaryObjectId && ref.obj.type === 'text');
+  if (primary) return primary;
   const layer = fe.layers[fe.activeLayerIdx];
   if (!layer) return null;
   let objectIndex = layer.activeObjIdx;
@@ -38627,6 +39257,13 @@ function feUpdateSelectedText(property, value) {
   const ref = feGetSelectedTextRef();
   if (!ref) return;
   const { obj, layer, layerIndex, objectIndex } = ref;
+  const continuous = ['text', 'fontSize', 'lineHeight', 'letterSpacing', 'color'].includes(property);
+  const now = Date.now();
+  if (!continuous || fe._textHistoryProperty !== property || now - (fe._textHistoryAt || 0) > 700) {
+    feHistoryPush();
+  }
+  fe._textHistoryProperty = property;
+  fe._textHistoryAt = now;
   if (property === 'fontSize') obj.fontSize = Math.max(8, Math.min(240, Number(value) || 24));
   else if (property === 'lineHeight') obj.lineHeight = Math.max(0.8, Math.min(3, Number(value) || 1.25));
   else if (property === 'letterSpacing') obj.letterSpacing = Math.max(-5, Math.min(40, Number(value) || 0));
@@ -38667,6 +39304,9 @@ function feCanvasDoubleClick(e) {
   if (!hit || hit.obj.type !== 'text') return;
   e.preventDefault();
   fe.activeLayerIdx = hit.layerIndex;
+  if (!hit.obj.id) hit.obj.id = feMakeObjectId();
+  fe.selectedObjectIds = [hit.obj.id];
+  fe.primaryObjectId = hit.obj.id;
   fe.layers.forEach((layer, index) => { layer.activeObjIdx = index === hit.layerIndex ? hit.objectIndex : -1; });
   feSetTool('move', document.getElementById('fept-move'));
   renderLayerList();
@@ -38678,16 +39318,19 @@ function feMouseDown(e) {
   const {x, y} = feGetPos(e);
   fe.startX = x; fe.startY = y; fe.lastX = x; fe.lastY = y;
   const layer = fe.layers[fe.activeLayerIdx];
+  let changeAlreadyRecorded = false;
 
   if (fe.tool === 'move') {
-    // ── 1. Check if clicking a resize handle on the currently-selected object ──
-    if (layer.activeObjIdx >= 0) {
-      const selObj = layer.objects[layer.activeObjIdx];
+    // Resize handles are available for a single selected object.
+    const selectedBeforeHit = feGetSelectedRefs();
+    if (selectedBeforeHit.length === 1) {
+      const selectedRef = selectedBeforeHit[0];
+      const selObj = selectedRef.obj;
       const handleIdx = feHitTestHandle(selObj, x, y);
       if (handleIdx >= 0) {
-        // Start resize
-        feHistoryPush();
+        feSetActiveObjectRef(selectedRef);
         fe.resizing     = true;
+        fe.resizeStarted = false;
         fe.resizeHandle = handleIdx;
         fe.resizeOrigX  = selObj.x;
         fe.resizeOrigY  = selObj.y;
@@ -38708,26 +39351,40 @@ function feMouseDown(e) {
       }
     }
 
-    // ── 2. Check if clicking an object to move it ────────────────────────
+    // Shift/Ctrl-click adds to or removes from the current object selection.
     const hit = feFindTopObjectAt(x, y);
     if (hit) {
-      fe.activeLayerIdx = hit.layerIndex;
-      fe.layers.forEach((candidate, index) => {
-        candidate.activeObjIdx = index === hit.layerIndex ? hit.objectIndex : -1;
-      });
-      const obj = hit.obj;
+      if (!hit.obj.id) hit.obj.id = feMakeObjectId();
+      const additive = !!(e.shiftKey || e.ctrlKey || e.metaKey);
+      const current = feGetSelectedRefs();
+      const alreadySelected = fe.selectedObjectIds.includes(hit.obj.id);
+      if (additive && alreadySelected) {
+        feSetSelection(current.filter(ref => ref.obj.id !== hit.obj.id));
+        return;
+      }
+      if (additive) feSetSelection([...current, hit], hit);
+      else if (!alreadySelected) feSetSelection([hit], hit);
+      else feSetActiveObjectRef(hit);
+
+      const selected = feGetSelectedRefs();
       fe.dragging = true;
-      fe.dragOffX = x - obj.x; fe.dragOffY = y - obj.y;
+      fe.dragStarted = false;
+      fe.dragStartObjects = selected.map(ref => ({
+        id: ref.obj.id, x: ref.obj.x, y: ref.obj.y,
+        x1: ref.obj.x1, y1: ref.obj.y1, x2: ref.obj.x2, y2: ref.obj.y2
+      }));
+      fe.selection = feSelectionBounds(selected);
       const canvas = document.getElementById('fe-canvas');
       if (canvas) canvas.style.cursor = 'grabbing';
-      feDrawSelectionHandles(obj);
+      feDrawSelectionHandles();
       renderLayerList();
       feSyncTextPanel();
     } else {
-      fe.layers.forEach(candidate => { candidate.activeObjIdx = -1; });
+      const keepIds = (e.shiftKey || e.ctrlKey || e.metaKey) ? fe.selectedObjectIds.slice() : [];
+      if (!keepIds.length) feClearObjectSelection();
       fe.dragging = false;
-      feClearSelectionHandles();
-      feSyncTextPanel();
+      fe.marquee = { startX: x, startY: y, x, y, keepIds };
+      feDrawSelectionHandles();
     }
     return;
   }
@@ -38768,6 +39425,7 @@ function feMouseDown(e) {
     if (activeLyr && activeLyr.type !== 'drawing' &&
         ['pen','pencil','brush','eraser','fill','marker','ink','chalk','watercolor','stipple'].includes(fe.tool)) {
       feHistoryPush();
+      changeAlreadyRecorded = true;
       const newDraw = feNewLayer('Layer ' + (fe.layers.length + 1), 'drawing');
       // Insert just above the current active layer
       fe.layers.splice(fe.activeLayerIdx + 1, 0, newDraw);
@@ -38789,16 +39447,17 @@ function feMouseDown(e) {
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';
 
   if (['line','rect','rectfill','circle','cfill','arrow'].includes(fe.tool)) {
-    feHistoryPush();
+    if (!changeAlreadyRecorded) feHistoryPush();
     fe.snapData = feGetActiveCtx().getImageData(0, 0, fe.canvasW, fe.canvasH);
   } else if (fe.tool === 'fill') {
-    feHistoryPush();
+    if (!changeAlreadyRecorded) feHistoryPush();
     feFillBucket(ctx, Math.round(x), Math.round(y), fe.color);
     // Fill writes directly to canvas — mark dirty so snapshot captures it
     const _fLayer = fe.layers[fe.activeLayerIdx];
     if (_fLayer && _fLayer.type === 'drawing') _fLayer._canvasDirty = true;
     fe.drawing = false;
   } else {
+    if (!changeAlreadyRecorded) feHistoryPush();
     if (fe.tool === 'eraser') {
       ctx.globalCompositeOperation = 'destination-out';
       ctx.globalAlpha = 1;
@@ -38830,6 +39489,10 @@ function feMouseMove(e) {
     const h   = fe.resizeHandle;
     const dx  = x - fe.startX, dy = y - fe.startY;
     const MIN = 20;   // minimum dimension in canvas px
+    if (!fe.resizeStarted && (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5)) {
+      feHistoryPush();
+      fe.resizeStarted = true;
+    }
 
     // Determine new x/y/w/h based on which handle is dragged
     let nx = fe.resizeOrigX, ny = fe.resizeOrigY;
@@ -38865,19 +39528,38 @@ function feMouseMove(e) {
   }
 
   // ── Move drag ────────────────────────────────────────────────────────
-  if (fe.tool === 'move' && fe.dragging && layer.activeObjIdx >= 0) {
-    fe.dirty = true;
-    const obj = layer.objects[layer.activeObjIdx];
-    obj.x = x - fe.dragOffX; obj.y = y - fe.dragOffY;
-    // For shape objects, keep x1/y1/x2/y2 in sync
-    if (obj.type === 'shape') {
-      const ow = obj.w || (obj.x2 - obj.x1) || 0;
-      const oh = obj.h || (obj.y2 - obj.y1) || 0;
-      obj.x1 = obj.x; obj.y1 = obj.y; obj.x2 = obj.x + ow; obj.y2 = obj.y + oh;
+  if (fe.tool === 'move' && fe.dragging && fe.dragStartObjects.length) {
+    let dx = x - fe.startX;
+    let dy = y - fe.startY;
+    if (!fe.dragStarted && Math.abs(dx) <= 0.5 && Math.abs(dy) <= 0.5) return;
+    if (!fe.dragStarted && (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5)) {
+      feHistoryPush();
+      fe.dragStarted = true;
     }
-    feRenderLayer(fe.activeLayerIdx);
-    feDrawSelectionHandles(obj);
+    const snapped = feGetSnappedMoveDelta(fe.selection, dx, dy, e);
+    dx = snapped.dx; dy = snapped.dy;
+    const startById = new Map(fe.dragStartObjects.map(item => [item.id, item]));
+    const refs = feGetSelectedRefs();
+    refs.forEach(ref => {
+      const start = startById.get(ref.obj.id);
+      if (!start) return;
+      ref.obj.x = start.x + dx;
+      ref.obj.y = start.y + dy;
+      if (ref.obj.type === 'shape') {
+        ref.obj.x1 = start.x1 + dx; ref.obj.y1 = start.y1 + dy;
+        ref.obj.x2 = start.x2 + dx; ref.obj.y2 = start.y2 + dy;
+      }
+    });
+    fe.dirty = fe.dirty || fe.dragStarted;
+    feRenderObjectRefs(refs);
     fe.lastX = x; fe.lastY = y;
+    return;
+  }
+
+  if (fe.tool === 'move' && fe.marquee) {
+    fe.marquee.x = x;
+    fe.marquee.y = y;
+    feDrawSelectionHandles();
     return;
   }
 
@@ -38885,7 +39567,8 @@ function feMouseMove(e) {
   if (fe.tool === 'move' && !fe.dragging && !fe.resizing) {
     const cv = document.getElementById('fe-canvas');
     if (cv) {
-      const selObj = layer?.activeObjIdx >= 0 ? layer.objects[layer.activeObjIdx] : null;
+      const selected = feGetSelectedRefs();
+      const selObj = selected.length === 1 ? selected[0].obj : null;
       const hi = selObj ? feHitTestHandle(selObj, x, y) : -1;
       const hover = feFindTopObjectAt(x, y);
       cv.style.cursor = hi >= 0 ? FE_HANDLE_CURSORS[hi] : hover ? 'grab' : 'default';
@@ -38921,19 +39604,38 @@ function feMouseUp(e) {
     fe.resizeHandle = -1;
     const cv = document.getElementById('fe-canvas');
     if (cv) cv.style.cursor = 'move';
-    feSnapshotAllLayers();
-    feHistoryPush();
+    fe.smartGuides = [];
+    fe.resizeStarted = false;
     const layer2 = fe.layers[fe.activeLayerIdx];
-    if (layer2 && layer2.activeObjIdx >= 0) feDrawSelectionHandles(layer2.objects[layer2.activeObjIdx]);
+    if (layer2 && layer2.activeObjIdx >= 0) feDrawSelectionHandles();
     return;
   }
 
   // Commit move
   if (fe.dragging) {
     fe.dragging = false;
+    fe.dragStartObjects = [];
+    fe.dragStarted = false;
+    fe.smartGuides = [];
     const cv = document.getElementById('fe-canvas');
     if (cv) cv.style.cursor = 'grab';
-    feHistoryPush();
+    feDrawSelectionHandles();
+    return;
+  }
+  if (fe.marquee) {
+    const marquee = fe.marquee;
+    const left = Math.min(marquee.startX, marquee.x);
+    const top = Math.min(marquee.startY, marquee.y);
+    const right = Math.max(marquee.startX, marquee.x);
+    const bottom = Math.max(marquee.startY, marquee.y);
+    const hits = feAllObjectRefs(true).filter(ref => {
+      const objectRight = ref.obj.x + (ref.obj.w || 120);
+      const objectBottom = ref.obj.y + (ref.obj.h || (ref.obj.fontSize || 18) + 8);
+      return objectRight >= left && ref.obj.x <= right && objectBottom >= top && ref.obj.y <= bottom;
+    });
+    const kept = feAllObjectRefs(true).filter(ref => marquee.keepIds.includes(ref.obj.id));
+    fe.marquee = null;
+    feSetSelection([...kept, ...hits], hits[hits.length - 1] || kept[kept.length - 1]);
     return;
   }
   if (!fe.drawing) return;
@@ -38949,7 +39651,6 @@ function feMouseUp(e) {
 
     const {x, y} = e ? feGetPos(e) : {x: fe.lastX, y: fe.lastY};
     if (Math.abs(x - fe.startX) > 2 || Math.abs(y - fe.startY) > 2) {
-      feHistoryPush();
       const shapeLayer = feNewLayer(fe.tool.charAt(0).toUpperCase() + fe.tool.slice(1), 'shape');
       shapeLayer.objects.push({
         type: 'shape', shapeType: fe.tool,
@@ -38961,8 +39662,14 @@ function feMouseUp(e) {
       });
       fe.layers.push(shapeLayer);
       fe.activeLayerIdx = fe.layers.length - 1;
+      const shapeObject = shapeLayer.objects[0];
+      shapeObject.id = feMakeObjectId();
+      fe.selectedObjectIds = [shapeObject.id];
+      fe.primaryObjectId = shapeObject.id;
+      shapeLayer.activeObjIdx = 0;
       feRebuildLayerCanvases();
       renderLayerList();
+      feDrawSelectionHandles();
     }
     return;
   }
@@ -38975,7 +39682,6 @@ function feMouseUp(e) {
   if (_dLayer && _dLayer.type === 'drawing') _dLayer._canvasDirty = true;
   // Snapshot pen/brush stroke into layer.imageData so it survives layer rebuilds
   feSnapshotAllLayers();
-  feHistoryPush();
   updateLayerThumb(fe.activeLayerIdx);
 }
 
@@ -39006,7 +39712,7 @@ function fePointerUp(e) {
 // Global mouse handlers — active only during a stroke (see feMouseDown).
 // They let drawing continue when the cursor exits the canvas area.
 function feDocMouseMove(e) {
-  if (!fe.drawing && !fe.dragging && !fe.resizing) return;
+  if (!fe.drawing && !fe.dragging && !fe.resizing && !fe.marquee) return;
   feMouseMove(e);
 }
 
@@ -39548,29 +40254,233 @@ function feUpdateZoom(z) {
 }
 
 // ─── History ─────────────────────────────────────────────────
+function feCaptureState() {
+  feSnapshotAllLayers();
+  feEnsureObjectIds();
+  return {
+    layers: fe.layers.map(layer => ({
+      name: layer.name,
+      type: layer.type,
+      visible: layer.visible,
+      opacity: layer.opacity !== undefined ? layer.opacity : 1,
+      objects: (layer.objects || []).map(object => ({ ...object, _img: undefined })),
+      imageData: layer.type === 'drawing' ? layer.imageData : null
+    })),
+    selectedObjectIds: fe.selectedObjectIds.slice(),
+    primaryObjectId: fe.primaryObjectId,
+    activeLayerIdx: fe.activeLayerIdx
+  };
+}
+
+function feRestoreState(snapshot) {
+  if (!snapshot) return;
+  fe.layers = snapshot.layers.map(layer => ({
+    ...layer,
+    objects: (layer.objects || []).map(object => ({ ...object })),
+    activeObjIdx: -1
+  }));
+  if (!fe.layers.length) fe.layers.push(feNewLayer('Layer 1', 'drawing'));
+  feEnsureObjectIds();
+  fe.selectedObjectIds = (snapshot.selectedObjectIds || []).filter(id =>
+    feAllObjectRefs().some(ref => ref.obj.id === id));
+  fe.primaryObjectId = fe.selectedObjectIds.includes(snapshot.primaryObjectId)
+    ? snapshot.primaryObjectId
+    : fe.selectedObjectIds[fe.selectedObjectIds.length - 1] || null;
+  fe.activeLayerIdx = Math.max(0, Math.min(snapshot.activeLayerIdx || 0, fe.layers.length - 1));
+  const primary = feAllObjectRefs().find(ref => ref.obj.id === fe.primaryObjectId);
+  feSetActiveObjectRef(primary || null);
+  feRebuildLayerCanvases(true);
+  renderLayerList();
+  feSyncTextPanel();
+  requestAnimationFrame(() => feDrawSelectionHandles());
+  fe.dirty = true;
+  feUpdateHistoryButtons();
+}
+
 function feHistoryPush() {
   fe.dirty = true;
-  // Snapshot canvas pixels for drawing layers, preserve object arrays for others.
-  // Non-drawing layers (image/text/shape) store truth in .objects — rasterizing
-  // them to imageData causes ghost copies when feRenderLayer later renders both.
-  feSnapshotAllLayers();  // ensure .imageData is up-to-date for drawing layers
-  const snapshot = fe.layers.map(l => ({
-    name: l.name, type: l.type, visible: l.visible,
-    objects: l.objects.map(o => ({...o, _img: undefined})),
-    imageData: l.type === 'drawing' ? l.imageData : null
-  }));
-  fe.history.push(snapshot);
+  fe.history.push(feCaptureState());
   if (fe.history.length > fe.historyMax) fe.history.shift();
+  fe.redoHistory = [];
+  feUpdateHistoryButtons();
 }
 
 function feUndo() {
   if (!fe.history.length) return;
-  const snapshot = fe.history.pop();
-  fe.layers = snapshot.map(l => ({...l, objects: l.objects.map(o => ({...o})), activeObjIdx: -1}));
-  fe.activeLayerIdx = Math.min(fe.activeLayerIdx, fe.layers.length - 1);
+  fe.redoHistory.push(feCaptureState());
+  feRestoreState(fe.history.pop());
+}
+
+function feRedo() {
+  if (!fe.redoHistory.length) return;
+  fe.history.push(feCaptureState());
+  feRestoreState(fe.redoHistory.pop());
+}
+
+function feUpdateHistoryButtons() {
+  const undo = document.getElementById('fe-undo-btn');
+  const redo = document.getElementById('fe-redo-btn');
+  if (undo) undo.disabled = !fe.history.length;
+  if (redo) redo.disabled = !fe.redoHistory.length;
+}
+
+function feAlignSelection(mode) {
+  const refs = feGetSelectedRefs();
+  if (!refs.length) return showToast('Select one or more objects first');
+  const bounds = refs.length === 1
+    ? { x: 0, y: 0, w: fe.canvasW, h: fe.canvasH, right: fe.canvasW, bottom: fe.canvasH }
+    : feSelectionBounds(refs);
+  feHistoryPush();
+  refs.forEach(ref => {
+    const width = ref.obj.w || 120;
+    const height = ref.obj.h || (ref.obj.fontSize || 18) + 8;
+    let nextX = ref.obj.x;
+    let nextY = ref.obj.y;
+    if (mode === 'left') nextX = bounds.x;
+    if (mode === 'hcenter') nextX = bounds.x + (bounds.w - width) / 2;
+    if (mode === 'right') nextX = bounds.right - width;
+    if (mode === 'top') nextY = bounds.y;
+    if (mode === 'vcenter') nextY = bounds.y + (bounds.h - height) / 2;
+    if (mode === 'bottom') nextY = bounds.bottom - height;
+    feTranslateObject(ref.obj, nextX - ref.obj.x, nextY - ref.obj.y);
+  });
+  feRenderObjectRefs(refs);
+  showToast(`Objects aligned ${mode.replace('hcenter', 'centre').replace('vcenter', 'middle')}`);
+}
+
+function feDistributeSelection(axis) {
+  const refs = feGetSelectedRefs();
+  if (refs.length < 3) return showToast('Select at least three objects to distribute');
+  const horizontal = axis === 'horizontal';
+  const sorted = refs.slice().sort((a, b) => horizontal ? a.obj.x - b.obj.x : a.obj.y - b.obj.y);
+  const bounds = feSelectionBounds(sorted);
+  const totalSize = sorted.reduce((sum, ref) => sum + (horizontal
+    ? (ref.obj.w || 120)
+    : (ref.obj.h || (ref.obj.fontSize || 18) + 8)), 0);
+  const available = horizontal ? bounds.w : bounds.h;
+  const gap = (available - totalSize) / (sorted.length - 1);
+  let cursor = horizontal ? bounds.x : bounds.y;
+  feHistoryPush();
+  sorted.forEach(ref => {
+    const current = horizontal ? ref.obj.x : ref.obj.y;
+    feTranslateObject(ref.obj, horizontal ? cursor - current : 0, horizontal ? 0 : cursor - current);
+    cursor += (horizontal ? (ref.obj.w || 120) : (ref.obj.h || (ref.obj.fontSize || 18) + 8)) + gap;
+  });
+  feRenderObjectRefs(refs);
+  showToast(`Objects distributed ${axis === 'horizontal' ? 'horizontally' : 'vertically'}`);
+}
+
+function feSelectAllObjects() {
+  const refs = feAllObjectRefs(true);
+  if (!refs.length) return showToast('No objects to select');
+  feSetSelection(refs, refs[refs.length - 1]);
+}
+
+function feCopySelectedObjects() {
+  const refs = feGetSelectedRefs();
+  if (!refs.length) return showToast('Select one or more objects first');
+  const bounds = feSelectionBounds(refs);
+  fe.clipboard = refs.map(ref => ({
+    layerName: ref.layer.name,
+    layerType: ref.layer.type,
+    layerOpacity: ref.layer.opacity,
+    object: JSON.parse(JSON.stringify({ ...ref.obj, _img: undefined })),
+    offsetX: ref.obj.x - bounds.x,
+    offsetY: ref.obj.y - bounds.y
+  }));
+  showToast(`${refs.length} object${refs.length === 1 ? '' : 's'} copied`);
+}
+
+function fePasteObjects() {
+  if (!fe.clipboard.length) return showToast('No copied objects to paste');
+  feHistoryPush();
+  const pasted = [];
+  fe.clipboard.forEach(item => {
+    const layer = feNewLayer(`${item.layerName || 'Object'} copy`, item.layerType || 'shape');
+    layer.opacity = item.layerOpacity !== undefined ? item.layerOpacity : 1;
+    const object = JSON.parse(JSON.stringify(item.object));
+    object.id = feMakeObjectId();
+    feTranslateObject(object, 24, 24);
+    layer.objects.push(object);
+    fe.layers.push(layer);
+    pasted.push({ layer, layerIndex: fe.layers.length - 1, objectIndex: 0, obj: object });
+  });
+  fe.activeLayerIdx = fe.layers.length - 1;
+  feRebuildLayerCanvases();
+  feSetSelection(pasted, pasted[pasted.length - 1]);
+  showToast(`${pasted.length} object${pasted.length === 1 ? '' : 's'} pasted`);
+}
+
+function feDuplicateSelectedObjects() {
+  if (!feGetSelectedRefs().length) return showToast('Select one or more objects first');
+  feCopySelectedObjects();
+  fePasteObjects();
+}
+
+function feDeleteSelectedObjects() {
+  const refs = feGetSelectedRefs();
+  if (!refs.length) return showToast('Select one or more objects first');
+  feHistoryPush();
+  const ids = new Set(refs.map(ref => ref.obj.id));
+  fe.layers.forEach(layer => {
+    layer.objects = (layer.objects || []).filter(object => !ids.has(object.id));
+    layer.activeObjIdx = -1;
+  });
+  for (let index = fe.layers.length - 1; index >= 0; index--) {
+    const layer = fe.layers[index];
+    if (layer.type !== 'drawing' && !layer.objects.length && fe.layers.length > 1) fe.layers.splice(index, 1);
+  }
+  if (!fe.layers.length) fe.layers.push(feNewLayer('Layer 1', 'drawing'));
+  fe.activeLayerIdx = Math.max(0, Math.min(fe.activeLayerIdx, fe.layers.length - 1));
+  feClearObjectSelection();
   feRebuildLayerCanvases();
   renderLayerList();
-  fe.dirty = true;
+  showToast(`${refs.length} object${refs.length === 1 ? '' : 's'} deleted`);
+}
+
+function feNudgeSelection(dx, dy) {
+  const refs = feGetSelectedRefs();
+  if (!refs.length) return false;
+  feHistoryPush();
+  refs.forEach(ref => feTranslateObject(ref.obj, dx, dy));
+  feRenderObjectRefs(refs);
+  return true;
+}
+
+function feHandleKeyboardShortcut(event) {
+  const modal = document.getElementById('frame-editor-modal');
+  if (!modal || modal.style.display === 'none') return false;
+  const target = event.target;
+  const isField = target?.matches?.('input,textarea,select,[contenteditable="true"]');
+  const modifier = event.ctrlKey || event.metaKey;
+  const key = String(event.key || '').toLowerCase();
+
+  if (isField) return true;
+
+  if (modifier && key === 'z' && !event.shiftKey) {
+    event.preventDefault(); feUndo(); return true;
+  }
+  if ((modifier && key === 'y') || (modifier && event.shiftKey && key === 'z')) {
+    event.preventDefault(); feRedo(); return true;
+  }
+  if (modifier && key === 'a') { event.preventDefault(); feSelectAllObjects(); return true; }
+  if (modifier && key === 'c') { event.preventDefault(); feCopySelectedObjects(); return true; }
+  if (modifier && key === 'x') { event.preventDefault(); feCopySelectedObjects(); feDeleteSelectedObjects(); return true; }
+  if (modifier && key === 'v') { event.preventDefault(); fePasteObjects(); return true; }
+  if (modifier && key === 'd') { event.preventDefault(); feDuplicateSelectedObjects(); return true; }
+  if (key === 'delete' || key === 'backspace') { event.preventDefault(); feDeleteSelectedObjects(); return true; }
+  if (key.startsWith('arrow')) {
+    const amount = event.shiftKey ? 10 : 1;
+    const delta = {
+      arrowleft: [-amount, 0], arrowright: [amount, 0],
+      arrowup: [0, -amount], arrowdown: [0, amount]
+    }[key];
+    if (delta && feNudgeSelection(delta[0], delta[1])) { event.preventDefault(); return true; }
+  }
+  if (key === 'escape' && fe.selectedObjectIds.length) {
+    event.preventDefault(); feClearObjectSelection(); return true;
+  }
+  return false;
 }
 
 // ─── Upload image → new image layer ──────────────────────────
@@ -39613,7 +40523,8 @@ function clearEditorCanvas() {
   layer.objects = []; layer.imageData = null; layer.activeObjIdx = -1;
   const lc = document.getElementById('fe-layer-canvas-' + fe.activeLayerIdx);
   if (lc) lc.getContext('2d').clearRect(0, 0, lc.width, lc.height);
-  feClearSelectionHandles();
+  feClearObjectSelection();
+  renderLayerList();
 }
 
 // ─── Layer management ─────────────────────────────────────────
@@ -39622,6 +40533,8 @@ function feSelectLayer(i) {
   fe.resizing = false; fe.resizeHandle = -1; fe.dragging = false;
   const cv = document.getElementById('fe-canvas');
   if (cv) cv.style.cursor = fe.tool === 'move' ? 'default' : 'crosshair';
+  fe.selectedObjectIds = [];
+  fe.primaryObjectId = null;
   feClearSelectionHandles();
   // Sync layer opacity slider
   const layer  = fe.layers[i];
@@ -39630,7 +40543,11 @@ function feSelectLayer(i) {
   });
   if (layer?.objects?.length) {
     layer.activeObjIdx = Math.max(0, layer.objects.length - 1);
-    feDrawSelectionHandles(layer.objects[layer.activeObjIdx]);
+    const object = layer.objects[layer.activeObjIdx];
+    if (!object.id) object.id = feMakeObjectId();
+    fe.selectedObjectIds = [object.id];
+    fe.primaryObjectId = object.id;
+    feDrawSelectionHandles();
   } else if (layer) {
     layer.activeObjIdx = -1;
   }
@@ -39645,11 +40562,13 @@ function feSelectLayer(i) {
 
 function feToggleLayerVis(i, e) {
   if (e && e.stopPropagation) e.stopPropagation();
+  feHistoryPush();
   fe.layers[i].visible = !fe.layers[i].visible;
   fe.dirty = true;
   const lc = document.getElementById('fe-layer-canvas-' + i);
   if (lc) lc.style.display = fe.layers[i].visible ? 'block' : 'none';
   renderLayerList();
+  feDrawSelectionHandles();
 }
 
 function feAddLayer() {
@@ -39669,6 +40588,7 @@ function feDeleteLayer(i, e) {
   fe.activeLayerIdx = Math.max(0, Math.min(fe.activeLayerIdx, fe.layers.length - 1));
   feRebuildLayerCanvases();
   renderLayerList();
+  feRefreshSelectionAfterLayerChange();
 }
 
 // Delete whichever layer is currently selected (called from PS-style trash button)
@@ -39681,7 +40601,7 @@ function feDeleteActiveLayer() {
   fe.activeLayerIdx = Math.max(0, Math.min(i, fe.layers.length - 1));
   feRebuildLayerCanvases();
   renderLayerList();
-  feClearSelectionHandles();
+  feRefreshSelectionAfterLayerChange();
   showToast('Layer deleted');
 }
 
@@ -39738,6 +40658,7 @@ function feLayerMoveUpByIdx(i) {
   }
 
   renderLayerList();
+  feRefreshSelectionAfterLayerChange();
   showToast('Layer moved forward');
 }
 
@@ -39768,6 +40689,7 @@ function feLayerMoveDownByIdx(i) {
   }
 
   renderLayerList();
+  feRefreshSelectionAfterLayerChange();
   showToast('Layer moved backward');
 }
 
@@ -39795,9 +40717,11 @@ function saveFrameEditor() {
 
   const board = sb.boards.find(b => b.id === fe.boardId);
   if (board && board.frames[fe.idx]) {
+    if (fe.dirty) sbHistoryPush();
     board.frames[fe.idx].imageData = flat.toDataURL('image/png');
     board.frames[fe.idx].layers = fe.layers.map(l => ({
       name: l.name, type: l.type, visible: l.visible,
+      opacity: l.opacity !== undefined ? l.opacity : 1,
       objects: l.objects.map(o => ({...o, _img: undefined})),
       imageData: l.imageData
     }));
@@ -39836,7 +40760,9 @@ function closeFrameEditor(force) {
   if (fe.textEditor) feCloseInlineTextEditor(false);
   const modal = document.getElementById('frame-editor-modal');
   if (modal) modal.style.display = 'none';
-  fe.layers = []; fe.history = []; fe.dirty = false;
+  fe.layers = []; fe.history = []; fe.redoHistory = [];
+  fe.selectedObjectIds = []; fe.primaryObjectId = null;
+  fe.dirty = false;
 }
 
 // ─── Layer list UI ────────────────────────────────────────────
@@ -40597,6 +41523,7 @@ function confirmDeleteStoryboard(boardId) {
 function deleteStoryboardBoard(boardId) {
   const board = sb.boards.find(b => String(b.id) === String(boardId));
   if (!board) return;
+  sbHistoryPush();
   const resolvedId = board.id;
   sb.boards = sb.boards.filter(b => b.id !== resolvedId);
   if (sb.activeBoardId === resolvedId) {
@@ -42068,7 +42995,7 @@ function sendEmergencyRecovery() {
 }
 
 window.addEventListener('beforeunload', event => {
-  if (window._SF_NATIVE_TITLEBAR_OVERLAY && desktopCloseApproved) {
+  if (window._SF_NATIVE_TITLEBAR && desktopCloseApproved) {
     return;
   }
   if (getUnsavedTabs().some(tabHasAuthoredContent)) {

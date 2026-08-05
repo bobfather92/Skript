@@ -56,7 +56,7 @@ assert.ok(html.includes('max-width: 100vw;'), 'Desktop titlebar must never exten
 assert.ok(html.includes('html.sf-native-titlebar #desktop-titlebar'), 'Native titlebar mode must suppress the duplicate HTML titlebar');
 assert.ok(html.includes('id="desktop-close-modal"'), 'Desktop shell must provide its own save-before-close dialog');
 assert.ok(
-  html.includes("if (window._SF_NATIVE_TITLEBAR_OVERLAY && desktopCloseApproved)"),
+  html.includes("if (window._SF_NATIVE_TITLEBAR && desktopCloseApproved)"),
   'An approved Skript close must bypass the browser beforeunload dialog'
 );
 assert.ok(html.includes('--amber: var(--brand-purple)'), 'Interface accent labels must use Skript purple');
@@ -103,6 +103,15 @@ for (const feature of [
   'function sbGoToPage(delta)',
   "page.className = 'sb-page'",
   "event.stopPropagation();switchToBoard",
+  'function sbDuplicateSelectedFrames()',
+  'function sbMoveSelectedFrames(direction)',
+  'function sbUndo()',
+  'function sbRedo()',
+  'function feSetSelection(refs, primaryRef)',
+  'function feGetSnappedMoveDelta(bounds, dx, dy, event)',
+  'function feAlignSelection(mode)',
+  'function feDistributeSelection(axis)',
+  'function feRedo()',
 ]) {
   assert.ok(html.includes(feature), `Missing workflow feature: ${feature}`);
 }

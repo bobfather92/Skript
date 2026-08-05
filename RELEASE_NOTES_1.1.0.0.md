@@ -26,6 +26,12 @@ This is the first local development package on the road to Skript 1.1. It is int
 - Use Edge's genuine Windows titlebar exclusively, removing the separate foreground titlebar overlay and the duplicate in-page titlebar.
 - Enter the reduced-memory performance profile when Windows reports severe memory pressure, even on a computer with otherwise capable hardware.
 - Clear the Recent Projects history from either the welcome screen or Recent Projects window without deleting saved project files.
+- Select several storyboard cards or frame-editor objects using Shift-click, Ctrl-click, Select All, or a drag-selection box.
+- Snap storyboard objects to the canvas, other object edges and centres, with live smart guides and an optional visible grid.
+- Align selected objects to the left, centre, right, top, middle or bottom, and distribute three or more objects evenly.
+- Undo and redo drawing, object, layer, arranging and storyboard-card changes with toolbar buttons or standard keyboard shortcuts.
+- Copy, paste, duplicate, delete and drag-reorder storyboard cards while keeping captions, artwork and scene/shot links together.
+- Copy, paste, duplicate, delete and keyboard-nudge selected frame-editor objects as one group.
 - Open all valid selected scripts even when another selected file is invalid.
 - Open the initial `com.skript.project-collection` format containing multiple script documents.
 - Access **Import Scripts…** directly from the Navigator's Add Document menu.
@@ -51,7 +57,7 @@ Python and the supported PDF, OCR and Word engines are included in the Windows d
 
 - 12 JavaScript regression suites passed.
 - 9 Python regression suites passed.
-- Complete browser workflow: 107 passed, 11 intentionally skipped, 0 failed across desktop and compact-touch configurations.
+- Complete browser workflow: 111 passed, 11 intentionally skipped, 0 failed across desktop and compact-touch configurations, including dedicated storyboard arrangement and history coverage.
 - Packaged Windows title-bar smoke test passed for hold-drag movement and visible-frame alignment.
 - Python compilation and embedded HTML syntax checks passed.
 

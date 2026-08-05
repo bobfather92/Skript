@@ -37,13 +37,13 @@ The first two stages begin in the initial 1.1 development increment. The existin
 
 ## 2. Storyboard Editor tools
 
-The first Storyboard Editor expansion should focus on high-value editing work:
+The first Storyboard Editor expansion focuses on high-value editing work. The first five priority groups are now implemented and under browser regression coverage:
 
-- multi-select cards and objects;
-- duplicate, copy, paste and delete;
-- undo and redo;
-- drag-to-reorder scenes and shots;
-- alignment, distribution, snap-to-grid and guides;
+- multi-select cards and objects — implemented;
+- duplicate, copy, paste and delete — implemented;
+- undo and redo — implemented for frame editing and storyboard card management;
+- drag-to-reorder storyboard cards while retaining scene and shot links — implemented;
+- alignment, distribution, snap-to-grid and smart guides — implemented;
 - zoom-to-fit and a compact overview;
 - editable shot labels, captions, duration and status;
 - bulk linking from script scenes;
