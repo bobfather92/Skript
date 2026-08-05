@@ -25036,7 +25036,7 @@ var __async = (__this, __arguments, generator) => {
   .sb-color-swatch:hover { transform: scale(1.15); }
   .sb-color-swatch.active { box-shadow: 0 0 0 2px #5b9bd5; }
   .sb-stroke-btn { font-size: 10px; font-weight: 600; padding: 0 6px; }
-  .sb-caption { width: 100%; border: none; border-top: 1px solid #e0e0e0; background: white; font-family: 'Courier Prime', monospace; font-size: 11px; color: #333; padding: 6px 8px; resize: none; min-height: 40px; outline: none; }
+  .sb-caption { width: 100%; border: none; border-top: 1px solid #e0e0e0; background: white; font-family: 'Courier Prime', monospace; font-size: 11px; line-height:1.45; color: #333; padding: 8px; resize: vertical; min-height: 68px; outline: none; }
   .sb-upload-btn { font-size: 10px; padding: 0 8px; color: #555; letter-spacing: 0.3px; }
   .sb-size-indicator { font-size: 9px; color: #aaa; margin-left: auto; font-family: 'Inter', sans-serif; }
 
@@ -25081,6 +25081,8 @@ var __async = (__this, __arguments, generator) => {
   .sb-storyboard-scene-name { min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
   .sb-storyboard-scene-count { color:var(--text-3);font-size:8px; }
   .storyboard-ribbon-group { display:none; }
+  body:not(.storyboard-workspace-active) .storyboard-workspace-tab,
+  body:not(.storyboard-workspace-active) .storyboard-workspace-panel { display:none!important; }
   body.storyboard-workspace-active #elements-rg,
   body.storyboard-workspace-active #acts-rg,
   body.storyboard-workspace-active #touch-elements-rg,
@@ -25099,6 +25101,8 @@ var __async = (__this, __arguments, generator) => {
   body.storyboard-workspace-active .ribbon-panel[data-panel="export"],
   body.storyboard-workspace-active #workspace-mode-switch { display:none!important; }
   body.storyboard-workspace-active .storyboard-ribbon-group { display:flex; }
+  body.storyboard-workspace-active .storyboard-workspace-tab { display:flex!important; }
+  body.storyboard-workspace-active .storyboard-workspace-panel.active { display:flex!important; }
   body.storyboard-workspace-active #sb-toolbar { display:none!important; }
   .storyboard-ribbon-group .rel-btn { min-width:104px; }
   .storyboard-ribbon-group .rel-btn:disabled,
@@ -30934,7 +30938,7 @@ button.primary:hover,
 .sb-studio-grid.list .sb-canvas-wrap { grid-row:1/3; }
 .sb-studio-grid.list .sb-frame-metadata { align-content:center; }
 .sb-studio-grid.list .sb-frame-link-summary { border-bottom:0; }
-.sb-studio-grid.list .sb-caption { grid-column:2; min-height:38px; }
+.sb-studio-grid.list .sb-caption { grid-column:2; min-height:76px; }
 .sb-studio-empty { min-height:180px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:7px; border:1px dashed var(--border2); border-radius:8px; color:var(--text-3); text-align:center; }
 .sb-studio-empty strong { color:var(--text-2); }
 .sb-studio-inspector { position:relative; width:var(--sb-inspector-width,330px); min-width:0; display:flex; flex-direction:column; border-left:1px solid var(--border); background:var(--surface); overflow:hidden; }
@@ -30954,6 +30958,7 @@ button.primary:hover,
 .sb-inspector-fields label { display:grid; gap:4px; min-width:0; color:var(--text-3); font-size:9px; }
 .sb-inspector-fields input,.sb-inspector-fields select,.sb-inspector-fields textarea { width:100%; min-width:0; box-sizing:border-box; border:1px solid var(--border2); border-radius:5px; background:var(--surface2); color:var(--text); padding:6px 7px; font-size:10px; }
 .sb-inspector-fields textarea { min-height:57px; resize:vertical; }
+.sb-inspector-fields textarea.sb-inspector-primary-note { min-height:104px; line-height:1.5; }
 .sb-inspector-help { color:var(--text-3); font-size:9px; line-height:1.55; }
 .sb-inspector-action { width:100%; min-height:31px; border:1px solid var(--border2); border-radius:5px; background:var(--surface2); color:var(--text-2); cursor:pointer; font-size:10px; }
 .sb-studio-dock { height:218px; flex:0 0 auto; border-top:1px solid var(--border); background:var(--surface); overflow:hidden; transition:height .16s ease; }
@@ -31075,6 +31080,7 @@ body #sb-toolbar > * { flex:0 0 auto; }
 <div id="ribbon">
   <div id="ribbon-tabs">
     <div class="ribbon-tab active" data-panel="home"       onclick="switchRibbonTab('home')">Home</div>
+    <div class="ribbon-tab storyboard-workspace-tab" data-panel="storyboard-tools" onclick="switchRibbonTab('storyboard-tools')">Tools</div>
     <div class="ribbon-tab touch-only" data-panel="edit"   onclick="switchRibbonTab('edit')">Edit</div>
       <div class="ribbon-tab workspace-production" data-panel="production" onclick="switchRibbonTab('production')">Production</div>
       <div class="ribbon-tab workspace-production" data-panel="studio"     onclick="switchRibbonTab('studio')">Studio</div>
@@ -31168,24 +31174,6 @@ body #sb-toolbar > * { flex:0 0 auto; }
         </div>
         <div class="rg-label">History</div>
       </div>
-      <div class="rg storyboard-ribbon-group" id="storyboard-board-rg">
-        <div class="rg-inner" style="gap:2px;">
-          <div class="rb-col">
-            <button class="rel-btn" onclick="newStoryboard()"><span class="rel-dot" style="background:#6f5bf5;"></span><span>New Storyboard</span></button>
-            <button class="rel-btn" onclick="openStoryboardSettings()"><span class="rel-dot" style="background:#d4a843;"></span><span>Board Settings</span></button>
-            <button class="rel-btn" onclick="duplicateStoryboardBoard()"><span class="rel-dot" style="background:#5b9bd5;"></span><span>Duplicate Board</span></button>
-          </div>
-          <div class="rb-col">
-            <button class="rel-btn" onclick="linkStoryboardToShotList()"><span class="rel-dot" style="background:#3ba38a;"></span><span>Link Shots</span></button>
-            <button class="rel-btn" onclick="openStoryboardAnimatic()"><span class="rel-dot" style="background:#b09fd4;"></span><span>Animatic</span></button>
-            <button class="rel-btn" onclick="exportStoryboardPDF()"><span class="rel-dot" style="background:#d4834a;"></span><span>Export PDF</span></button>
-          </div>
-          <div class="rb-col">
-            <button class="rel-btn sb-ribbon-danger" onclick="confirmDeleteStoryboard(sb.activeBoardId)"><span class="rel-dot" style="background:#d95f5f;"></span><span>Delete Board</span></button>
-          </div>
-        </div>
-        <div class="rg-label">Board</div>
-      </div>
       <div style="flex:1;"></div>
 
       <div class="rg" style="border-right:none;border-left:none;">
@@ -31197,6 +31185,22 @@ body #sb-toolbar > * { flex:0 0 auto; }
         <div class="rg-label">Settings</div>
       </div>
     </div><!-- /home panel -->
+
+    <!-- STORYBOARD TOOLS panel -->
+    <div class="ribbon-panel storyboard-workspace-panel" data-panel="storyboard-tools">
+      <div class="rg" id="storyboard-board-rg">
+        <div class="rg-inner">
+          <button class="rb rb-tall" onclick="newStoryboard()"><span class="rb-icon">➕</span><span class="rb-label">New Board</span></button>
+          <button class="rb rb-tall" onclick="openStoryboardSettings()"><span class="rb-icon">⚙️</span><span class="rb-label">Board Settings</span></button>
+          <button class="rb rb-tall" onclick="duplicateStoryboardBoard()"><span class="rb-icon">⧉</span><span class="rb-label">Duplicate Board</span></button>
+          <button class="rb rb-tall" onclick="linkStoryboardToShotList()"><span class="rb-icon">🔗</span><span class="rb-label">Link Shots</span></button>
+          <button class="rb rb-tall" onclick="openStoryboardAnimatic()"><span class="rb-icon">▶️</span><span class="rb-label">Animatic</span></button>
+          <button class="rb rb-tall" onclick="exportStoryboardPDF()"><span class="rb-icon">📄</span><span class="rb-label">Export PDF</span></button>
+          <button class="rb rb-tall danger" onclick="confirmDeleteStoryboard(sb.activeBoardId)"><span class="rb-icon">🗑️</span><span class="rb-label">Delete Storyboard</span></button>
+        </div>
+        <div class="rg-label">Board</div>
+      </div>
+    </div><!-- /storyboard tools panel -->
 
     <!-- Touch-only editing panel: compact enough for an 800px Surface Go viewport. -->
     <div class="ribbon-panel touch-only" data-panel="edit">
@@ -37280,9 +37284,11 @@ function renderNotesList() {
 //  RIBBON TAB SWITCHING
 // ═══════════════════════════════════════
 function switchRibbonTab(panelId) {
-  if (document.body.classList.contains('storyboard-workspace-active') && !['home','view','help'].includes(panelId)) {
+  const storyboardActive = document.body.classList.contains('storyboard-workspace-active');
+  if (storyboardActive && !['home','storyboard-tools','view','help'].includes(panelId)) {
     panelId = 'home';
   }
+  if (!storyboardActive && panelId === 'storyboard-tools') panelId = 'home';
   if (panelId === 'edit' && !document.documentElement.classList.contains('sf-touch')) {
     panelId = 'home';
   }
@@ -38373,7 +38379,7 @@ function openStoryboardTab() {
 
 function showStoryboardArea() {
   _activateDocumentWorkspace('storyboard');
-  if (!['home','view','help'].includes(document.querySelector('.ribbon-tab.active')?.dataset.panel)) switchRibbonTab('home');
+  if (!['home','storyboard-tools','view','help'].includes(document.querySelector('.ribbon-tab.active')?.dataset.panel)) switchRibbonTab('home');
   const navSection = document.getElementById('sb-storyboard-section');
   if (navSection) { navSection.style.display = ''; navSection.classList.add('open'); }
   const sbArea = document.getElementById('storyboard-area');
@@ -38461,6 +38467,7 @@ function hideStoryboardArea() {
   const sbArea = document.getElementById('storyboard-area');
   if (sbArea) sbArea.classList.remove('active');
   document.body.classList.remove('storyboard-workspace-active');
+  if (document.querySelector('.ribbon-tab.active')?.dataset.panel === 'storyboard-tools') switchRibbonTab('home');
   document.getElementById('sb-storyboard-section')?.classList.remove('sb-nav-active');
   // Hide the storyboard toolbar
   const tb = document.getElementById('sb-toolbar');
@@ -39399,8 +39406,8 @@ function storyboardStudioInspectorHtml(board, activeEntry, activeGroup) {
       <label class="wide">Time / light<input value="${escHtml(frame.timeOfDay)}" placeholder="Day / Night / Dawn" onchange="storyboardStudioFrameField('${frame.id}','timeOfDay',this.value)"></label>
     </div>${frame.shotId ? '<div class="sb-inspector-help" style="margin-top:7px">Changes to shared camera fields are synchronized with the linked Shot List entry.</div>' : ''}</div>
     <div class="sb-inspector-section"><div class="sb-inspector-section-title">Notes</div><div class="sb-inspector-fields">
-      <label class="wide">Action / description<textarea onchange="storyboardStudioFrameField('${frame.id}','actionNotes',this.value)">${escHtml(frame.actionNotes)}</textarea></label>
-      <label class="wide">Dialogue / sound<textarea onchange="storyboardStudioFrameField('${frame.id}','dialogueNotes',this.value)">${escHtml(frame.dialogueNotes)}</textarea></label>
+      <label class="wide">Action / description<textarea class="sb-inspector-primary-note" onchange="storyboardStudioFrameField('${frame.id}','actionNotes',this.value)">${escHtml(frame.actionNotes)}</textarea></label>
+      <label class="wide">Dialogue / sound<textarea class="sb-inspector-primary-note" onchange="storyboardStudioFrameField('${frame.id}','dialogueNotes',this.value)">${escHtml(frame.dialogueNotes)}</textarea></label>
       <label class="wide">Camera<textarea onchange="storyboardStudioFrameField('${frame.id}','cameraNotes',this.value)">${escHtml(frame.cameraNotes)}</textarea></label>
       <label class="wide">Lighting<textarea onchange="storyboardStudioFrameField('${frame.id}','lightingNotes',this.value)">${escHtml(frame.lightingNotes)}</textarea></label>
       <label class="wide">Transition<textarea onchange="storyboardStudioFrameField('${frame.id}','transitionNotes',this.value)">${escHtml(frame.transitionNotes)}</textarea></label>
@@ -39567,7 +39574,6 @@ function renderStoryboard(boardOverride) {
       <label>Location<select onchange="storyboardStudioSetFilter('location',this.value)"><option value="">All locations</option>${locations.map(value => `<option ${value === sb.studioFilters.location ? 'selected' : ''}>${escHtml(value)}</option>`).join('')}</select></label>
       <label>Shot type<select onchange="storyboardStudioSetFilter('shotType',this.value)"><option value="">All shot types</option>${shotTypes.map(value => `<option ${value === sb.studioFilters.shotType ? 'selected' : ''}>${escHtml(value)}</option>`).join('')}</select></label>
       <button onclick="storyboardStudioClearFilters()">Clear search and filters</button></div></details>
-    <button class="sb-studio-icon-btn" onclick="storyboardStudioTogglePane('inspector')" title="Inspector">ⓘ</button>
   </div>`;
   const canvas = document.createElement('div');
   canvas.className = 'sb-studio-canvas';

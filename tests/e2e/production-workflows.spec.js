@@ -26,6 +26,7 @@ test('a new storyboard starts linked and can import only selected scenes', async
   })).toBeTruthy();
   await expect(page.locator('#sb-storyboard-scenes-nav .sb-storyboard-scene-item', { hasText:'Unlinked frames' })).toHaveCount(0);
 
+  await page.locator('.storyboard-workspace-tab').click();
   await page.locator('#storyboard-board-rg').getByRole('button', { name: 'Link Shots' }).click();
   const picks = page.locator('#sb-link-scene-list input[type="checkbox"]');
   await expect(picks).toHaveCount(2);

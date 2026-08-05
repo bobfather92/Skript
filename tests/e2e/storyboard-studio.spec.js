@@ -58,7 +58,14 @@ test('storyboard studio provides linked panes, views, filters, inspector sync an
   await expect(page.locator('.sb-studio-zoom')).toBeVisible();
   await expect(page.locator('#sb-toolbar')).toBeHidden();
   await expect(page.locator('#storyboard-cards-rg')).toBeVisible();
+  await expect(page.locator('.storyboard-workspace-tab')).toBeVisible();
+  await expect(page.locator('#storyboard-board-rg')).toBeHidden();
+  await expect(page.locator('.sb-studio-icon-btn[title="Inspector"]')).toHaveCount(0);
+  await expect(page.locator('.sb-caption').first()).toHaveCSS('min-height', '68px');
+  await page.locator('.storyboard-workspace-tab').click();
   await expect(page.locator('#storyboard-board-rg')).toBeVisible();
+  await expect(page.locator('#storyboard-board-rg .rb-icon')).toHaveCount(7);
+  await page.locator('.ribbon-tab[data-panel="home"]').click();
   await expect(page.locator('#sb-storyboard-section .sb-action-btn')).toHaveCount(0);
   await expect(page.locator('#sb-board-list')).toHaveCount(0);
 
@@ -73,6 +80,8 @@ test('storyboard studio provides linked panes, views, filters, inspector sync an
 
   if (compactAtStart) await page.evaluate(() => storyboardStudioTogglePane('inspector'));
   await expect(page.locator('.sb-studio-inspector').getByLabel('Label')).toHaveValue('City Establishing');
+  await expect(page.locator('.sb-inspector-primary-note')).toHaveCount(2);
+  await expect(page.locator('.sb-inspector-primary-note').first()).toHaveCSS('min-height', '104px');
   await page.locator('.sb-studio-inspector').getByLabel('Shot size').selectOption('Close-Up');
   const synced = await page.evaluate(() => ({
     frame: sb.boards[0].frames[0].shotSize,

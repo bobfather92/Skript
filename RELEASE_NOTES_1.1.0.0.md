@@ -44,6 +44,7 @@ This is the first local development package on the road to Skript 1.1. It is int
 - Use professional six-dot frame handles, clear selection controls and a live insertion slot while surrounding cards glide into their new positions during drag reordering.
 - Remove duplicate frame and scene labels from storyboard cards, place scene filtering beneath the Storyboard Navigator, and hide script-only Elements and Acts controls while Storyboard Studio is active.
 - Consolidate Storyboard commands into contextual Cards, History and Board ribbon groups; remove the redundant Board/Cards dropdown bar and Navigator launch rows; and hide script-only tabs and writing tools while Storyboard Studio is active.
+- Move Board commands into a dedicated Storyboard Tools tab with clear icons, remove the duplicate Inspector shortcut beside Filters, and enlarge card captions plus primary description/dialogue fields.
 - Duplicate a complete storyboard while assigning fresh frame and object identities, so changes to the copy remain independent.
 - Drag several images into a frame at once, replace a selected image without disturbing its placement, and use Crop, Fit, Fill, Stretch, rotate and flip controls.
 - Lock individual images or complete layers, rename and duplicate layers, preserve image proportions while resizing, and set opacity per object or layer.
