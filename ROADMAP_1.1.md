@@ -54,6 +54,11 @@ The first Storyboard Editor expansion focuses on high-value editing work. The fi
 - multi-image drag-and-drop, non-destructive replacement, Crop/Fit/Fill/Stretch, rotation and flipping — implemented;
 - object and layer locking, layer rename/duplicate, aspect-locked resize and per-object opacity — implemented;
 - compressed reusable project media library with project-size warnings — implemented;
+- integrated Storyboard Studio with collapsible scene browser, flexible Grid/Compact/List workspace and resizable Frame/Scene/Board inspector — implemented;
+- Unlinked Frames grouping plus search and filters for status, tags, characters, locations and shot type — implemented;
+- collapsible Preview/Animatic/Timeline/References production dock — implemented;
+- responsive three-pane, laptop and compact single-pane layouts — implemented;
+- structured storyboard camera fields synchronized with linked Shot List entries — implemented;
 - bulk linking from script scenes;
 - missing-media reporting.
 

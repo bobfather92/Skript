@@ -30778,6 +30778,145 @@ button.primary:hover,
   .changes-version-list { flex-direction:row; border-right:0; border-bottom:1px solid var(--border); padding:0 0 10px; }
   .changes-version-btn { flex:1; }
 }
+
+/* Storyboard Studio — a production workspace inside Skript's existing shell. */
+#storyboard-area.active { display:block; padding:0; overflow:hidden; align-items:stretch; }
+.sb-studio { height:100%; min-height:0; display:grid; grid-template-columns:auto minmax(360px,1fr) auto; background:var(--bg); color:var(--text); }
+.sb-studio button,.sb-studio input,.sb-studio select,.sb-studio textarea { font-family:'Inter',sans-serif; }
+.sb-studio-scenes { width:248px; min-width:0; display:flex; flex-direction:column; border-right:1px solid var(--border); background:var(--surface); overflow:hidden; transition:width .16s ease; }
+.sb-studio-scenes.collapsed { width:0; border-right:0; }
+.sb-studio-pane-head { min-height:48px; padding:0 12px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border); gap:8px; }
+.sb-studio-pane-head strong { font-size:12px; letter-spacing:.2px; }
+.sb-studio-pane-head button,.sb-studio-icon-btn { width:28px; height:28px; border:1px solid var(--border2); border-radius:5px; background:var(--surface2); color:var(--text-2); cursor:pointer; }
+.sb-studio-scene-list { flex:1; overflow:auto; padding:8px; scrollbar-width:thin; }
+.sb-studio-scene { width:100%; display:grid; grid-template-columns:54px minmax(0,1fr); gap:9px; padding:8px; margin-bottom:5px; border:1px solid transparent; border-radius:7px; background:transparent; color:var(--text-2); text-align:left; cursor:pointer; }
+.sb-studio-scene:hover { background:var(--surface2); color:var(--text); }
+.sb-studio-scene.active { border-color:rgba(116,83,245,.55); background:var(--brand-purple-soft); color:var(--text); }
+.sb-studio-scene-thumb { width:54px; aspect-ratio:16/9; border-radius:4px; background:var(--surface3); object-fit:cover; display:flex; align-items:center; justify-content:center; color:var(--text-3); font-size:16px; overflow:hidden; }
+.sb-studio-scene-thumb img { width:100%; height:100%; object-fit:cover; }
+.sb-studio-scene-copy { min-width:0; }
+.sb-studio-scene-copy strong { display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:10px; line-height:1.45; }
+.sb-studio-scene-copy span { display:block; margin-top:3px; font-size:9px; color:var(--text-3); }
+.sb-studio-unlinked { margin-top:8px; padding-top:9px; border-top:1px solid var(--border); }
+.sb-studio-main { min-width:0; min-height:0; display:flex; flex-direction:column; overflow:hidden; }
+.sb-studio-controls { min-height:48px; padding:7px 12px; display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--border); background:var(--surface); }
+.sb-studio-view-switch { display:flex; gap:2px; padding:3px; border:1px solid var(--border); border-radius:6px; background:var(--surface2); }
+.sb-studio-view-switch button { min-width:30px; height:26px; padding:0 7px; border:0; border-radius:4px; background:transparent; color:var(--text-3); cursor:pointer; font-size:10px; }
+.sb-studio-view-switch button.active { background:var(--brand-purple-soft); color:var(--brand-purple); }
+.sb-studio-search { position:relative; margin-left:auto; width:min(270px,32vw); }
+.sb-studio-search input { width:100%; height:32px; box-sizing:border-box; padding:0 30px 0 30px; border:1px solid var(--border2); border-radius:6px; background:var(--surface2); color:var(--text); font-size:10px; }
+.sb-studio-search::before { content:'⌕'; position:absolute; left:10px; top:7px; color:var(--text-3); }
+.sb-studio-search button { position:absolute; right:4px; top:4px; width:24px; height:24px; border:0; background:transparent; color:var(--text-3); cursor:pointer; }
+.sb-studio-filter { position:relative; }
+.sb-studio-filter summary { list-style:none; height:32px; display:flex; align-items:center; gap:5px; padding:0 10px; border:1px solid var(--border2); border-radius:6px; background:var(--surface2); color:var(--text-2); cursor:pointer; font-size:10px; }
+.sb-studio-filter summary::-webkit-details-marker { display:none; }
+.sb-studio-filter-menu { position:absolute; z-index:90; top:38px; right:0; width:250px; padding:10px; display:grid; gap:8px; border:1px solid var(--border2); border-radius:8px; background:var(--surface); box-shadow:0 16px 35px rgba(0,0,0,.45); }
+.sb-studio-filter-menu label { display:grid; gap:4px; color:var(--text-3); font-size:9px; text-transform:uppercase; letter-spacing:.5px; }
+.sb-studio-filter-menu select { height:29px; border:1px solid var(--border2); border-radius:5px; background:var(--surface2); color:var(--text); font-size:10px; }
+.sb-studio-filter-menu button { height:29px; border:1px solid var(--border2); border-radius:5px; background:transparent; color:var(--text-2); cursor:pointer; }
+.sb-studio-canvas { flex:1; min-height:0; overflow:auto; padding:14px; scrollbar-width:thin; }
+.sb-studio-group { margin-bottom:22px; }
+.sb-studio-group-head { display:flex; align-items:center; gap:9px; margin:0 0 10px; padding:0 2px 8px; border-bottom:1px solid var(--border); }
+.sb-studio-group-head strong { font-size:12px; }
+.sb-studio-group-head span { color:var(--text-3); font-size:9px; }
+.sb-studio-group-head button { margin-left:auto; height:27px; padding:0 10px; border:1px solid var(--border2); border-radius:5px; background:var(--surface2); color:var(--text-2); cursor:pointer; font-size:9px; }
+.sb-studio-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:12px; align-items:start; }
+.sb-studio-grid.compact { grid-template-columns:repeat(auto-fill,minmax(175px,1fr)); gap:8px; }
+.sb-studio-grid.list { display:flex; flex-direction:column; gap:7px; }
+#storyboard-area .sb-studio .sb-frame { min-width:0; border:1px solid var(--border2); border-radius:7px; background:var(--surface)!important; color:var(--text); overflow:hidden; }
+#storyboard-area .sb-studio .sb-frame:hover { border-color:#575c69; box-shadow:0 7px 20px rgba(0,0,0,.25); }
+#storyboard-area .sb-studio .sb-frame.sb-frame-active { border-color:var(--brand-purple); box-shadow:0 0 0 2px var(--brand-purple-soft); }
+#storyboard-area .sb-studio .sb-canvas-wrap { background:#fff!important; }
+#storyboard-area .sb-studio .sb-frame-metadata { background:var(--surface2); }
+.sb-studio-grid.compact .sb-frame-link-controls,.sb-studio-grid.compact .sb-caption,.sb-studio-grid.compact .sb-frame-link-summary { display:none; }
+.sb-studio-grid.compact .sb-frame-metadata { max-height:28px; overflow:hidden; }
+.sb-studio-grid.list .sb-frame { display:grid; grid-template-columns:210px minmax(180px,1fr) minmax(190px,.85fr); grid-template-rows:auto auto; }
+.sb-studio-grid.list .sb-canvas-wrap { grid-row:1/3; }
+.sb-studio-grid.list .sb-frame-metadata { align-content:center; }
+.sb-studio-grid.list .sb-frame-link-summary { border-bottom:0; }
+.sb-studio-grid.list .sb-frame-link-controls { grid-column:2/4; display:flex; }
+.sb-studio-grid.list .sb-caption { grid-column:2/4; min-height:38px; }
+.sb-studio-empty { min-height:180px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:7px; border:1px dashed var(--border2); border-radius:8px; color:var(--text-3); text-align:center; }
+.sb-studio-empty strong { color:var(--text-2); }
+.sb-studio-inspector { position:relative; width:var(--sb-inspector-width,330px); min-width:0; display:flex; flex-direction:column; border-left:1px solid var(--border); background:var(--surface); overflow:hidden; }
+.sb-studio-inspector.collapsed { width:0; border-left:0; }
+.sb-studio-resizer { position:absolute; left:0; top:0; bottom:0; width:5px; z-index:9; cursor:col-resize; background:transparent; }
+.sb-studio-resizer:hover,.sb-studio-resizer.dragging { background:var(--brand-purple); }
+.sb-inspector-tabs { height:44px; display:grid; grid-template-columns:repeat(3,1fr); border-bottom:1px solid var(--border); }
+.sb-inspector-tabs button { border:0; border-bottom:2px solid transparent; background:transparent; color:var(--text-3); cursor:pointer; font-size:10px; }
+.sb-inspector-tabs button.active { color:var(--text); border-bottom-color:var(--brand-purple); }
+.sb-inspector-body { flex:1; overflow:auto; padding:12px; scrollbar-width:thin; }
+.sb-inspector-preview { width:100%; aspect-ratio:var(--sb-frame-aspect,16/9); margin-bottom:12px; border:1px solid var(--border2); border-radius:6px; object-fit:contain; background:#fff; }
+.sb-inspector-placeholder { width:100%; aspect-ratio:16/9; margin-bottom:12px; display:flex; align-items:center; justify-content:center; border:1px dashed var(--border2); border-radius:6px; color:var(--text-3); }
+.sb-inspector-section { margin-bottom:13px; padding-bottom:12px; border-bottom:1px solid var(--border); }
+.sb-inspector-section-title { margin-bottom:8px; font-size:9px; font-weight:700; letter-spacing:.7px; text-transform:uppercase; color:var(--text-3); }
+.sb-inspector-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.sb-inspector-fields .wide { grid-column:1/-1; }
+.sb-inspector-fields label { display:grid; gap:4px; min-width:0; color:var(--text-3); font-size:9px; }
+.sb-inspector-fields input,.sb-inspector-fields select,.sb-inspector-fields textarea { width:100%; min-width:0; box-sizing:border-box; border:1px solid var(--border2); border-radius:5px; background:var(--surface2); color:var(--text); padding:6px 7px; font-size:10px; }
+.sb-inspector-fields textarea { min-height:57px; resize:vertical; }
+.sb-inspector-help { color:var(--text-3); font-size:9px; line-height:1.55; }
+.sb-inspector-action { width:100%; min-height:31px; border:1px solid var(--border2); border-radius:5px; background:var(--surface2); color:var(--text-2); cursor:pointer; font-size:10px; }
+.sb-studio-dock { height:218px; flex:0 0 auto; border-top:1px solid var(--border); background:var(--surface); overflow:hidden; transition:height .16s ease; }
+.sb-studio-dock.collapsed { height:36px; }
+.sb-dock-head { height:36px; display:flex; align-items:center; padding:0 10px; border-bottom:1px solid var(--border); }
+.sb-dock-tabs { display:flex; height:100%; }
+.sb-dock-tabs button { padding:0 13px; border:0; border-bottom:2px solid transparent; background:transparent; color:var(--text-3); cursor:pointer; font-size:9px; }
+.sb-dock-tabs button.active { color:var(--text); border-bottom-color:var(--brand-purple); }
+.sb-dock-toggle { margin-left:auto; width:26px; height:25px; border:1px solid var(--border2); border-radius:4px; background:var(--surface2); color:var(--text-2); cursor:pointer; }
+.sb-dock-body { height:calc(100% - 37px); overflow:auto; padding:10px; box-sizing:border-box; }
+.sb-dock-preview { height:100%; display:grid; grid-template-columns:minmax(160px,300px) minmax(220px,1fr); gap:14px; }
+.sb-dock-preview-media { min-height:100px; border:1px solid var(--border2); border-radius:6px; background:#fff; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+.sb-dock-preview-media img { width:100%; height:100%; object-fit:contain; }
+.sb-dock-preview-copy { display:grid; align-content:start; gap:7px; color:var(--text-2); font-size:10px; line-height:1.45; }
+.sb-dock-preview-copy strong { color:var(--text); font-size:12px; }
+.sb-dock-strip { height:100%; display:flex; align-items:center; gap:9px; overflow:auto; }
+.sb-dock-strip-card { width:128px; flex:0 0 auto; color:var(--text-3); font-size:9px; }
+.sb-dock-strip-card img,.sb-dock-strip-placeholder { width:100%; aspect-ratio:16/9; display:flex; align-items:center; justify-content:center; object-fit:cover; border:1px solid var(--border2); border-radius:5px; background:var(--surface2); }
+.sb-dock-media-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(105px,1fr)); gap:9px; }
+.sb-dock-media-grid img { width:100%; aspect-ratio:16/9; object-fit:cover; border:1px solid var(--border2); border-radius:5px; background:#fff; }
+.sb-print-document { display:none; }
+body #sb-toolbar { overflow-x:auto; overflow-y:hidden; scrollbar-width:none; }
+body #sb-toolbar::-webkit-scrollbar { display:none; }
+body #sb-toolbar > * { flex:0 0 auto; }
+@media (max-width:1500px) {
+  .sb-studio-scenes { width:210px; }
+  .sb-studio-grid { grid-template-columns:repeat(auto-fill,minmax(205px,1fr)); }
+}
+@media (max-width:1180px) {
+  .sb-studio-grid { grid-template-columns:repeat(auto-fill,minmax(205px,1fr)); }
+}
+@media (max-height:760px) and (min-width:901px) { .sb-studio-dock { height:170px; } }
+@media (max-width:900px) {
+  .sb-studio { display:block; position:relative; }
+  .sb-studio-main { height:100%; }
+  .sb-studio-scenes,.sb-studio-inspector { position:absolute; inset:0; z-index:35; width:100%!important; border:0; }
+  .sb-studio[data-mobile-pane="board"] .sb-studio-scenes,.sb-studio[data-mobile-pane="board"] .sb-studio-inspector,
+  .sb-studio[data-mobile-pane="scenes"] .sb-studio-main,.sb-studio[data-mobile-pane="scenes"] .sb-studio-inspector,
+  .sb-studio[data-mobile-pane="inspector"] .sb-studio-main,.sb-studio[data-mobile-pane="inspector"] .sb-studio-scenes { display:none; }
+  .sb-studio-resizer { display:none; }
+  .sb-studio-search { width:min(230px,38vw); }
+}
+@media (max-width:620px) {
+  .sb-studio-search { flex:1; width:auto; }
+  .sb-studio-view-switch { display:none; }
+  .sb-studio-controls { flex-wrap:wrap; }
+  .sb-studio-filter { margin-left:auto; }
+  .sb-studio-grid.list .sb-frame { grid-template-columns:140px minmax(150px,1fr); }
+  .sb-studio-grid.list .sb-frame-link-controls,.sb-studio-grid.list .sb-caption { grid-column:1/3; }
+}
+@media print {
+  #storyboard-area .sb-studio { display:none!important; }
+  #storyboard-area .sb-print-document { display:block!important; }
+  #storyboard-area .sb-print-document .sb-page { display:block!important; }
+  .sb-print-grid { display:grid; gap:16px; }
+  .sb-print-grid.cols-2 { grid-template-columns:repeat(2,1fr); }
+  .sb-print-grid.cols-3 { grid-template-columns:repeat(3,1fr); }
+  .sb-print-frame { border:1px solid #bbb; break-inside:avoid; page-break-inside:avoid; color:#111; }
+  .sb-print-frame img,.sb-print-art { width:100%; aspect-ratio:var(--sb-frame-aspect,16/9); object-fit:contain; display:flex; align-items:center; justify-content:center; background:#fff; }
+  .sb-print-caption { min-height:40px; padding:7px; border-top:1px solid #ddd; font:9pt/1.35 Arial,sans-serif; white-space:pre-wrap; }
+  .sb-print-meta { padding:5px 7px; border-top:1px solid #ddd; font:7.5pt/1.35 Arial,sans-serif; color:#444; }
+}
 </style>
 <!-- App icon — used by Edge --app mode as the Windows taskbar icon -->
 <link rel="icon" type="image/png" sizes="512x512" href="/favicon.png">
@@ -37347,6 +37486,18 @@ const sb = {
   activeBoardId: null,
   mediaLibrary: [],
   selectedFrameIds: new Set(),
+  activeFrameId: null,
+  studioView: 'grid',
+  studioScene: 'all',
+  studioSearch: '',
+  studioFilters: { status:'', tag:'', character:'', location:'', shotType:'' },
+  sceneBrowserCollapsed: false,
+  inspectorCollapsed: false,
+  inspectorWidth: 310,
+  inspectorTab: 'frame',
+  dockCollapsed: false,
+  dockTab: 'preview',
+  mobilePane: 'board',
   frameClipboard: [],
   history: [], redoHistory: [], historyMax: 40
 };
@@ -37379,6 +37530,7 @@ function makeStoryboardFrame(frameIndex) {
     sceneLineId: null,
     shotId: null,
     label: '', shotNumber: '', duration: '', status: 'Draft',
+    shotSize: '', movement: '', angle: '', lens: '', camera: '', location: '', timeOfDay: '',
     actionNotes: '', dialogueNotes: '', cameraNotes: '', lightingNotes: '', transitionNotes: '',
     customFields: [], tags: []
   };
@@ -37389,7 +37541,7 @@ function ensureStoryboardFrameData(frame) {
   if (!frame.status) frame.status = 'Draft';
   if (!Array.isArray(frame.customFields)) frame.customFields = [];
   if (!Array.isArray(frame.tags)) frame.tags = [];
-  ['label','shotNumber','duration','actionNotes','dialogueNotes','cameraNotes','lightingNotes','transitionNotes']
+  ['label','shotNumber','duration','shotSize','movement','angle','lens','camera','location','timeOfDay','actionNotes','dialogueNotes','cameraNotes','lightingNotes','transitionNotes']
     .forEach(key => { if (typeof frame[key] !== 'string') frame[key] = ''; });
 }
 
@@ -37478,6 +37630,13 @@ function storyboardSerializableBoards() {
       shotNumber: frame.shotNumber || '',
       duration: frame.duration || '',
       status: frame.status || 'Draft',
+      shotSize: frame.shotSize || '',
+      movement: frame.movement || '',
+      angle: frame.angle || '',
+      lens: frame.lens || '',
+      camera: frame.camera || '',
+      location: frame.location || '',
+      timeOfDay: frame.timeOfDay || '',
       actionNotes: frame.actionNotes || '',
       dialogueNotes: frame.dialogueNotes || '',
       cameraNotes: frame.cameraNotes || '',
@@ -37590,6 +37749,15 @@ function setStoryboardFrameShot(boardId, frameIndex, shotId) {
     shot.sceneLineId ? item.lineId === shot.sceneLineId : item.idx === shot.sceneIdx
   ) : null;
   if (scene) frame.sceneLineId = scene.lineId;
+  if (shot) {
+    if (!frame.shotSize) frame.shotSize = shot.size || '';
+    if (!frame.movement) frame.movement = shot.movement || '';
+    if (!frame.angle) frame.angle = shot.angle || '';
+    if (!frame.lens) frame.lens = shot.lens || '';
+    if (!frame.location) frame.location = shot.location || '';
+    if (!frame.duration) frame.duration = shot.duration || '';
+    if (!frame.actionNotes) frame.actionNotes = shot.desc || '';
+  }
   saveStoryboardToStorage();
   renderStoryboard(board);
   if (typeof SL !== 'undefined' && typeof SL.render === 'function') SL.render();
@@ -38282,6 +38450,7 @@ function sbGetSelectedFrameEntries(board = sb.boards.find(item => item.id === sb
 function sbToggleFrameSelection(boardId, frameId, additive) {
   const board = sb.boards.find(item => String(item.id) === String(boardId));
   if (!board) return;
+  sb.activeFrameId = frameId;
   if (!additive) {
     const wasOnlySelection = sb.selectedFrameIds.size === 1 && sb.selectedFrameIds.has(frameId);
     sb.selectedFrameIds.clear();
@@ -38305,6 +38474,7 @@ function sbSelectAllFrames() {
 function sbClearFrameSelection() {
   if (!sb.selectedFrameIds.size) return;
   sb.selectedFrameIds.clear();
+  sb.activeFrameId = null;
   renderStoryboard();
 }
 
@@ -38691,6 +38861,286 @@ function saveStoryboardFrameInfo() {
 
 // createStoryboard() is defined in the multi-board section
 
+const SB_STUDIO_OPTIONS = {
+  status: ['Draft','Review','Approved','Revision','Final'],
+  shotSize: ['','Extreme Wide Shot','Wide Shot','Full Shot','Medium Shot','Medium Close-Up','Close-Up','Extreme Close-Up','Insert'],
+  movement: ['','Static','Pan','Tilt','Dolly','Truck','Pedestal','Crane','Handheld','Steadicam','Drone','Zoom'],
+  angle: ['','Eye Level','High Angle','Low Angle','Overhead','Dutch Angle','Over the Shoulder','POV'],
+  lens: ['','14mm','18mm','24mm','28mm','35mm','50mm','65mm','85mm','100mm','135mm']
+};
+
+function sbStudioOptions(values, current, blankLabel = 'Not set') {
+  return values.map(value => `<option value="${escHtml(value)}" ${value === current ? 'selected' : ''}>${escHtml(value || blankLabel)}</option>`).join('');
+}
+
+function storyboardStudioSceneCharacters() {
+  const result = new Map();
+  const container = getLinesContainer(activeTabId);
+  let sceneId = null;
+  Array.from(container?.querySelectorAll('.script-line') || []).forEach(line => {
+    if (line.dataset.type === 'scene') {
+      sceneId = ensureScriptLineId(line);
+      if (!result.has(sceneId)) result.set(sceneId, new Set());
+    } else if (sceneId && line.dataset.type === 'character') {
+      const name = line.textContent.trim().replace(/\s*\([^)]*\)\s*$/, '');
+      if (name) result.get(sceneId).add(name);
+    }
+  });
+  return result;
+}
+
+function storyboardStudioGroups(board) {
+  const scenes = getStoryboardSceneRefs();
+  const valid = new Set(scenes.map(scene => scene.lineId));
+  const groups = scenes.map(scene => ({
+    id: scene.lineId,
+    title: `Scene ${scene.idx} · ${scene.text}`,
+    scene,
+    frames: board.frames.map((frame,index) => ({frame,index})).filter(item => item.frame.sceneLineId === scene.lineId)
+  }));
+  groups.push({
+    id: 'unlinked', title: 'Unlinked Frames', scene: null,
+    frames: board.frames.map((frame,index) => ({frame,index})).filter(item => !item.frame.sceneLineId || !valid.has(item.frame.sceneLineId))
+  });
+  return groups;
+}
+
+function storyboardStudioFrameMatches(item, group, sceneCharacters) {
+  const { frame } = item;
+  const filters = sb.studioFilters || {};
+  const context = getStoryboardFrameContext(frame);
+  const haystack = [frame.label,frame.shotNumber,frame.caption,frame.actionNotes,frame.dialogueNotes,frame.cameraNotes,
+    frame.lightingNotes,frame.transitionNotes,frame.location,frame.shotSize,frame.movement,frame.angle,frame.lens,
+    ...(frame.tags || []),context.scene?.text,context.shot?.desc].filter(Boolean).join(' ').toLowerCase();
+  if (sb.studioSearch && !haystack.includes(sb.studioSearch.trim().toLowerCase())) return false;
+  if (filters.status && frame.status !== filters.status) return false;
+  if (filters.tag && !(frame.tags || []).includes(filters.tag)) return false;
+  if (filters.location) {
+    const location = String(frame.location || context.shot?.location || context.scene?.text || '').toLowerCase();
+    if (!location.includes(filters.location.toLowerCase())) return false;
+  }
+  if (filters.shotType && String(frame.shotSize || context.shot?.size || '') !== filters.shotType) return false;
+  if (filters.character && !sceneCharacters.get(group.scene?.lineId)?.has(filters.character)) return false;
+  return true;
+}
+
+function storyboardStudioSetView(view) {
+  if (!['grid','compact','list'].includes(view)) return;
+  sb.studioView = view;
+  saveStoryboardToStorage();
+  renderStoryboard();
+}
+
+function storyboardStudioSetScene(sceneId) {
+  sb.studioScene = sceneId || 'all';
+  sb.mobilePane = 'board';
+  renderStoryboard();
+}
+
+let storyboardStudioSearchTimer = null;
+function storyboardStudioSearch(value) {
+  sb.studioSearch = value || '';
+  clearTimeout(storyboardStudioSearchTimer);
+  storyboardStudioSearchTimer = setTimeout(() => {
+    renderStoryboard();
+    const input = document.getElementById('sb-studio-search');
+    if (input) { input.focus(); input.setSelectionRange(input.value.length,input.value.length); }
+  }, 160);
+}
+
+function storyboardStudioSetFilter(key, value) {
+  if (!Object.prototype.hasOwnProperty.call(sb.studioFilters, key)) return;
+  sb.studioFilters[key] = value || '';
+  renderStoryboard();
+}
+
+function storyboardStudioClearFilters() {
+  sb.studioSearch = '';
+  sb.studioFilters = { status:'', tag:'', character:'', location:'', shotType:'' };
+  renderStoryboard();
+}
+
+function storyboardStudioTogglePane(pane) {
+  if (window.innerWidth <= 900) {
+    sb.mobilePane = pane === 'scenes' ? 'scenes' : pane === 'inspector' ? 'inspector' : 'board';
+  } else if (pane === 'scenes') sb.sceneBrowserCollapsed = !sb.sceneBrowserCollapsed;
+  else if (pane === 'inspector') sb.inspectorCollapsed = !sb.inspectorCollapsed;
+  renderStoryboard();
+}
+
+function storyboardStudioClosePane(pane) {
+  if (window.innerWidth <= 900) sb.mobilePane = 'board';
+  else if (pane === 'scenes') sb.sceneBrowserCollapsed = true;
+  else if (pane === 'inspector') sb.inspectorCollapsed = true;
+  renderStoryboard();
+}
+
+function storyboardStudioSelectFrame(boardId, frameId, additive = false) {
+  const board = sb.boards.find(item => String(item.id) === String(boardId));
+  if (!board) return;
+  sb.activeFrameId = frameId;
+  if (additive) {
+    if (sb.selectedFrameIds.has(frameId)) sb.selectedFrameIds.delete(frameId);
+    else sb.selectedFrameIds.add(frameId);
+  } else {
+    sb.selectedFrameIds = new Set([frameId]);
+  }
+  renderStoryboard(board);
+}
+
+function storyboardStudioSetInspectorTab(tab) {
+  if (!['frame','scene','board'].includes(tab)) return;
+  sb.inspectorTab = tab;
+  renderStoryboard();
+}
+
+function storyboardStudioSetDockTab(tab) {
+  if (!['preview','animatic','timeline','references'].includes(tab)) return;
+  sb.dockTab = tab;
+  sb.dockCollapsed = false;
+  renderStoryboard();
+}
+
+function storyboardStudioToggleDock() {
+  sb.dockCollapsed = !sb.dockCollapsed;
+  renderStoryboard();
+}
+
+function storyboardStudioStartInspectorResize(event) {
+  if (window.innerWidth <= 900) return;
+  event.preventDefault();
+  const startX = event.clientX;
+  const startWidth = sb.inspectorWidth || 310;
+  const handle = event.currentTarget;
+  handle.classList.add('dragging');
+  const move = moveEvent => {
+    sb.inspectorWidth = Math.max(270,Math.min(500,startWidth + startX - moveEvent.clientX));
+    document.querySelector('.sb-studio-inspector')?.style.setProperty('--sb-inspector-width',`${sb.inspectorWidth}px`);
+  };
+  const up = () => {
+    handle.classList.remove('dragging');
+    window.removeEventListener('pointermove',move);
+    window.removeEventListener('pointerup',up);
+  };
+  window.addEventListener('pointermove',move);
+  window.addEventListener('pointerup',up,{once:true});
+}
+
+function storyboardStudioAddFrame(sceneLineId = null) {
+  const board = sb.boards.find(item => item.id === sb.activeBoardId);
+  if (!board) return;
+  sbHistoryPush();
+  const frame = makeStoryboardFrame(board.frames.length);
+  frame.sceneLineId = sceneLineId && sceneLineId !== 'unlinked' ? sceneLineId : null;
+  board.frames.push(frame);
+  sb.activeFrameId = frame.id;
+  sb.selectedFrameIds = new Set([frame.id]);
+  saveStoryboardToStorage();
+  renderStoryboard(board);
+}
+
+function storyboardStudioFrameField(frameId, field, value) {
+  const board = sb.boards.find(item => item.id === sb.activeBoardId);
+  const frame = board?.frames.find(item => item.id === frameId);
+  if (!frame) return;
+  const allowed = ['label','shotNumber','duration','status','shotSize','movement','angle','lens','camera','location','timeOfDay',
+    'actionNotes','dialogueNotes','cameraNotes','lightingNotes','transitionNotes','tags'];
+  if (!allowed.includes(field)) return;
+  sbHistoryPush();
+  frame[field] = field === 'tags' ? String(value).split(',').map(tag => tag.trim()).filter(Boolean) : String(value ?? '');
+  if (frame.shotId && typeof SL !== 'undefined' && typeof SL.updateShotFromStoryboard === 'function') {
+    const shotField = {shotSize:'size',movement:'movement',angle:'angle',lens:'lens',location:'location',duration:'duration',actionNotes:'desc'}[field];
+    if (shotField) SL.updateShotFromStoryboard(frame.shotId,{[shotField]:frame[field]});
+  }
+  saveStoryboardToStorage();
+  renderStoryboard(board);
+}
+
+function storyboardStudioInspectorHtml(board, activeEntry, activeGroup) {
+  const tab = sb.inspectorTab || 'frame';
+  if (tab === 'board') return `
+    <div class="sb-inspector-section"><div class="sb-inspector-section-title">Board overview</div>
+      <div class="sb-inspector-fields"><label class="wide">Name<input value="${escHtml(board.name || '')}" disabled></label>
+      <label>Status<input value="${escHtml(board.status || 'Draft')}" disabled></label><label>Template<input value="${escHtml(STORYBOARD_TEMPLATES[board.template]?.label || board.template || 'Custom')}" disabled></label>
+      <label class="wide">Description<textarea disabled>${escHtml(board.description || '')}</textarea></label></div></div>
+    <div class="sb-inspector-section"><div class="sb-inspector-section-title">Layout</div><div class="sb-inspector-help">${escHtml(board.aspectRatio || '16:9')} frames · ${escHtml(board.orientation || 'portrait')} · ${board.cols || 2} columns<br>${board.titleSafe ? 'Title safe on' : 'Title safe off'} · ${board.actionSafe ? 'Action safe on' : 'Action safe off'}</div></div>
+    <button class="sb-inspector-action" onclick="openStoryboardSettings()">Open complete board settings</button>`;
+  if (tab === 'scene') {
+    const group = activeGroup || storyboardStudioGroups(board).find(item => item.id === sb.studioScene);
+    const characters = group?.scene ? Array.from(storyboardStudioSceneCharacters().get(group.scene.lineId) || []) : [];
+    const duration = (group?.frames || []).map(item => parseFloat(item.frame.duration) || 0).reduce((a,b) => a+b,0);
+    return `<div class="sb-inspector-section"><div class="sb-inspector-section-title">Scene information</div>
+      <div class="sb-inspector-fields"><label class="wide">Scene<input value="${escHtml(group?.title || 'No scene selected')}" disabled></label>
+      <label>Frames<input value="${group?.frames?.length || 0}" disabled></label><label>Duration<input value="${duration ? `${duration.toFixed(1)} sec` : 'Not timed'}" disabled></label>
+      <label class="wide">Characters<textarea disabled>${escHtml(characters.join(', ') || 'No characters detected')}</textarea></label></div></div>
+      <div class="sb-inspector-help">Scene headings and characters come from the linked script. Edit them in the script workspace; storyboard frame and camera details remain editable here.</div>`;
+  }
+  const frame = activeEntry?.frame;
+  if (!frame) return `<div class="sb-inspector-placeholder">Select a frame</div><div class="sb-inspector-help">Choose a storyboard card to inspect its production information. Use Ctrl or Shift to keep multiple cards selected.</div>`;
+  const context = getStoryboardFrameContext(frame);
+  const aspect = getStoryboardAspect(board);
+  return `
+    ${frame.imageData ? `<img class="sb-inspector-preview" style="--sb-frame-aspect:${aspect}" src="${frame.imageData}" alt="Selected frame preview">` : `<div class="sb-inspector-placeholder" style="aspect-ratio:${aspect}">No artwork</div>`}
+    <div class="sb-inspector-section"><div class="sb-inspector-section-title">Frame</div><div class="sb-inspector-fields">
+      <label class="wide">Label<input value="${escHtml(frame.label)}" onchange="storyboardStudioFrameField('${frame.id}','label',this.value)"></label>
+      <label>Shot number<input value="${escHtml(frame.shotNumber)}" onchange="storyboardStudioFrameField('${frame.id}','shotNumber',this.value)"></label>
+      <label>Duration<input value="${escHtml(frame.duration)}" placeholder="00:00:07" onchange="storyboardStudioFrameField('${frame.id}','duration',this.value)"></label>
+      <label class="wide">Status<select onchange="storyboardStudioFrameField('${frame.id}','status',this.value)">${sbStudioOptions(SB_STUDIO_OPTIONS.status,frame.status)}</select></label>
+    </div></div>
+    <div class="sb-inspector-section"><div class="sb-inspector-section-title">Camera and shot list</div><div class="sb-inspector-fields">
+      <label>Shot size<select onchange="storyboardStudioFrameField('${frame.id}','shotSize',this.value)">${sbStudioOptions(SB_STUDIO_OPTIONS.shotSize,frame.shotSize || context.shot?.size || '')}</select></label>
+      <label>Movement<select onchange="storyboardStudioFrameField('${frame.id}','movement',this.value)">${sbStudioOptions(SB_STUDIO_OPTIONS.movement,frame.movement || context.shot?.movement || '')}</select></label>
+      <label>Angle<select onchange="storyboardStudioFrameField('${frame.id}','angle',this.value)">${sbStudioOptions(SB_STUDIO_OPTIONS.angle,frame.angle || context.shot?.angle || '')}</select></label>
+      <label>Lens<select onchange="storyboardStudioFrameField('${frame.id}','lens',this.value)">${sbStudioOptions(SB_STUDIO_OPTIONS.lens,frame.lens || context.shot?.lens || '')}</select></label>
+      <label>Camera<input value="${escHtml(frame.camera)}" onchange="storyboardStudioFrameField('${frame.id}','camera',this.value)"></label>
+      <label>Location<input value="${escHtml(frame.location || context.shot?.location || '')}" onchange="storyboardStudioFrameField('${frame.id}','location',this.value)"></label>
+      <label class="wide">Time / light<input value="${escHtml(frame.timeOfDay)}" placeholder="Day / Night / Dawn" onchange="storyboardStudioFrameField('${frame.id}','timeOfDay',this.value)"></label>
+    </div>${frame.shotId ? '<div class="sb-inspector-help" style="margin-top:7px">Changes to shared camera fields are synchronized with the linked Shot List entry.</div>' : ''}</div>
+    <div class="sb-inspector-section"><div class="sb-inspector-section-title">Notes</div><div class="sb-inspector-fields">
+      <label class="wide">Action / description<textarea onchange="storyboardStudioFrameField('${frame.id}','actionNotes',this.value)">${escHtml(frame.actionNotes)}</textarea></label>
+      <label class="wide">Dialogue / sound<textarea onchange="storyboardStudioFrameField('${frame.id}','dialogueNotes',this.value)">${escHtml(frame.dialogueNotes)}</textarea></label>
+      <label class="wide">Camera<textarea onchange="storyboardStudioFrameField('${frame.id}','cameraNotes',this.value)">${escHtml(frame.cameraNotes)}</textarea></label>
+      <label class="wide">Lighting<textarea onchange="storyboardStudioFrameField('${frame.id}','lightingNotes',this.value)">${escHtml(frame.lightingNotes)}</textarea></label>
+      <label class="wide">Transition<textarea onchange="storyboardStudioFrameField('${frame.id}','transitionNotes',this.value)">${escHtml(frame.transitionNotes)}</textarea></label>
+      <label class="wide">Tags<input value="${escHtml((frame.tags || []).join(', '))}" placeholder="establishing, exterior" onchange="storyboardStudioFrameField('${frame.id}','tags',this.value)"></label>
+    </div></div>
+    <button class="sb-inspector-action" onclick="openFrameEditor(${activeEntry.index},${board.id})">Open artwork and layer editor</button>`;
+}
+
+function storyboardStudioDockHtml(board, activeEntry) {
+  const frame = activeEntry?.frame;
+  if (sb.dockTab === 'animatic') return `<div class="sb-dock-preview"><div class="sb-dock-preview-media">${frame?.imageData ? `<img src="${frame.imageData}" alt="Current animatic frame">` : 'No artwork'}</div><div class="sb-dock-preview-copy"><strong>Animatic playback</strong><span>Preview the board using each frame's duration and caption.</span><button class="sb-inspector-action" onclick="openStoryboardAnimatic()">Open Animatic</button></div></div>`;
+  if (sb.dockTab === 'timeline') return `<div class="sb-dock-strip">${board.frames.map((item,index) => `<div class="sb-dock-strip-card">${item.imageData ? `<img src="${item.imageData}" alt="Frame ${index+1}">` : '<div class="sb-dock-strip-placeholder">No art</div>'}<div>${escHtml(item.shotNumber || `Frame ${index+1}`)} · ${escHtml(item.duration || 'Untimed')}</div></div>`).join('')}</div>`;
+  if (sb.dockTab === 'references') return sb.mediaLibrary.length ? `<div class="sb-dock-media-grid">${sb.mediaLibrary.map(item => `<img src="${item.data || item.src || ''}" alt="${escHtml(item.name || 'Project media')}">`).join('')}</div>` : '<div class="sb-studio-empty"><strong>No project references yet</strong><span>Reusable images added in the frame editor appear here.</span></div>';
+  if (!frame) return '<div class="sb-studio-empty"><strong>Select a frame to preview</strong><span>The larger artwork preview and frame summary will appear here.</span></div>';
+  const context = getStoryboardFrameContext(frame);
+  return `<div class="sb-dock-preview"><div class="sb-dock-preview-media">${frame.imageData ? `<img src="${frame.imageData}" alt="${escHtml(frame.label || 'Selected frame')}">` : 'No artwork'}</div><div class="sb-dock-preview-copy"><strong>${escHtml(frame.label || frame.shotNumber || 'Selected frame')}</strong><span>${escHtml(frame.caption || frame.actionNotes || 'No action description')}</span><span>${escHtml(context.scene ? `Scene ${context.scene.idx} · ${context.scene.text}` : 'Unlinked frame')}</span><span>${escHtml([frame.shotSize || context.shot?.size,frame.movement || context.shot?.movement,frame.lens || context.shot?.lens,frame.duration].filter(Boolean).join(' · ') || 'Camera details not set')}</span></div></div>`;
+}
+
+function buildStoryboardPrintDocument(board, title) {
+  const documentEl = document.createElement('div');
+  documentEl.className = 'sb-print-document';
+  const perPage = board.cols === 2 ? (board.orientation === 'portrait' ? 6 : 4) : 6;
+  const count = Math.max(1,Math.ceil(board.frames.length / perPage));
+  for (let pageIndex = 0; pageIndex < count; pageIndex++) {
+    const page = document.createElement('section');
+    page.className = `sb-page sb-page-active${board.orientation === 'landscape' ? ' landscape' : ''}`;
+    page.innerHTML = `<div class="sb-page-header"><span class="sb-page-script-title">${escHtml(title.toUpperCase())}</span><span class="sb-board-description">${escHtml(board.description || '')}</span><span class="sb-page-num">Page ${pageIndex+1} of ${count}</span></div>`;
+    const grid = document.createElement('div');
+    grid.className = `sb-print-grid cols-${board.cols}`;
+    board.frames.slice(pageIndex*perPage,(pageIndex+1)*perPage).forEach((frame,index) => {
+      const card = document.createElement('div');
+      card.className = 'sb-print-frame';
+      card.style.setProperty('--sb-frame-aspect',getStoryboardAspect(board));
+      card.innerHTML = `${frame.imageData ? `<img src="${frame.imageData}" alt="">` : '<div class="sb-print-art">No artwork</div>'}<div class="sb-print-meta">${escHtml(frame.shotNumber || `Frame ${pageIndex*perPage+index+1}`)} · ${escHtml(frame.duration || 'Untimed')} · ${escHtml(frame.status || 'Draft')}</div>${board.captions ? `<div class="sb-print-caption">${escHtml(frame.caption || frame.actionNotes || '')}</div>` : ''}`;
+      grid.appendChild(card);
+    });
+    page.appendChild(grid);
+    documentEl.appendChild(page);
+  }
+  return documentEl;
+}
+
 function renderStoryboard(boardOverride) {
   const sbArea = document.getElementById('storyboard-area');
   if (!sbArea) return;
@@ -38704,6 +39154,116 @@ function renderStoryboard(boardOverride) {
 
   const tab = tabs.find(t => t.id === activeTabId);
   const title = board.name || (tab ? tab.title : 'UNTITLED SCRIPT');
+
+  if (!sb.activeFrameId || !validFrameIds.has(sb.activeFrameId)) {
+    sb.activeFrameId = Array.from(sb.selectedFrameIds).find(id => validFrameIds.has(id)) || board.frames[0]?.id || null;
+  }
+  const allGroups = storyboardStudioGroups(board);
+  if (sb.studioScene !== 'all' && !allGroups.some(group => group.id === sb.studioScene)) sb.studioScene = 'all';
+  const sceneCharacters = storyboardStudioSceneCharacters();
+  const visibleGroups = allGroups
+    .filter(group => sb.studioScene === 'all' || group.id === sb.studioScene)
+    .map(group => ({...group,frames:group.frames.filter(item => storyboardStudioFrameMatches(item,group,sceneCharacters))}))
+    .filter(group => group.frames.length || sb.studioScene === group.id);
+  const activeEntry = board.frames.map((frame,index) => ({frame,index})).find(item => item.frame.id === sb.activeFrameId) || null;
+  const activeGroup = allGroups.find(group => group.frames.some(item => item.frame.id === sb.activeFrameId))
+    || allGroups.find(group => group.id === sb.studioScene) || null;
+  const tags = Array.from(new Set(board.frames.flatMap(frame => frame.tags || []))).sort();
+  const locations = Array.from(new Set(board.frames.map(frame => frame.location || getStoryboardFrameContext(frame).shot?.location || '').filter(Boolean))).sort();
+  const shotTypes = Array.from(new Set(board.frames.map(frame => frame.shotSize || getStoryboardFrameContext(frame).shot?.size || '').filter(Boolean))).sort();
+  const characters = Array.from(new Set(Array.from(sceneCharacters.values()).flatMap(set => Array.from(set)))).sort();
+  const studioSelectedCount = sbGetSelectedFrameEntries(board).length;
+  const filterCount = Object.values(sb.studioFilters || {}).filter(Boolean).length + (sb.studioSearch ? 1 : 0);
+
+  const studioToolbar = document.getElementById('sb-toolbar');
+  if (studioToolbar) {
+    studioToolbar.innerHTML = `
+      <button class="top-btn" onclick="storyboardStudioTogglePane('scenes')" title="Show or hide the scene browser">☰ Scenes</button>
+      <button class="top-btn" onclick="newStoryboard()">＋ New Board</button>
+      <button class="top-btn" onclick="storyboardStudioAddFrame(sb.studioScene)">＋ Add Frame</button>
+      <button class="top-btn" onclick="openStoryboardSettings()">⚙ Settings</button>
+      <button class="top-btn" id="sb-undo-btn" onclick="sbUndo()" ${sb.history.length ? '' : 'disabled'}>↶ Undo</button>
+      <button class="top-btn" id="sb-redo-btn" onclick="sbRedo()" ${sb.redoHistory.length ? '' : 'disabled'}>↷ Redo</button>
+      <details class="sb-card-menu"><summary class="top-btn">Cards${studioSelectedCount ? ` (${studioSelectedCount})` : ''} ▾</summary><div class="sb-card-menu-panel">
+        <button onclick="sbSelectAllFrames()">Select all</button><button onclick="sbClearFrameSelection()">Clear selection</button>
+        <button onclick="sbCopySelectedFrames()">Copy</button><button onclick="sbPasteFrames()">Paste</button><button onclick="sbDuplicateSelectedFrames()">Duplicate</button>
+        <button onclick="sbMoveSelectedFrames(-1)">Move earlier</button><button onclick="sbMoveSelectedFrames(1)">Move later</button>
+        <button class="danger" onclick="sbDeleteSelectedFrames()">Delete selected</button></div></details>
+      <button class="top-btn" onclick="linkStoryboardToShotList()">🔗 Link Shots</button>
+      <button class="top-btn" onclick="openStoryboardAnimatic()">▶ Animatic</button>
+      <button class="top-btn primary" onclick="exportStoryboardPDF()">📄 Export PDF</button>
+      <button class="top-btn sb-delete-btn" onclick="confirmDeleteStoryboard(${board.id})" title="Delete this storyboard">🗑 Delete</button>
+      `;
+    studioToolbar.style.display = 'flex';
+  }
+
+  const studio = document.createElement('div');
+  studio.className = 'sb-studio';
+  studio.dataset.mobilePane = sb.mobilePane || 'board';
+
+  const scenesPane = document.createElement('aside');
+  scenesPane.className = `sb-studio-scenes${sb.sceneBrowserCollapsed ? ' collapsed' : ''}`;
+  scenesPane.innerHTML = `<div class="sb-studio-pane-head"><strong>Scenes</strong><div><button title="Add an unlinked frame" onclick="storyboardStudioAddFrame(null)">＋</button> <button title="Close scene browser" onclick="storyboardStudioClosePane('scenes')">‹</button></div></div><div class="sb-studio-scene-list">
+    <button class="sb-studio-scene${sb.studioScene === 'all' ? ' active' : ''}" onclick="storyboardStudioSetScene('all')"><span class="sb-studio-scene-thumb">▦</span><span class="sb-studio-scene-copy"><strong>All scenes</strong><span>${board.frames.length} frames</span></span></button>
+    ${allGroups.filter(group => group.scene).map(group => {
+      const image = group.frames.find(item => item.frame.imageData)?.frame.imageData;
+      return `<button class="sb-studio-scene${sb.studioScene === group.id ? ' active' : ''}" onclick="storyboardStudioSetScene('${escHtml(group.id)}')"><span class="sb-studio-scene-thumb">${image ? `<img src="${image}" alt="">` : '◇'}</span><span class="sb-studio-scene-copy"><strong>${escHtml(group.title)}</strong><span>${group.frames.length} frame${group.frames.length === 1 ? '' : 's'}</span></span></button>`;
+    }).join('')}
+    <div class="sb-studio-unlinked">${allGroups.filter(group => group.id === 'unlinked').map(group => `<button class="sb-studio-scene${sb.studioScene === 'unlinked' ? ' active' : ''}" onclick="storyboardStudioSetScene('unlinked')"><span class="sb-studio-scene-thumb">↯</span><span class="sb-studio-scene-copy"><strong>Unlinked Frames</strong><span>${group.frames.length} frame${group.frames.length === 1 ? '' : 's'}</span></span></button>`).join('')}</div>
+  </div>`;
+  studio.appendChild(scenesPane);
+
+  const main = document.createElement('main');
+  main.className = 'sb-studio-main';
+  main.innerHTML = `<div class="sb-studio-controls">
+    <button class="sb-studio-icon-btn" onclick="storyboardStudioTogglePane('scenes')" title="Scene browser">☰</button>
+    <div class="sb-studio-view-switch" aria-label="Storyboard view">
+      <button class="${sb.studioView === 'grid' ? 'active' : ''}" onclick="storyboardStudioSetView('grid')" title="Grid view">▦</button>
+      <button class="${sb.studioView === 'compact' ? 'active' : ''}" onclick="storyboardStudioSetView('compact')" title="Compact view">▥</button>
+      <button class="${sb.studioView === 'list' ? 'active' : ''}" onclick="storyboardStudioSetView('list')" title="List view">☷</button>
+    </div>
+    <div class="sb-studio-search"><input id="sb-studio-search" type="search" placeholder="Search frames…" value="${escHtml(sb.studioSearch)}" oninput="storyboardStudioSearch(this.value)">${sb.studioSearch ? '<button onclick="storyboardStudioSearch(\'\')">×</button>' : ''}</div>
+    <details class="sb-studio-filter"><summary>⌁ Filters${filterCount ? ` (${filterCount})` : ''}</summary><div class="sb-studio-filter-menu">
+      <label>Status<select onchange="storyboardStudioSetFilter('status',this.value)"><option value="">All statuses</option>${sbStudioOptions(SB_STUDIO_OPTIONS.status,sb.studioFilters.status,'All statuses')}</select></label>
+      <label>Tag<select onchange="storyboardStudioSetFilter('tag',this.value)"><option value="">All tags</option>${tags.map(value => `<option ${value === sb.studioFilters.tag ? 'selected' : ''}>${escHtml(value)}</option>`).join('')}</select></label>
+      <label>Character<select onchange="storyboardStudioSetFilter('character',this.value)"><option value="">All characters</option>${characters.map(value => `<option ${value === sb.studioFilters.character ? 'selected' : ''}>${escHtml(value)}</option>`).join('')}</select></label>
+      <label>Location<select onchange="storyboardStudioSetFilter('location',this.value)"><option value="">All locations</option>${locations.map(value => `<option ${value === sb.studioFilters.location ? 'selected' : ''}>${escHtml(value)}</option>`).join('')}</select></label>
+      <label>Shot type<select onchange="storyboardStudioSetFilter('shotType',this.value)"><option value="">All shot types</option>${shotTypes.map(value => `<option ${value === sb.studioFilters.shotType ? 'selected' : ''}>${escHtml(value)}</option>`).join('')}</select></label>
+      <button onclick="storyboardStudioClearFilters()">Clear search and filters</button></div></details>
+    <button class="sb-studio-icon-btn" onclick="storyboardStudioTogglePane('inspector')" title="Inspector">ⓘ</button>
+  </div>`;
+  const canvas = document.createElement('div');
+  canvas.className = 'sb-studio-canvas';
+  if (!visibleGroups.length) {
+    canvas.innerHTML = `<div class="sb-studio-empty"><strong>No matching frames</strong><span>Clear the filters or add a frame to this section.</span><button class="sb-inspector-action" style="width:auto;padding:0 18px" onclick="storyboardStudioAddFrame(sb.studioScene)">Add Frame</button></div>`;
+  } else {
+    visibleGroups.forEach(group => {
+      const section = document.createElement('section');
+      section.className = 'sb-studio-group';
+      const seconds = group.frames.reduce((total,item) => total + (parseFloat(item.frame.duration) || 0),0);
+      section.innerHTML = `<div class="sb-studio-group-head"><strong>${escHtml(group.title)}</strong><span>${group.frames.length} frame${group.frames.length === 1 ? '' : 's'}${seconds ? ` · ${seconds.toFixed(1)} sec` : ''}</span><button onclick="storyboardStudioAddFrame('${escHtml(group.id)}')">＋ Add Frame</button></div>`;
+      const grid = document.createElement('div');
+      grid.className = `sb-studio-grid ${sb.studioView}`;
+      group.frames.forEach(item => grid.appendChild(buildFrameEl(item.frame,item.index,board.id)));
+      section.appendChild(grid);
+      canvas.appendChild(section);
+    });
+  }
+  main.appendChild(canvas);
+  const dock = document.createElement('section');
+  dock.className = `sb-studio-dock${sb.dockCollapsed ? ' collapsed' : ''}`;
+  dock.innerHTML = `<div class="sb-dock-head"><div class="sb-dock-tabs">${['preview','animatic','timeline','references'].map(tabName => `<button class="${sb.dockTab === tabName ? 'active' : ''}" onclick="storyboardStudioSetDockTab('${tabName}')">${tabName[0].toUpperCase()+tabName.slice(1)}</button>`).join('')}</div><button class="sb-dock-toggle" onclick="storyboardStudioToggleDock()">${sb.dockCollapsed ? '⌃' : '⌄'}</button></div><div class="sb-dock-body">${storyboardStudioDockHtml(board,activeEntry)}</div>`;
+  main.appendChild(dock);
+  studio.appendChild(main);
+
+  const inspector = document.createElement('aside');
+  inspector.className = `sb-studio-inspector${sb.inspectorCollapsed ? ' collapsed' : ''}`;
+  inspector.style.setProperty('--sb-inspector-width',`${sb.inspectorWidth || 330}px`);
+  inspector.innerHTML = `<div class="sb-studio-resizer" onpointerdown="storyboardStudioStartInspectorResize(event)"></div><div class="sb-studio-pane-head"><strong>Inspector</strong><button onclick="storyboardStudioClosePane('inspector')">›</button></div><div class="sb-inspector-tabs">${['frame','scene','board'].map(name => `<button class="${sb.inspectorTab === name ? 'active' : ''}" onclick="storyboardStudioSetInspectorTab('${name}')">${name[0].toUpperCase()+name.slice(1)}</button>`).join('')}</div><div class="sb-inspector-body">${storyboardStudioInspectorHtml(board,activeEntry,activeGroup)}</div>`;
+  studio.appendChild(inspector);
+  sbArea.appendChild(studio);
+  sbArea.appendChild(buildStoryboardPrintDocument(board,title));
+  return;
 
   // Populate the static toolbar bar (lives outside the scrollable storyboard area)
   const toolbar = document.getElementById('sb-toolbar');
@@ -38810,7 +39370,7 @@ function buildFrameEl(frame, idx, boardId) {
   const isSelected = sb.selectedFrameIds.has(frameId);
   ensureStoryboardFrameData(frame);
   const aspect = getStoryboardAspect(board);
-  wrap.className = 'sb-frame' + (isSelected ? ' sb-frame-selected' : '');
+  wrap.className = 'sb-frame' + (isSelected ? ' sb-frame-selected' : '') + (sb.activeFrameId === frameId ? ' sb-frame-active' : '');
   wrap.dataset.frameIndex = idx;
   wrap.dataset.frameId = frameId;
   wrap.setAttribute('ondragover', 'sbFrameDragOver(event)');
@@ -38842,7 +39402,7 @@ function buildFrameEl(frame, idx, boardId) {
       onclick="event.stopPropagation();sbToggleFrameSelection(${boardId},'${frameId}',event.shiftKey||event.ctrlKey||event.metaKey)">${isSelected ? '✓' : ''}</button>
     <button type="button" class="sb-frame-drag-handle" draggable="true" title="Drag to reorder selected frames"
       ondragstart="sbFrameDragStart(event,${boardId},'${frameId}')" ondragend="sbFrameDragEnd(event)" onclick="event.stopPropagation()">⠿</button>
-    <button class="sb-frame-edit-icon" onclick="openFrameEditor(${idx},${boardId})" title="Open frame editor">
+    <button class="sb-frame-edit-icon" onclick="event.stopPropagation();openFrameEditor(${idx},${boardId})" title="Open frame editor">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 20h9"/>
         <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
@@ -38850,8 +39410,9 @@ function buildFrameEl(frame, idx, boardId) {
     </button>
     <div class="sb-canvas-wrap widescreen" id="sb-wrap-${idx}" role="button" tabindex="0" style="--sb-frame-aspect:${aspect};"
       aria-label="Edit storyboard frame ${idx + 1}"
-      onclick="openFrameEditor(${idx},${boardId})"
-      onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openFrameEditor(${idx},${boardId})}">
+      onclick="event.stopPropagation();storyboardStudioSelectFrame(${boardId},'${frameId}',event.shiftKey||event.ctrlKey||event.metaKey)"
+      ondblclick="event.stopPropagation();openFrameEditor(${idx},${boardId})"
+      onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();storyboardStudioSelectFrame(${boardId},'${frameId}',event.shiftKey||event.ctrlKey||event.metaKey)}">
       <canvas class="sb-canvas sb-canvas-thumbnail" id="sb-canvas-${idx}"
         width="${THUMB_W}" height="${THUMB_H}"></canvas>
       ${board.actionSafe || board.titleSafe ? `<div class="sb-safe-overlay">${board.actionSafe ? '<div class="action-safe"></div>' : ''}${board.titleSafe ? '<div class="title-safe"></div>' : ''}</div>` : ''}
@@ -56343,8 +56904,21 @@ const SL = (() => {
   function getShotRefs() {
     return _data.shots.filter(shot => shot.type === 'shot').map(shot => ({
       id: shot.id, sceneIdx: shot.sceneIdx, sceneLineId: shot.sceneLineId || null, lineId: shot.lineId,
-      size: shot.size, movement: shot.movement, angle: shot.angle, desc: shot.desc
+      size: shot.size, movement: shot.movement, angle: shot.angle, lens: shot.lens,
+      location: shot.location, duration: shot.duration, flags: shot.flags, desc: shot.desc
     }));
+  }
+  function updateShotFromStoryboard(shotId, patch = {}) {
+    const shot = _data.shots.find(item => item.id === shotId && item.type === 'shot');
+    if (!shot) return false;
+    const allowed = ['size','movement','angle','lens','location','duration','desc'];
+    allowed.forEach(key => {
+      if (Object.prototype.hasOwnProperty.call(patch, key)) shot[key] = String(patch[key] ?? '');
+    });
+    if (shot.autoManaged) shot.autoManaged = false;
+    save();
+    if (document.getElementById('sl-panel')?.style.display !== 'none') render();
+    return true;
   }
   function setData(d) {
     if (d && d.shots) {
@@ -56392,7 +56966,7 @@ const SL = (() => {
     setView, toggleSplitTag, applyFilter, applySceneFilter,
     openMediaLibrary, closeMediaLibrary, uploadMedia, handleMediaUpload, deleteMedia,
     exportCSV, exportPDF,
-    getData, getShotRefs, setData, activate, deactivate, render,
+    getData, getShotRefs, updateShotFromStoryboard, setData, activate, deactivate, render,
     inferCameraCue, scheduleLiveSync, syncLiveFromScript,
     _pickColor, _addTask, _toggleTask, _deleteTask, _addComment, _resolveComment,
   };
