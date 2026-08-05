@@ -10,7 +10,10 @@ test('script scenes, shots, and storyboard frames stay visibly connected', async
 
   await page.locator('.add-doc-btn').click();
   await page.getByTestId('add-storyboard').click();
-  await page.getByRole('button', { name: 'Create Storyboard' }).click();
+  await page.getByRole('button', { name: 'Continue →' }).click();
+  await page.getByRole('button', { name: 'Continue →' }).click();
+  await page.getByRole('button', { name: 'Continue →' }).click();
+  await page.getByRole('button', { name: /Create Storyboard/ }).click();
   await expect(page.locator('#sb-link-modal')).toHaveClass(/open/);
   await page.locator('#sb-link-modal').getByRole('button', { name: 'Done' }).click();
 

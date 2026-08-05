@@ -49,6 +49,7 @@ The first Storyboard Editor expansion focuses on high-value editing work. The fi
 - action, dialogue/sound, camera, lighting and transition notes, custom fields and tags — implemented;
 - film, television, scope, square, vertical and custom storyboard templates and aspect ratios — implemented;
 - title-safe/action-safe overlays, board descriptions and board-level status — implemented;
+- New Storyboard guided setup matching the New Script Wizard — implemented;
 - post-creation orientation, column and caption settings, plus board rename and duplication — implemented;
 - multi-image drag-and-drop, non-destructive replacement, Crop/Fit/Fill/Stretch, rotation and flipping — implemented;
 - object and layer locking, layer rename/duplicate, aspect-locked resize and per-object opacity — implemented;

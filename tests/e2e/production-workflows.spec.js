@@ -15,7 +15,10 @@ test('a storyboard can remain blank or import only selected scenes', async ({ pa
 
   await page.locator('.add-doc-btn').click();
   await page.getByTestId('add-storyboard').click();
-  await page.getByRole('button', { name: 'Create Storyboard' }).click();
+  await page.getByRole('button', { name: 'Continue →' }).click();
+  await page.getByRole('button', { name: 'Continue →' }).click();
+  await page.getByRole('button', { name: 'Continue →' }).click();
+  await page.getByRole('button', { name: /Create Storyboard/ }).click();
   await page.getByRole('button', { name: 'Keep blank' }).click();
   await expect(page.locator('.sb-frame').nth(0).locator('.sb-frame-link-summary')).toContainText('No scene linked');
 

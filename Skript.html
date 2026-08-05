@@ -24842,6 +24842,47 @@ var __async = (__this, __arguments, generator) => {
   .sb-custom-aspect input { width:84px; }
   .sb-settings-checks { display:flex;gap:16px;align-items:center;color:var(--text-2);font-size:11px; }
   .sb-settings-checks.stacked { align-items:flex-start;flex-direction:column;gap:7px;margin:12px 0; }
+  #sb-setup-modal {
+    padding:16px;box-sizing:border-box;background:rgba(10,10,12,.92) !important;
+    align-items:center;justify-content:center;
+  }
+  #sb-wiz-box {
+    width:640px;height:min(650px,calc(100vh - 32px));max-width:calc(100vw - 32px);max-height:calc(100vh - 32px);
+    display:flex;flex-direction:column;overflow:hidden;background:var(--surface);color:var(--text);
+    border:1px solid var(--border2);border-radius:8px;box-shadow:0 20px 56px rgba(0,0,0,.55);
+  }
+  #sb-wiz-body { flex:1;min-height:0;height:auto; }
+  #sb-wiz-body .wiz-slide { padding:20px 24px;gap:12px; }
+  .sb-wiz-template-grid .wiz-type-card { min-height:94px; }
+  .sb-wiz-template-grid .wiz-type-desc { white-space:normal; }
+  .sb-wiz-aspect-grid { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px; }
+  .sb-wiz-choice {
+    min-height:66px;padding:10px 12px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;
+    border:1px solid var(--border2);border-radius:7px;background:var(--surface2);color:var(--text);font:inherit;text-align:left;cursor:pointer;
+  }
+  .sb-wiz-choice:hover { border-color:rgba(212,168,67,.65);background:var(--surface3); }
+  .sb-wiz-choice.selected { border-color:var(--amber);background:var(--amber-soft);box-shadow:inset 3px 0 0 var(--amber); }
+  .sb-wiz-choice strong { font-size:12px; }
+  .sb-wiz-choice span { color:var(--text-3);font-size:9px;line-height:1.35; }
+  .sb-wiz-layout-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px; }
+  .sb-wiz-setting-card { padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--surface2); }
+  .sb-wiz-setting-card .wiz-section-label { margin-bottom:9px; }
+  .sb-wiz-toggle-list { display:grid;gap:7px; }
+  .sb-wiz-toggle {
+    display:flex;align-items:flex-start;gap:9px;padding:8px 9px;border:1px solid var(--border2);border-radius:6px;
+    background:var(--surface3);color:var(--text-2);font-size:10px;line-height:1.4;cursor:pointer;
+  }
+  .sb-wiz-toggle input { margin-top:1px;accent-color:var(--amber); }
+  .sb-wiz-preview-ratio { width:58px;background:#fff;border:1px solid var(--border2);border-radius:3px;flex-shrink:0; }
+  .sb-wiz-review-heading { display:flex;align-items:center;gap:12px;margin-bottom:3px; }
+  .sb-wiz-review-heading p { margin:0;color:var(--text-2);font-size:11px;line-height:1.45; }
+  @media (max-width:640px) {
+    #sb-setup-modal { padding:8px; }
+    #sb-wiz-box { width:100%;height:calc(100vh - 16px);max-width:calc(100vw - 16px);max-height:calc(100vh - 16px); }
+    #sb-wiz-body .wiz-slide { padding:16px; }
+    .sb-wiz-aspect-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .sb-wiz-layout-grid { grid-template-columns:1fr; }
+  }
   .sb-frame-metadata { display:flex;flex-wrap:wrap;gap:4px;padding:5px 7px;border-bottom:1px solid var(--border);background:var(--surface2);min-height:25px; }
   .sb-meta-pill { border:1px solid var(--border2);border-radius:10px;padding:2px 6px;color:var(--text-2);font-size:9px;line-height:1.3; }
   .sb-meta-pill.status-approved,.sb-meta-pill.status-final { color:#70c987;border-color:rgba(112,201,135,.45); }
@@ -32461,73 +32502,14 @@ button.primary:hover,
 <!-- ══ MOLLY CHAT MODAL ══ -->
 
 <!-- ══ STORYBOARD SETUP MODAL ══ -->
-<div class="modal-overlay" id="sb-setup-modal">
-  <div class="modal" style="width:560px;max-height:90vh;overflow:auto;">
-    <h2 style="margin-bottom:6px;">🎬 New Storyboard</h2>
-    <p style="margin-bottom:20px;">Configure your storyboard before starting.</p>
-    <div class="sb-opt-group">
-      <label class="sb-opt-label" for="sb-template-select">Template</label>
-      <select id="sb-template-select" class="sb-settings-input" onchange="applyStoryboardTemplateToSetup(this.value)">
-        <option value="film">Film - 16:9</option>
-        <option value="scope">Feature Film Scope - 2.39:1</option>
-        <option value="television">Television - 16:9</option>
-        <option value="classic">Classic Television - 4:3</option>
-        <option value="square">Square Social - 1:1</option>
-        <option value="vertical">Vertical Social - 9:16</option>
-        <option value="custom">Custom</option>
-      </select>
-    </div>
-    <div class="sb-opt-group">
-      <label class="sb-opt-label" for="sb-aspect-select">Frame aspect ratio</label>
-      <select id="sb-aspect-select" class="sb-settings-input" onchange="setStoryboardSetupAspect(this.value)">
-        <option value="16:9">16:9</option><option value="4:3">4:3</option><option value="2.39:1">2.39:1</option>
-        <option value="1:1">1:1</option><option value="9:16">9:16</option><option value="custom">Custom</option>
-      </select>
-      <div id="sb-custom-aspect-setup" class="sb-custom-aspect" style="display:none;">
-        <input id="sb-custom-aspect-w" type="number" min="0.1" max="100" step="0.1" value="16" aria-label="Custom aspect width">
-        <span>:</span>
-        <input id="sb-custom-aspect-h" type="number" min="0.1" max="100" step="0.1" value="9" aria-label="Custom aspect height">
-      </div>
-    </div>
-    <div class="sb-opt-group">
-      <span class="sb-opt-label">Page orientation</span>
-      <div class="sb-opt-chips">
-        <div class="sb-chip active" data-sbopt="orientation" data-val="portrait" onclick="setSbOpt('orientation',this)">Portrait</div>
-        <div class="sb-chip" data-sbopt="orientation" data-val="landscape" onclick="setSbOpt('orientation',this)">Landscape</div>
-      </div>
-    </div>
-    <div class="sb-opt-group">
-      <span class="sb-opt-label">Frames per row</span>
-      <div class="sb-opt-chips">
-        <div class="sb-chip" data-sbopt="cols" data-val="2" onclick="setSbOpt('cols',this)">2 per row</div>
-        <div class="sb-chip active" data-sbopt="cols" data-val="3" onclick="setSbOpt('cols',this)">3 per row</div>
-      </div>
-    </div>
-    <div class="sb-opt-group">
-      <span class="sb-opt-label">Caption boxes</span>
-      <div class="sb-opt-chips">
-        <div class="sb-chip active" data-sbopt="captions" data-val="yes" onclick="setSbOpt('captions',this)">With caption box</div>
-        <div class="sb-chip" data-sbopt="captions" data-val="no" onclick="setSbOpt('captions',this)">No captions</div>
-      </div>
-    </div>
-    <div class="sb-opt-group">
-      <span class="sb-opt-label">Composition overlays</span>
-      <div class="sb-settings-checks">
-        <label><input id="sb-setup-action-safe" type="checkbox" onchange="sb.actionSafe=this.checked"> Action-safe</label>
-        <label><input id="sb-setup-title-safe" type="checkbox" onchange="sb.titleSafe=this.checked"> Title-safe</label>
-      </div>
-    </div>
-    <div class="sb-opt-group">
-      <span class="sb-opt-label">Starting frames</span>
-      <div class="sb-opt-chips">
-        <div class="sb-chip active" data-sbopt="frames" data-val="6" onclick="setSbOpt('frames',this)">6 frames</div>
-        <div class="sb-chip" data-sbopt="frames" data-val="12" onclick="setSbOpt('frames',this)">12 frames</div>
-        <div class="sb-chip" data-sbopt="frames" data-val="18" onclick="setSbOpt('frames',this)">18 frames</div>
-      </div>
-    </div>
-    <div class="modal-btns" style="margin-top:8px;">
-      <button class="top-btn" onclick="document.getElementById('sb-setup-modal').classList.remove('open')">Cancel</button>
-      <button class="top-btn primary" onclick="createStoryboard()">Create Storyboard</button>
+<div class="modal-overlay" id="sb-setup-modal" role="dialog" aria-modal="true" aria-labelledby="sb-wiz-title-line" onclick="if(event.target===this)closeStoryboardWizard()">
+  <div id="sb-wiz-box">
+    <div class="wiz-header" id="sb-wiz-header"></div>
+    <div class="wiz-body" id="sb-wiz-body"></div>
+    <div class="wiz-footer">
+      <button class="wiz-skip" type="button" onclick="closeStoryboardWizard()">✕ Cancel</button>
+      <button class="wiz-btn" id="sb-wiz-back" type="button" onclick="storyboardWizardBack()" style="display:none;">‹ Previous</button>
+      <button class="wiz-btn primary" id="sb-wiz-next" type="button" onclick="storyboardWizardNext()">Continue →</button>
     </div>
   </div>
 </div>
@@ -37344,6 +37326,7 @@ const sb = {
   orientation: 'portrait', cols: 3, captions: true, frameCount: 6,
   aspectRatio: '16:9', customAspectW: 16, customAspectH: 9,
   titleSafe: false, actionSafe: false, template: 'film',
+  setupStep: 1, setupName: '',
   boards: [],          // [{id, name, orientation, cols, captions, frames:[]}]
   activeBoardId: null,
   mediaLibrary: [],
@@ -37403,14 +37386,21 @@ const STORYBOARD_ASPECTS = {
 };
 
 const STORYBOARD_TEMPLATES = {
-  film: { label: 'Film - 16:9', aspectRatio: '16:9', orientation: 'portrait', cols: 2, captions: true },
-  scope: { label: 'Feature Film Scope - 2.39:1', aspectRatio: '2.39:1', orientation: 'landscape', cols: 2, captions: true },
-  television: { label: 'Television - 16:9', aspectRatio: '16:9', orientation: 'portrait', cols: 3, captions: true },
-  classic: { label: 'Classic Television - 4:3', aspectRatio: '4:3', orientation: 'portrait', cols: 3, captions: true },
-  square: { label: 'Square Social - 1:1', aspectRatio: '1:1', orientation: 'portrait', cols: 3, captions: true },
-  vertical: { label: 'Vertical Social - 9:16', aspectRatio: '9:16', orientation: 'landscape', cols: 3, captions: true },
-  custom: { label: 'Custom', aspectRatio: 'custom', orientation: 'portrait', cols: 2, captions: true }
+  film: { icon:'🎬', label: 'Film - 16:9', desc:'Standard widescreen boards for film and online video.', aspectRatio: '16:9', orientation: 'portrait', cols: 2, captions: true },
+  scope: { icon:'🎞️', label: 'Feature Film Scope - 2.39:1', desc:'Cinematic scope frames with a wider page layout.', aspectRatio: '2.39:1', orientation: 'landscape', cols: 2, captions: true },
+  television: { icon:'📺', label: 'Television - 16:9', desc:'Compact widescreen boards with three frames per row.', aspectRatio: '16:9', orientation: 'portrait', cols: 3, captions: true },
+  classic: { icon:'📼', label: 'Classic Television - 4:3', desc:'Traditional television and archive-style framing.', aspectRatio: '4:3', orientation: 'portrait', cols: 3, captions: true },
+  square: { icon:'◻️', label: 'Square Social - 1:1', desc:'Square compositions for social and presentation work.', aspectRatio: '1:1', orientation: 'portrait', cols: 3, captions: true },
+  vertical: { icon:'📱', label: 'Vertical Social - 9:16', desc:'Portrait video boards for mobile-first productions.', aspectRatio: '9:16', orientation: 'landscape', cols: 3, captions: true },
+  custom: { icon:'⚙️', label: 'Custom', desc:'Choose every frame and page setting yourself.', aspectRatio: 'custom', orientation: 'portrait', cols: 2, captions: true }
 };
+
+const STORYBOARD_WIZARD_STEPS = [
+  { label:'Template', title:'Choose a storyboard template', sub:'Start with a production-ready layout' },
+  { label:'Frame', title:'Name and frame your board', sub:'Choose the board name and artwork aspect ratio' },
+  { label:'Layout', title:'Configure the page layout', sub:'Set orientation, columns, captions and safe areas' },
+  { label:'Review', title:'Ready to create?', sub:'Check your storyboard settings before we begin' }
+];
 
 function getStoryboardAspect(board) {
   const key = board?.aspectRatio || '16:9';
@@ -38128,20 +38118,120 @@ function hideStoryboardArea() {
 }
 
 function newStoryboard() {
-  const template = document.getElementById('sb-template-select');
-  const aspect = document.getElementById('sb-aspect-select');
-  if (template) template.value = sb.template || 'film';
-  if (aspect) aspect.value = sb.aspectRatio || '16:9';
-  const customW = document.getElementById('sb-custom-aspect-w');
-  const customH = document.getElementById('sb-custom-aspect-h');
-  if (customW) customW.value = sb.customAspectW || 16;
-  if (customH) customH.value = sb.customAspectH || 9;
-  const actionSafe = document.getElementById('sb-setup-action-safe');
-  const titleSafe = document.getElementById('sb-setup-title-safe');
-  if (actionSafe) actionSafe.checked = !!sb.actionSafe;
-  if (titleSafe) titleSafe.checked = !!sb.titleSafe;
-  toggleStoryboardCustomAspect('setup');
+  const tab = tabs.find(item => item.id === activeTabId);
+  sb.setupStep = 1;
+  sb.setupName = `${tab?.title || 'Untitled Script'} Storyboard #${sb.boards.length + 1}`;
   document.getElementById('sb-setup-modal')?.classList.add('open');
+  renderStoryboardWizard();
+}
+
+function closeStoryboardWizard() {
+  document.getElementById('sb-setup-modal')?.classList.remove('open');
+}
+
+function storyboardWizardCollectStep() {
+  if (sb.setupStep === 2) {
+    sb.setupName = (document.getElementById('sb-wiz-name')?.value || sb.setupName || '').trim();
+    if (sb.aspectRatio === 'custom') {
+      sb.customAspectW = Math.max(.1, Number(document.getElementById('sb-wiz-custom-w')?.value) || sb.customAspectW || 16);
+      sb.customAspectH = Math.max(.1, Number(document.getElementById('sb-wiz-custom-h')?.value) || sb.customAspectH || 9);
+    }
+  }
+}
+
+function storyboardWizardGoto(step) {
+  storyboardWizardCollectStep();
+  sb.setupStep = Math.max(1, Math.min(STORYBOARD_WIZARD_STEPS.length, step));
+  renderStoryboardWizard();
+}
+
+function storyboardWizardBack() {
+  if (sb.setupStep > 1) storyboardWizardGoto(sb.setupStep - 1);
+}
+
+function storyboardWizardNext() {
+  storyboardWizardCollectStep();
+  if (sb.setupStep === 2 && !sb.setupName) {
+    document.getElementById('sb-wiz-name')?.focus();
+    return;
+  }
+  if (sb.setupStep >= STORYBOARD_WIZARD_STEPS.length) return createStoryboard();
+  storyboardWizardGoto(sb.setupStep + 1);
+}
+
+function storyboardWizardUpdateNext() {
+  const next = document.getElementById('sb-wiz-next');
+  if (!next) return;
+  if (sb.setupStep === 2) next.disabled = !(document.getElementById('sb-wiz-name')?.value || '').trim();
+}
+
+function storyboardWizardAspectLabel() {
+  return sb.aspectRatio === 'custom' ? `${sb.customAspectW || 16}:${sb.customAspectH || 9}` : sb.aspectRatio;
+}
+
+function storyboardWizardTemplateSlide() {
+  return `<p style="margin:0 0 3px;color:var(--text-2);font-size:12px;line-height:1.55;">Choose the closest match for your production. Every setting can be adjusted on the next screens or after creation.</p>
+    <div class="wiz-type-grid sb-wiz-template-grid">${Object.entries(STORYBOARD_TEMPLATES).map(([key, template]) => `
+      <button type="button" class="wiz-type-card ${sb.template === key ? 'selected' : ''}" aria-pressed="${sb.template === key}" onclick="selectStoryboardWizardTemplate('${key}')">
+        <span class="wiz-type-icon">${template.icon}</span><span class="wiz-type-name">${escHtml(template.label)}</span><span class="wiz-type-desc">${escHtml(template.desc)}</span>
+      </button>`).join('')}</div>`;
+}
+
+function storyboardWizardFrameSlide() {
+  const aspects = [
+    ['16:9','Widescreen'],['4:3','Classic'],['2.39:1','CinemaScope'],['1:1','Square'],['9:16','Vertical'],['custom','Custom ratio']
+  ];
+  return `<div class="wiz-field"><label class="wiz-label">Storyboard Name <span class="wiz-label-req">★ required</span></label>
+      <input class="wiz-input" id="sb-wiz-name" maxlength="120" value="${escHtml(sb.setupName || '')}" placeholder="e.g. Opening Sequence" oninput="sb.setupName=this.value;storyboardWizardUpdateNext()" onkeydown="if(event.key==='Enter')storyboardWizardNext()" autocomplete="off">
+      <div class="wiz-hint">This name appears in the Navigator, printed boards and the animatic.</div></div>
+    <div class="wiz-section-label">Frame aspect ratio</div>
+    <div class="sb-wiz-aspect-grid">${aspects.map(([value,label]) => `<button type="button" class="sb-wiz-choice ${sb.aspectRatio === value ? 'selected' : ''}" aria-pressed="${sb.aspectRatio === value}" onclick="setStoryboardSetupAspect('${value}')"><strong>${value === 'custom' ? 'Custom' : value}</strong><span>${label}</span></button>`).join('')}</div>
+    ${sb.aspectRatio === 'custom' ? `<div class="wiz-row-2"><div class="wiz-field"><label class="wiz-label">Ratio Width</label><input id="sb-wiz-custom-w" class="wiz-input" type="number" min=".1" max="100" step=".1" value="${sb.customAspectW || 16}" oninput="sb.customAspectW=Math.max(.1,+this.value||16)"></div><div class="wiz-field"><label class="wiz-label">Ratio Height</label><input id="sb-wiz-custom-h" class="wiz-input" type="number" min=".1" max="100" step=".1" value="${sb.customAspectH || 9}" oninput="sb.customAspectH=Math.max(.1,+this.value||9)"></div></div>` : ''}`;
+}
+
+function storyboardWizardChoice(group, value, label, description) {
+  const current = group === 'orientation' ? sb.orientation : group === 'cols' ? String(sb.cols) : group === 'captions' ? (sb.captions ? 'yes' : 'no') : String(sb.frameCount);
+  return `<button type="button" class="sb-wiz-choice ${current === String(value) ? 'selected' : ''}" aria-pressed="${current === String(value)}" onclick="setStoryboardWizardOption('${group}','${value}')"><strong>${label}</strong><span>${description}</span></button>`;
+}
+
+function storyboardWizardLayoutSlide() {
+  return `<div class="sb-wiz-layout-grid">
+    <section class="sb-wiz-setting-card"><div class="wiz-section-label">Page orientation</div><div class="sb-wiz-toggle-list">${storyboardWizardChoice('orientation','portrait','Portrait','Traditional printed storyboard page')}${storyboardWizardChoice('orientation','landscape','Landscape','Wider presentation and review page')}</div></section>
+    <section class="sb-wiz-setting-card"><div class="wiz-section-label">Frames per row</div><div class="sb-wiz-toggle-list">${storyboardWizardChoice('cols','2','Two frames','Larger artwork and more annotation space')}${storyboardWizardChoice('cols','3','Three frames','Compact overview with more shots per page')}</div></section>
+    <section class="sb-wiz-setting-card"><div class="wiz-section-label">Frame details</div><div class="sb-wiz-toggle-list">${storyboardWizardChoice('captions','yes','Show captions','Include an editable description under every frame')}${storyboardWizardChoice('captions','no','Hide captions','Artwork and production metadata only')}</div></section>
+    <section class="sb-wiz-setting-card"><div class="wiz-section-label">Starting frames</div><div class="sb-wiz-toggle-list">${storyboardWizardChoice('frames','6','6 frames','A short sequence or first pass')}${storyboardWizardChoice('frames','12','12 frames','A complete scene or sequence')}${storyboardWizardChoice('frames','18','18 frames','A longer planning board')}</div></section>
+  </div>
+  <div class="wiz-section-label">Composition guides</div>
+  <div class="wiz-row-2"><label class="sb-wiz-toggle"><input type="checkbox" ${sb.actionSafe ? 'checked' : ''} onchange="sb.actionSafe=this.checked"><span><strong>Action-safe overlay</strong><br>Keep important movement inside the outer safe area.</span></label><label class="sb-wiz-toggle"><input type="checkbox" ${sb.titleSafe ? 'checked' : ''} onchange="sb.titleSafe=this.checked"><span><strong>Title-safe overlay</strong><br>Keep text and critical detail inside the inner safe area.</span></label></div>`;
+}
+
+function storyboardWizardReviewSlide() {
+  const template = STORYBOARD_TEMPLATES[sb.template] || STORYBOARD_TEMPLATES.custom;
+  const ratio = getStoryboardAspect(sb);
+  return `<div class="sb-wiz-review-heading"><div class="sb-wiz-preview-ratio" style="aspect-ratio:${ratio}"></div><p>Your storyboard is ready. Review the production and page settings below before creating it.</p></div>
+    <div class="wiz-review-card">
+      <div class="wiz-review-row"><span class="wiz-review-label">Name</span><span class="wiz-review-val"><strong>${escHtml(sb.setupName || 'Storyboard')}</strong></span><button class="wiz-review-edit" onclick="storyboardWizardGoto(2)">Edit</button></div>
+      <div class="wiz-review-row"><span class="wiz-review-label">Template</span><span class="wiz-review-val">${template.icon} ${escHtml(template.label)}</span><button class="wiz-review-edit" onclick="storyboardWizardGoto(1)">Edit</button></div>
+      <div class="wiz-review-row"><span class="wiz-review-label">Frame</span><span class="wiz-review-val">${escHtml(storyboardWizardAspectLabel())} · ${sb.frameCount} starting frames</span><button class="wiz-review-edit" onclick="storyboardWizardGoto(2)">Edit</button></div>
+      <div class="wiz-review-row"><span class="wiz-review-label">Page</span><span class="wiz-review-val">${sb.orientation === 'landscape' ? 'Landscape' : 'Portrait'} · ${sb.cols} per row · ${sb.captions ? 'captions shown' : 'no captions'}</span><button class="wiz-review-edit" onclick="storyboardWizardGoto(3)">Edit</button></div>
+      <div class="wiz-review-row"><span class="wiz-review-label">Guides</span><span class="wiz-review-val">${[sb.actionSafe && 'Action-safe', sb.titleSafe && 'Title-safe'].filter(Boolean).join(' + ') || 'None'}</span><button class="wiz-review-edit" onclick="storyboardWizardGoto(3)">Edit</button></div>
+    </div><div class="wiz-review-note">✓ You can change the name, aspect ratio, page layout, captions and guides later from Storyboard Settings.</div>`;
+}
+
+function renderStoryboardWizard() {
+  const info = STORYBOARD_WIZARD_STEPS[sb.setupStep - 1];
+  const header = document.getElementById('sb-wiz-header');
+  const body = document.getElementById('sb-wiz-body');
+  if (!header || !body) return;
+  header.innerHTML = `<div class="wiz-steps">${STORYBOARD_WIZARD_STEPS.map((step,index) => `<div class="wiz-step-wrap"><div class="wiz-step ${index + 1 < sb.setupStep ? 'done completed' : index + 1 === sb.setupStep ? 'active' : ''}" data-s="${index + 1}"><div class="wiz-step-dot">${index + 1 < sb.setupStep ? '✓' : index + 1}</div><span class="wiz-step-label">${step.label}</span></div></div>${index < STORYBOARD_WIZARD_STEPS.length - 1 ? '<div class="wiz-step-line"></div>' : ''}`).join('')}</div><div style="margin-top:22px"><div class="wiz-step-title" id="sb-wiz-title-line">${info.title}</div><div class="wiz-step-sub">${info.sub}</div></div>`;
+  const slides = [storyboardWizardTemplateSlide, storyboardWizardFrameSlide, storyboardWizardLayoutSlide, storyboardWizardReviewSlide];
+  body.innerHTML = `<div class="wiz-slide active">${slides[sb.setupStep - 1]()}</div>`;
+  const back = document.getElementById('sb-wiz-back');
+  const next = document.getElementById('sb-wiz-next');
+  if (back) back.style.display = sb.setupStep === 1 ? 'none' : '';
+  if (next) next.textContent = sb.setupStep === STORYBOARD_WIZARD_STEPS.length ? '🎬 Create Storyboard' : 'Continue →';
+  storyboardWizardUpdateNext();
+  setTimeout(() => body.querySelector('input:not([type=checkbox]),button.selected')?.focus(), 40);
 }
 
 function addStoryboardDocument() {
@@ -38340,16 +38430,11 @@ function sbHandleKeyboardShortcut(event) {
 
 function createStoryboard() {
   // Close the setup modal
-  document.getElementById('sb-setup-modal')?.classList.remove('open');
-
-  if (sb.aspectRatio === 'custom') {
-    sb.customAspectW = Math.max(0.1, Number(document.getElementById('sb-custom-aspect-w')?.value) || 16);
-    sb.customAspectH = Math.max(0.1, Number(document.getElementById('sb-custom-aspect-h')?.value) || 9);
-  }
+  closeStoryboardWizard();
   // Build the board object
   const boardId = Date.now();
   const tab = tabs.find(t => t.id === activeTabId);
-  const name = (tab ? tab.title : 'Storyboard') + ' #' + (sb.boards.length + 1);
+  const name = (sb.setupName || ((tab ? tab.title : 'Storyboard') + ' #' + (sb.boards.length + 1))).trim();
   const board = {
     id: boardId,
     name,
@@ -38381,28 +38466,23 @@ function createStoryboard() {
   if (getStoryboardSceneRefs().length) setTimeout(() => openStoryboardLinkWizard(boardId), 0);
 }
 
-function setSbOpt(key, el) {
-  const group = el.dataset.sbopt;
-  document.querySelectorAll(`[data-sbopt="${group}"]`).forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
-  const val = el.dataset.val;
-  if (key === 'orientation') sb.orientation = val;
-  if (key === 'cols') sb.cols = parseInt(val);
-  if (key === 'captions') sb.captions = val === 'yes';
-  if (key === 'frames') sb.frameCount = parseInt(val);
-  if (key !== 'frames') {
-    sb.template = 'custom';
-    const template = document.getElementById('sb-template-select');
-    if (template) template.value = 'custom';
-  }
+function setStoryboardWizardOption(key, value) {
+  if (key === 'orientation') sb.orientation = value;
+  if (key === 'cols') sb.cols = Number(value) || 3;
+  if (key === 'captions') sb.captions = value === 'yes';
+  if (key === 'frames') sb.frameCount = Number(value) || 6;
+  if (key !== 'frames') sb.template = 'custom';
+  renderStoryboardWizard();
+}
+
+function selectStoryboardWizardTemplate(key) {
+  applyStoryboardTemplateToSetup(key);
 }
 
 function setStoryboardSetupAspect(value) {
   sb.aspectRatio = value;
-  sb.template = value === 'custom' ? 'custom' : sb.template;
-  const custom = document.getElementById('sb-custom-aspect-setup');
-  if (custom) custom.style.display = value === 'custom' ? 'flex' : 'none';
-  if (value === 'custom') document.getElementById('sb-template-select').value = 'custom';
+  sb.template = 'custom';
+  renderStoryboardWizard();
 }
 
 function applyStoryboardTemplateToSetup(key) {
@@ -38412,17 +38492,12 @@ function applyStoryboardTemplateToSetup(key) {
   sb.orientation = template.orientation;
   sb.cols = template.cols;
   sb.captions = template.captions;
-  const aspect = document.getElementById('sb-aspect-select');
-  if (aspect) aspect.value = template.aspectRatio;
-  document.querySelectorAll('[data-sbopt="orientation"]').forEach(chip => chip.classList.toggle('active', chip.dataset.val === template.orientation));
-  document.querySelectorAll('[data-sbopt="cols"]').forEach(chip => chip.classList.toggle('active', Number(chip.dataset.val) === template.cols));
-  document.querySelectorAll('[data-sbopt="captions"]').forEach(chip => chip.classList.toggle('active', (chip.dataset.val === 'yes') === template.captions));
-  setStoryboardSetupAspect(template.aspectRatio);
+  renderStoryboardWizard();
 }
 
 function toggleStoryboardCustomAspect(mode) {
-  const select = document.getElementById(mode === 'settings' ? 'sbs-aspect' : 'sb-aspect-select');
-  const custom = document.getElementById(mode === 'settings' ? 'sbs-custom-aspect' : 'sb-custom-aspect-setup');
+  const select = document.getElementById('sbs-aspect');
+  const custom = document.getElementById('sbs-custom-aspect');
   if (custom) custom.style.display = select?.value === 'custom' ? 'flex' : 'none';
 }
 

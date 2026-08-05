@@ -1,5 +1,61 @@
 import { test, expect } from './support/fixtures.js';
 
+test('new storyboard uses a guided wizard matching the New Script flow', async ({ page, skript }) => {
+  await page.evaluate(() => {
+    sb.boards = [];
+    sb.activeBoardId = null;
+    sb.template = 'film';
+    sb.aspectRatio = '16:9';
+    sb.orientation = 'portrait';
+    sb.cols = 2;
+    sb.captions = true;
+    sb.frameCount = 6;
+    sb.actionSafe = false;
+    sb.titleSafe = false;
+    newStoryboard();
+  });
+
+  const modal = page.locator('#sb-setup-modal');
+  await expect(modal).toHaveClass(/open/);
+  await expect(page.locator('#sb-wiz-header .wiz-step')).toHaveCount(4);
+  await expect(page.locator('#sb-wiz-title-line')).toHaveText('Choose a storyboard template');
+  await expect(page.locator('.sb-wiz-template-grid .wiz-type-card')).toHaveCount(7);
+
+  await page.getByRole('button', { name: /Feature Film Scope/ }).click();
+  await page.locator('#sb-wiz-next').click();
+  await expect(page.locator('#sb-wiz-title-line')).toHaveText('Name and frame your board');
+  await page.locator('#sb-wiz-name').fill('Opening Chase');
+  await page.getByRole('button', { name: /^1:1 Square$/ }).click();
+  await page.locator('#sb-wiz-next').click();
+
+  await expect(page.locator('#sb-wiz-title-line')).toHaveText('Configure the page layout');
+  await page.getByRole('button', { name: /Landscape Wider presentation/ }).click();
+  await page.getByRole('button', { name: /Two frames Larger artwork/ }).click();
+  await page.getByRole('button', { name: /Hide captions Artwork/ }).click();
+  await page.getByRole('button', { name: /12 frames A complete scene/ }).click();
+  await page.getByText('Title-safe overlay', { exact: true }).click();
+  await page.locator('#sb-wiz-next').click();
+
+  await expect(page.locator('#sb-wiz-title-line')).toHaveText('Ready to create?');
+  await expect(page.locator('#sb-wiz-body')).toContainText('Opening Chase');
+  await expect(page.locator('#sb-wiz-body')).toContainText('1:1 · 12 starting frames');
+  await expect(page.locator('#sb-wiz-body')).toContainText('Landscape · 2 per row · no captions');
+
+  const box = await page.locator('#sb-wiz-box').boundingBox();
+  const viewport = page.viewportSize();
+  expect(box.width).toBeLessThanOrEqual(viewport.width);
+  expect(box.height).toBeLessThanOrEqual(viewport.height);
+
+  await page.locator('#sb-wiz-next').click();
+  await expect(modal).not.toHaveClass(/open/);
+  const board = await page.evaluate(() => sb.boards[0]);
+  expect(board).toMatchObject({
+    name: 'Opening Chase', aspectRatio: '1:1', orientation: 'landscape',
+    cols: 2, captions: false, titleSafe: true,
+  });
+  expect(board.frames).toHaveLength(12);
+});
+
 test('storyboard settings and rich frame information persist and duplicate safely', async ({ page, skript }) => {
   const result = await page.evaluate(() => {
     const board = {
