@@ -24820,6 +24820,42 @@ var __async = (__this, __arguments, generator) => {
   .sb-card-menu-panel button:hover { background: var(--surface3); color: var(--text); }
   .sb-card-menu-panel button.danger { color: var(--danger); }
   #sb-toolbar .top-btn:disabled { opacity: 0.38; cursor: default; }
+  .sb-settings-input, .sb-detail-modal input, .sb-detail-modal select, .sb-detail-modal textarea {
+    width: 100%; box-sizing: border-box; border: 1px solid var(--border2); border-radius: 5px;
+    background: var(--surface2); color: var(--text); padding: 7px 9px; font: inherit;
+  }
+  .sb-detail-modal { width: min(780px,94vw); max-height: 92vh; overflow: auto; }
+  .sb-detail-heading { display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px; }
+  .sb-detail-heading h2 { margin:0 0 4px; }
+  .sb-detail-heading p { margin:0;color:var(--text-3);font-size:11px; }
+  .sb-form-grid { display:grid; gap:10px; margin-bottom:12px; }
+  .sb-form-grid.two { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .sb-form-grid.three { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .sb-form-grid label, .sb-custom-aspect label { display:grid;gap:5px;color:var(--text-2);font-size:10px;font-weight:650; }
+  .sb-form-grid .wide { grid-column:1/-1; }
+  .sb-form-grid textarea { resize:vertical;min-height:64px; }
+  .sb-custom-heading { display:flex;align-items:center;justify-content:space-between;margin:8px 0; }
+  .sb-custom-fields { display:grid;gap:7px; }
+  .sb-custom-field-row { display:grid;grid-template-columns:minmax(120px,.7fr) minmax(180px,1.3fr) 30px;gap:6px; }
+  .sb-custom-field-row button { border:1px solid var(--border2);border-radius:4px;background:transparent;color:var(--danger);cursor:pointer; }
+  .sb-custom-aspect { display:flex;align-items:center;gap:7px;margin-top:7px;color:var(--text-2); }
+  .sb-custom-aspect input { width:84px; }
+  .sb-settings-checks { display:flex;gap:16px;align-items:center;color:var(--text-2);font-size:11px; }
+  .sb-settings-checks.stacked { align-items:flex-start;flex-direction:column;gap:7px;margin:12px 0; }
+  .sb-frame-metadata { display:flex;flex-wrap:wrap;gap:4px;padding:5px 7px;border-bottom:1px solid var(--border);background:var(--surface2);min-height:25px; }
+  .sb-meta-pill { border:1px solid var(--border2);border-radius:10px;padding:2px 6px;color:var(--text-2);font-size:9px;line-height:1.3; }
+  .sb-meta-pill.status-approved,.sb-meta-pill.status-final { color:#70c987;border-color:rgba(112,201,135,.45); }
+  .sb-meta-pill.status-review,.sb-meta-pill.status-revision { color:#e9b454;border-color:rgba(233,180,84,.45); }
+  .sb-frame-info-btn { margin-left:auto;border:0;background:transparent;color:var(--amber);font-size:9px;cursor:pointer;padding:1px 4px; }
+  .sb-safe-overlay { position:absolute;inset:0;pointer-events:none;z-index:5; }
+  .sb-safe-overlay .action-safe,.sb-safe-overlay .title-safe { position:absolute;border:1px dashed rgba(224,74,134,.7); }
+  .sb-safe-overlay .action-safe { inset:5%; }
+  .sb-safe-overlay .title-safe { inset:10%;border-color:rgba(70,140,230,.75); }
+  .sb-board-description { max-width:65%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#555;font-size:9px; }
+  @media (max-width:700px) {
+    .sb-form-grid.two,.sb-form-grid.three { grid-template-columns:1fr; }
+    .sb-form-grid .wide { grid-column:auto; }
+  }
 
   /* Edit overlay — hidden by default, revealed on frame hover */
   .sb-frame-edit-icon {
@@ -24860,11 +24896,11 @@ var __async = (__this, __arguments, generator) => {
   .sb-canvas-wrap {
     position: relative; background: #ffffff;
     flex-shrink: 0;
-    aspect-ratio: 16/9;
+    aspect-ratio: var(--sb-frame-aspect, 16/9);
   }
   .sb-canvas-wrap.portrait,
   .sb-canvas-wrap.landscape,
-  .sb-canvas-wrap.widescreen { aspect-ratio: 16/9; }
+  .sb-canvas-wrap.widescreen { aspect-ratio: var(--sb-frame-aspect, 16/9); }
   .sb-canvas-wrap[role="button"] { cursor: pointer; outline: none; }
   .sb-canvas-wrap[role="button"]:focus-visible {
     box-shadow: inset 0 0 0 3px #5b9bd5;
@@ -29959,6 +29995,28 @@ textarea:focus-visible,
   font-size: 10px;
   cursor: pointer;
 }
+.fe-image-panel { display:none;padding:8px;border-bottom:1px solid var(--border);background:var(--surface); }
+.fe-image-panel.visible { display:block; }
+.fe-image-actions { display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:7px; }
+.fe-image-actions button,.fe-image-row button,.fe-media-actions button {
+  min-height:25px;border:1px solid var(--border2);border-radius:4px;background:var(--surface2);color:var(--text-2);font-size:9px;cursor:pointer;
+}
+.fe-image-actions button.active,.fe-image-row button.active { border-color:var(--amber);background:var(--amber-soft);color:var(--amber); }
+.fe-image-row { display:grid;grid-template-columns:auto 1fr 34px;gap:5px;align-items:center;margin-top:7px;color:var(--text-3);font-size:9px; }
+.fe-image-row.buttons { grid-template-columns:1fr 1fr; }
+.fe-image-row.crop { grid-template-columns:1fr repeat(4,25px); }
+.fe-image-row input[type="range"] { min-width:0; }
+.fe-media-panel { flex:0 0 auto;border-bottom:1px solid var(--border);background:var(--surface); }
+.fe-media-panel > summary { cursor:pointer;padding:7px 9px;color:var(--text-2);font-size:10px;font-weight:700; }
+.fe-media-panel > summary span { float:right;color:var(--amber); }
+.fe-media-actions { display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:0 8px 6px; }
+.fe-media-list { max-height:132px;overflow:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:0 8px 8px; }
+.fe-media-item { position:relative;aspect-ratio:1;background:var(--surface2);border:1px solid var(--border2);border-radius:4px;overflow:hidden;cursor:pointer; }
+.fe-media-item img { width:100%;height:100%;object-fit:cover;display:block; }
+.fe-media-item span { position:absolute;left:0;right:0;bottom:0;padding:2px 3px;background:rgba(0,0,0,.65);color:#fff;font-size:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.fe-layer-item.locked { opacity:.72; }
+.fe-layer-lock-badge { margin-left:auto;color:var(--amber);font-size:10px; }
+#fe-canvas-container.fe-drop-active { box-shadow:0 0 0 5px rgba(91,155,213,.65),0 4px 32px rgba(0,0,0,.6) !important; }
 .fe-compact-option { display: flex; align-items: center; gap: 7px; }
 .fe-compact-option svg { width: 16px; height: 16px; flex: 0 0 16px; }
 
@@ -30122,6 +30180,7 @@ body[data-script-direction="rtl"] .script-page .line-parenthetical { margin-left
 .sb-frame-linked-focus { box-shadow: 0 0 0 3px var(--amber) !important; }
 @media print {
   .sb-frame-link-controls { display: none !important; }
+  .sb-safe-overlay, .sb-frame-select, .sb-frame-drag-handle, .sb-frame-info-btn { display: none !important; }
   .sb-frame-link-summary { background: #fff !important; color: #222 !important; }
 }
 
@@ -32403,9 +32462,33 @@ button.primary:hover,
 
 <!-- ══ STORYBOARD SETUP MODAL ══ -->
 <div class="modal-overlay" id="sb-setup-modal">
-  <div class="modal" style="width:500px;">
+  <div class="modal" style="width:560px;max-height:90vh;overflow:auto;">
     <h2 style="margin-bottom:6px;">🎬 New Storyboard</h2>
     <p style="margin-bottom:20px;">Configure your storyboard before starting.</p>
+    <div class="sb-opt-group">
+      <label class="sb-opt-label" for="sb-template-select">Template</label>
+      <select id="sb-template-select" class="sb-settings-input" onchange="applyStoryboardTemplateToSetup(this.value)">
+        <option value="film">Film - 16:9</option>
+        <option value="scope">Feature Film Scope - 2.39:1</option>
+        <option value="television">Television - 16:9</option>
+        <option value="classic">Classic Television - 4:3</option>
+        <option value="square">Square Social - 1:1</option>
+        <option value="vertical">Vertical Social - 9:16</option>
+        <option value="custom">Custom</option>
+      </select>
+    </div>
+    <div class="sb-opt-group">
+      <label class="sb-opt-label" for="sb-aspect-select">Frame aspect ratio</label>
+      <select id="sb-aspect-select" class="sb-settings-input" onchange="setStoryboardSetupAspect(this.value)">
+        <option value="16:9">16:9</option><option value="4:3">4:3</option><option value="2.39:1">2.39:1</option>
+        <option value="1:1">1:1</option><option value="9:16">9:16</option><option value="custom">Custom</option>
+      </select>
+      <div id="sb-custom-aspect-setup" class="sb-custom-aspect" style="display:none;">
+        <input id="sb-custom-aspect-w" type="number" min="0.1" max="100" step="0.1" value="16" aria-label="Custom aspect width">
+        <span>:</span>
+        <input id="sb-custom-aspect-h" type="number" min="0.1" max="100" step="0.1" value="9" aria-label="Custom aspect height">
+      </div>
+    </div>
     <div class="sb-opt-group">
       <span class="sb-opt-label">Page orientation</span>
       <div class="sb-opt-chips">
@@ -32428,6 +32511,13 @@ button.primary:hover,
       </div>
     </div>
     <div class="sb-opt-group">
+      <span class="sb-opt-label">Composition overlays</span>
+      <div class="sb-settings-checks">
+        <label><input id="sb-setup-action-safe" type="checkbox" onchange="sb.actionSafe=this.checked"> Action-safe</label>
+        <label><input id="sb-setup-title-safe" type="checkbox" onchange="sb.titleSafe=this.checked"> Title-safe</label>
+      </div>
+    </div>
+    <div class="sb-opt-group">
       <span class="sb-opt-label">Starting frames</span>
       <div class="sb-opt-chips">
         <div class="sb-chip active" data-sbopt="frames" data-val="6" onclick="setSbOpt('frames',this)">6 frames</div>
@@ -32439,6 +32529,73 @@ button.primary:hover,
       <button class="top-btn" onclick="document.getElementById('sb-setup-modal').classList.remove('open')">Cancel</button>
       <button class="top-btn primary" onclick="createStoryboard()">Create Storyboard</button>
     </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="sb-frame-info-modal" style="z-index:2050;">
+  <div class="modal sb-detail-modal">
+    <div class="sb-detail-heading">
+      <div><h2>Frame Information</h2><p id="sb-frame-info-context">Storyboard frame</p></div>
+      <button type="button" class="sf-modal-close" onclick="closeStoryboardFrameInfo()" aria-label="Close frame information">&times;</button>
+    </div>
+    <div class="sb-form-grid three">
+      <label>Label<input id="sbfi-label" maxlength="120" placeholder="Opening wide shot"></label>
+      <label>Shot number<input id="sbfi-shot-number" maxlength="30" placeholder="12A"></label>
+      <label>Duration / timecode<input id="sbfi-duration" maxlength="30" placeholder="00:00:05:12 or 5 sec"></label>
+    </div>
+    <div class="sb-form-grid two">
+      <label>Status<select id="sbfi-status"><option>Draft</option><option>Review</option><option>Approved</option><option>Revision</option><option>Final</option></select></label>
+      <label>Tags<input id="sbfi-tags" placeholder="exterior, night, VFX"></label>
+    </div>
+    <div class="sb-form-grid two notes">
+      <label>Action notes<textarea id="sbfi-action" rows="3" placeholder="What happens in the shot"></textarea></label>
+      <label>Dialogue / sound notes<textarea id="sbfi-dialogue" rows="3" placeholder="Dialogue, music and sound cues"></textarea></label>
+      <label>Camera notes<textarea id="sbfi-camera" rows="3" placeholder="Lens, size, movement and angle"></textarea></label>
+      <label>Lighting notes<textarea id="sbfi-lighting" rows="3" placeholder="Lighting setup and mood"></textarea></label>
+      <label class="wide">Transition notes<textarea id="sbfi-transition" rows="2" placeholder="Cut, dissolve or transition notes"></textarea></label>
+    </div>
+    <div class="sb-custom-heading"><strong>Custom note fields</strong><button type="button" class="top-btn" onclick="addStoryboardCustomField()">+ Add field</button></div>
+    <div id="sbfi-custom-fields" class="sb-custom-fields"></div>
+    <div class="modal-btns">
+      <button type="button" class="top-btn" onclick="closeStoryboardFrameInfo()">Cancel</button>
+      <button type="button" class="top-btn primary" onclick="saveStoryboardFrameInfo()">Save Frame Information</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="sb-board-settings-modal" style="z-index:2040;">
+  <div class="modal sb-detail-modal">
+    <div class="sb-detail-heading">
+      <div><h2>Storyboard Settings</h2><p>Change the board without recreating it.</p></div>
+      <button type="button" class="sf-modal-close" onclick="closeStoryboardSettings()" aria-label="Close storyboard settings">&times;</button>
+    </div>
+    <div class="sb-form-grid two">
+      <label>Name<input id="sbs-name" maxlength="120"></label>
+      <label>Status<select id="sbs-status"><option>Draft</option><option>Review</option><option>Approved</option><option>Revision</option><option>Final</option></select></label>
+      <label class="wide">Description<textarea id="sbs-description" rows="3" placeholder="Purpose, sequence or production notes"></textarea></label>
+      <label>Template<select id="sbs-template" onchange="applyStoryboardTemplateToSettings(this.value)"></select></label>
+      <label>Frame aspect ratio<select id="sbs-aspect" onchange="toggleStoryboardCustomAspect('settings')"><option value="16:9">16:9</option><option value="4:3">4:3</option><option value="2.39:1">2.39:1</option><option value="1:1">1:1</option><option value="9:16">9:16</option><option value="custom">Custom</option></select></label>
+      <label>Page orientation<select id="sbs-orientation"><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select></label>
+      <label>Frames per row<select id="sbs-cols"><option value="2">2 per row</option><option value="3">3 per row</option></select></label>
+    </div>
+    <div id="sbs-custom-aspect" class="sb-custom-aspect" style="display:none;"><label>Custom ratio</label><input id="sbs-custom-w" type="number" min="0.1" max="100" step="0.1"><span>:</span><input id="sbs-custom-h" type="number" min="0.1" max="100" step="0.1"></div>
+    <div class="sb-settings-checks stacked">
+      <label><input id="sbs-captions" type="checkbox"> Show caption boxes</label>
+      <label><input id="sbs-action-safe" type="checkbox"> Show action-safe overlay</label>
+      <label><input id="sbs-title-safe" type="checkbox"> Show title-safe overlay</label>
+    </div>
+    <div class="modal-btns">
+      <button type="button" class="top-btn" onclick="closeStoryboardSettings()">Cancel</button>
+      <button type="button" class="top-btn primary" onclick="saveStoryboardSettings()">Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<div class="sf-modal" id="fe-layer-rename-modal" style="display:none;z-index:2200;" onclick="if(event.target===this)closeLayerRenameModal()">
+  <div class="sf-modal-box" style="width:380px;">
+    <div class="sf-modal-header">Rename Layer</div>
+    <div class="sf-modal-body"><input id="fe-layer-rename-input" class="sb-settings-input" maxlength="100" aria-label="Layer name" onkeydown="if(event.key==='Enter')saveLayerRename();if(event.key==='Escape')closeLayerRenameModal()"></div>
+    <div class="sf-modal-footer"><button class="sf-modal-btn" onclick="closeLayerRenameModal()">Cancel</button><button class="sf-modal-btn sf-modal-btn-primary" onclick="saveLayerRename()">Rename</button></div>
   </div>
 </div>
 
@@ -32867,6 +33024,30 @@ button.primary:hover,
           </div>
         </div>
 
+        <div id="fe-image-panel" class="fe-image-panel" aria-label="Image controls">
+          <div class="fe-text-panel-title"><span>Image</span><span id="fe-image-selection-label">Selected image</span></div>
+          <div class="fe-image-actions">
+            <button type="button" onclick="replaceSelectedImage()">Replace</button>
+            <button type="button" data-image-mode="fit" onclick="feSetSelectedImageMode('fit')">Fit</button>
+            <button type="button" data-image-mode="fill" onclick="feSetSelectedImageMode('fill')">Fill</button>
+            <button type="button" data-image-mode="stretch" onclick="feSetSelectedImageMode('stretch')">Stretch</button>
+            <button type="button" data-image-mode="crop" onclick="feSetSelectedImageMode('crop')">Crop</button>
+            <button type="button" onclick="feRotateSelected(-90)">Rotate left</button>
+            <button type="button" onclick="feRotateSelected(90)">Rotate right</button>
+            <button type="button" onclick="feFlipSelected('x')">Flip H</button>
+            <button type="button" onclick="feFlipSelected('y')">Flip V</button>
+          </div>
+          <div class="fe-image-row"><span>Object opacity</span><input id="fe-object-opacity-slider" type="range" min="0" max="100" value="100" onpointerdown="feBeginObjectOpacityChange()" oninput="feSetSelectedObjectOpacity(+this.value)" onchange="feEndObjectOpacityChange()"><span id="fe-object-opacity-val">100%</span></div>
+          <div class="fe-image-row buttons"><button id="fe-aspect-lock-btn" type="button" onclick="feToggleAspectLock()">Ratio locked</button><button id="fe-object-lock-btn" type="button" onclick="feToggleSelectedObjectLock()">Lock object</button></div>
+          <div class="fe-image-row crop"><span>Crop focus</span><button onclick="feNudgeCrop(-.1,0)">←</button><button onclick="feNudgeCrop(0,-.1)">↑</button><button onclick="feNudgeCrop(0,.1)">↓</button><button onclick="feNudgeCrop(.1,0)">→</button></div>
+        </div>
+
+        <details class="fe-media-panel">
+          <summary>Project Media Library <span id="fe-media-count">0</span></summary>
+          <div class="fe-media-actions"><button type="button" onclick="uploadEditorImage()">Import images</button><button type="button" onclick="feCheckProjectSize(true)">Project size</button></div>
+          <div id="fe-media-library-list" class="fe-media-list"></div>
+        </details>
+
         <!-- ══ LAYERS PANEL ══ -->
         <div style="flex:1;display:flex;flex-direction:column;min-height:0;">
 
@@ -32886,7 +33067,7 @@ button.primary:hover,
               style="width:100%;background:#383840;border:1px solid #444;color:#bbb;font-size:10px;padding:3px 6px;border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;transition:background 0.1s;"
               onmouseover="this.style.background='#444'" onmouseout="this.style.background='#383840'">
               <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="14" height="10" rx="1.5"/><path d="M1 11l3-3 3 3 3-4 5 5"/><circle cx="11" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>
-              Import Image
+              Import Images
             </button>
           </div>
 
@@ -32906,12 +33087,15 @@ button.primary:hover,
               <button class="fe-lp-tool" onclick="feToggleActiveLayerVis()" title="Toggle Visibility">
                 <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><ellipse cx="8" cy="8" rx="6" ry="4"/><circle cx="8" cy="8" r="2" fill="currentColor" stroke="none"/></svg>
               </button>
+              <button class="fe-lp-tool" onclick="feToggleActiveLayerLock()" title="Lock or unlock layer">🔒</button>
             </div>
             <!-- Right: new + delete -->
             <div style="display:flex;gap:2px;">
               <button class="fe-lp-tool" onclick="feAddLayer()" title="Create New Layer">
                 <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg>
               </button>
+              <button class="fe-lp-tool" onclick="feDuplicateActiveLayer()" title="Duplicate Layer">⧉</button>
+              <button class="fe-lp-tool" onclick="feRenameLayer(fe.activeLayerIdx,event)" title="Rename Layer">✎</button>
               <button class="fe-lp-tool fe-lp-delete" onclick="feDeleteActiveLayer()" title="Delete Layer">
                 <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 5h10M6 5V3h4v2M6 8v5M10 8v5M4 5l.8 8h6.4L12 5"/></svg>
               </button>
@@ -37158,8 +37342,11 @@ function openOptionsWithSceneNav() {
 // ═══════════════════════════════════════
 const sb = {
   orientation: 'portrait', cols: 3, captions: true, frameCount: 6,
+  aspectRatio: '16:9', customAspectW: 16, customAspectH: 9,
+  titleSafe: false, actionSafe: false, template: 'film',
   boards: [],          // [{id, name, orientation, cols, captions, frames:[]}]
   activeBoardId: null,
+  mediaLibrary: [],
   selectedFrameIds: new Set(),
   frameClipboard: [],
   history: [], redoHistory: [], historyMax: 40
@@ -37191,14 +37378,75 @@ function makeStoryboardFrame(frameIndex) {
     id: makeStoryboardFrameId(),
     imageData: null, caption: '', layers: null,
     sceneLineId: null,
-    shotId: null
+    shotId: null,
+    label: '', shotNumber: '', duration: '', status: 'Draft',
+    actionNotes: '', dialogueNotes: '', cameraNotes: '', lightingNotes: '', transitionNotes: '',
+    customFields: [], tags: []
   };
 }
 
+function ensureStoryboardFrameData(frame) {
+  if (!frame.id) frame.id = makeStoryboardFrameId();
+  if (!frame.status) frame.status = 'Draft';
+  if (!Array.isArray(frame.customFields)) frame.customFields = [];
+  if (!Array.isArray(frame.tags)) frame.tags = [];
+  ['label','shotNumber','duration','actionNotes','dialogueNotes','cameraNotes','lightingNotes','transitionNotes']
+    .forEach(key => { if (typeof frame[key] !== 'string') frame[key] = ''; });
+}
+
+const STORYBOARD_ASPECTS = {
+  '16:9': 16 / 9,
+  '4:3': 4 / 3,
+  '2.39:1': 2.39,
+  '1:1': 1,
+  '9:16': 9 / 16
+};
+
+const STORYBOARD_TEMPLATES = {
+  film: { label: 'Film - 16:9', aspectRatio: '16:9', orientation: 'portrait', cols: 2, captions: true },
+  scope: { label: 'Feature Film Scope - 2.39:1', aspectRatio: '2.39:1', orientation: 'landscape', cols: 2, captions: true },
+  television: { label: 'Television - 16:9', aspectRatio: '16:9', orientation: 'portrait', cols: 3, captions: true },
+  classic: { label: 'Classic Television - 4:3', aspectRatio: '4:3', orientation: 'portrait', cols: 3, captions: true },
+  square: { label: 'Square Social - 1:1', aspectRatio: '1:1', orientation: 'portrait', cols: 3, captions: true },
+  vertical: { label: 'Vertical Social - 9:16', aspectRatio: '9:16', orientation: 'landscape', cols: 3, captions: true },
+  custom: { label: 'Custom', aspectRatio: 'custom', orientation: 'portrait', cols: 2, captions: true }
+};
+
+function getStoryboardAspect(board) {
+  const key = board?.aspectRatio || '16:9';
+  if (key === 'custom') {
+    const width = Math.max(0.1, Number(board?.customAspectW) || 16);
+    const height = Math.max(0.1, Number(board?.customAspectH) || 9);
+    return Math.max(0.25, Math.min(4, width / height));
+  }
+  return STORYBOARD_ASPECTS[key] || STORYBOARD_ASPECTS['16:9'];
+}
+
+function ensureStoryboardBoardData(board) {
+  if (!board) return;
+  if (!board.aspectRatio) board.aspectRatio = '16:9';
+  if (!board.customAspectW) board.customAspectW = 16;
+  if (!board.customAspectH) board.customAspectH = 9;
+  if (!board.status) board.status = 'Draft';
+  if (typeof board.description !== 'string') board.description = '';
+  if (typeof board.titleSafe !== 'boolean') board.titleSafe = false;
+  if (typeof board.actionSafe !== 'boolean') board.actionSafe = false;
+  if (!board.template) board.template = 'film';
+  (board.frames || []).forEach(ensureStoryboardFrameData);
+}
+
 function ensureStoryboardFrameIds(board) {
+  ensureStoryboardBoardData(board);
   board?.frames?.forEach(frame => {
-    if (!frame.id) frame.id = makeStoryboardFrameId();
+    ensureStoryboardFrameData(frame);
   });
+}
+
+function storyboardSerializableObject(object) {
+  const copy = { ...object, _img: undefined };
+  // Reused media is stored once in the project library, then referenced by ID.
+  if (copy.mediaId) copy.src = undefined;
+  return copy;
 }
 
 function storyboardSerializableBoards() {
@@ -37208,17 +37456,36 @@ function storyboardSerializableBoards() {
     orientation: board.orientation,
     cols: board.cols,
     captions: board.captions,
+    aspectRatio: board.aspectRatio || '16:9',
+    customAspectW: board.customAspectW || 16,
+    customAspectH: board.customAspectH || 9,
+    titleSafe: !!board.titleSafe,
+    actionSafe: !!board.actionSafe,
+    template: board.template || 'film',
+    description: board.description || '',
+    status: board.status || 'Draft',
     currentPage: board.currentPage || 0,
     frames: (board.frames || []).map(frame => ({
       id: frame.id || makeStoryboardFrameId(),
       caption: frame.caption || '',
+      label: frame.label || '',
+      shotNumber: frame.shotNumber || '',
+      duration: frame.duration || '',
+      status: frame.status || 'Draft',
+      actionNotes: frame.actionNotes || '',
+      dialogueNotes: frame.dialogueNotes || '',
+      cameraNotes: frame.cameraNotes || '',
+      lightingNotes: frame.lightingNotes || '',
+      transitionNotes: frame.transitionNotes || '',
+      customFields: frame.customFields || [],
+      tags: frame.tags || [],
       imageData: frame.imageData || null,
       sceneLineId: frame.sceneLineId || null,
       shotId: frame.shotId || null,
       orphanedScene: frame.orphanedScene || null,
       layers: frame.layers ? frame.layers.map(layer => ({
         ...layer,
-        objects: (layer.objects || []).map(object => ({ ...object, _img: undefined }))
+        objects: (layer.objects || []).map(storyboardSerializableObject)
       })) : null
     }))
   }));
@@ -37228,7 +37495,8 @@ function sbCaptureState() {
   sb.boards.forEach(ensureStoryboardFrameIds);
   return JSON.parse(JSON.stringify({
     boards: storyboardSerializableBoards(),
-    activeBoardId: sb.activeBoardId
+    activeBoardId: sb.activeBoardId,
+    mediaLibrary: sb.mediaLibrary
   }));
 }
 
@@ -37244,6 +37512,7 @@ function sbRestoreState(snapshot) {
   sb.boards = snapshot.boards || [];
   sb.boards.forEach(ensureStoryboardFrameIds);
   sb.activeBoardId = snapshot.activeBoardId || sb.boards[0]?.id || null;
+  sb.mediaLibrary = Array.isArray(snapshot.mediaLibrary) ? snapshot.mediaLibrary : sb.mediaLibrary;
   sb.selectedFrameIds.clear();
   saveStoryboardToStorage();
   renderBoardList();
@@ -37783,9 +38052,15 @@ function saveStoryboardToStorage() {
   try {
     localStorage.setItem('sf-storyboard', JSON.stringify({
       boards: storyboardSerializableBoards(),
-      activeBoardId: sb.activeBoardId
+      activeBoardId: sb.activeBoardId,
+      mediaLibrary: sb.mediaLibrary
     }));
-  } catch(e) { console.warn('Storyboard save error:', e); }
+  } catch(e) {
+    console.warn('Storyboard save error:', e);
+    if (/quota|storage|exceed/i.test(String(e?.name || '') + ' ' + String(e?.message || ''))) {
+      showToast('Storyboard storage is full. Remove unused media or save a smaller project copy.', 9000);
+    }
+  }
 }
 
 function loadStoryboardFromStorage() {
@@ -37796,6 +38071,7 @@ function loadStoryboardFromStorage() {
     if (!data || !Array.isArray(data.boards)) return;
     sb.boards = data.boards;
     sb.boards.forEach(ensureStoryboardFrameIds);
+    sb.mediaLibrary = Array.isArray(data.mediaLibrary) ? data.mediaLibrary : [];
     sb.activeBoardId = data.activeBoardId || (data.boards[0]?.id ?? null);
     if (data.boards.length) {
       const navSection = document.getElementById('sb-storyboard-section');
@@ -37852,6 +38128,19 @@ function hideStoryboardArea() {
 }
 
 function newStoryboard() {
+  const template = document.getElementById('sb-template-select');
+  const aspect = document.getElementById('sb-aspect-select');
+  if (template) template.value = sb.template || 'film';
+  if (aspect) aspect.value = sb.aspectRatio || '16:9';
+  const customW = document.getElementById('sb-custom-aspect-w');
+  const customH = document.getElementById('sb-custom-aspect-h');
+  if (customW) customW.value = sb.customAspectW || 16;
+  if (customH) customH.value = sb.customAspectH || 9;
+  const actionSafe = document.getElementById('sb-setup-action-safe');
+  const titleSafe = document.getElementById('sb-setup-title-safe');
+  if (actionSafe) actionSafe.checked = !!sb.actionSafe;
+  if (titleSafe) titleSafe.checked = !!sb.titleSafe;
+  toggleStoryboardCustomAspect('setup');
   document.getElementById('sb-setup-modal')?.classList.add('open');
 }
 
@@ -38053,6 +38342,10 @@ function createStoryboard() {
   // Close the setup modal
   document.getElementById('sb-setup-modal')?.classList.remove('open');
 
+  if (sb.aspectRatio === 'custom') {
+    sb.customAspectW = Math.max(0.1, Number(document.getElementById('sb-custom-aspect-w')?.value) || 16);
+    sb.customAspectH = Math.max(0.1, Number(document.getElementById('sb-custom-aspect-h')?.value) || 9);
+  }
   // Build the board object
   const boardId = Date.now();
   const tab = tabs.find(t => t.id === activeTabId);
@@ -38063,6 +38356,14 @@ function createStoryboard() {
     orientation: sb.orientation,
     cols: sb.cols,
     captions: sb.captions,
+    aspectRatio: sb.aspectRatio,
+    customAspectW: sb.customAspectW,
+    customAspectH: sb.customAspectH,
+    titleSafe: sb.titleSafe,
+    actionSafe: sb.actionSafe,
+    template: sb.template,
+    description: '',
+    status: 'Draft',
     currentPage: 0,
     frames: Array.from({ length: sb.frameCount }, (_, index) => makeStoryboardFrame(index))
   };
@@ -38089,6 +38390,212 @@ function setSbOpt(key, el) {
   if (key === 'cols') sb.cols = parseInt(val);
   if (key === 'captions') sb.captions = val === 'yes';
   if (key === 'frames') sb.frameCount = parseInt(val);
+  if (key !== 'frames') {
+    sb.template = 'custom';
+    const template = document.getElementById('sb-template-select');
+    if (template) template.value = 'custom';
+  }
+}
+
+function setStoryboardSetupAspect(value) {
+  sb.aspectRatio = value;
+  sb.template = value === 'custom' ? 'custom' : sb.template;
+  const custom = document.getElementById('sb-custom-aspect-setup');
+  if (custom) custom.style.display = value === 'custom' ? 'flex' : 'none';
+  if (value === 'custom') document.getElementById('sb-template-select').value = 'custom';
+}
+
+function applyStoryboardTemplateToSetup(key) {
+  const template = STORYBOARD_TEMPLATES[key] || STORYBOARD_TEMPLATES.film;
+  sb.template = key;
+  sb.aspectRatio = template.aspectRatio;
+  sb.orientation = template.orientation;
+  sb.cols = template.cols;
+  sb.captions = template.captions;
+  const aspect = document.getElementById('sb-aspect-select');
+  if (aspect) aspect.value = template.aspectRatio;
+  document.querySelectorAll('[data-sbopt="orientation"]').forEach(chip => chip.classList.toggle('active', chip.dataset.val === template.orientation));
+  document.querySelectorAll('[data-sbopt="cols"]').forEach(chip => chip.classList.toggle('active', Number(chip.dataset.val) === template.cols));
+  document.querySelectorAll('[data-sbopt="captions"]').forEach(chip => chip.classList.toggle('active', (chip.dataset.val === 'yes') === template.captions));
+  setStoryboardSetupAspect(template.aspectRatio);
+}
+
+function toggleStoryboardCustomAspect(mode) {
+  const select = document.getElementById(mode === 'settings' ? 'sbs-aspect' : 'sb-aspect-select');
+  const custom = document.getElementById(mode === 'settings' ? 'sbs-custom-aspect' : 'sb-custom-aspect-setup');
+  if (custom) custom.style.display = select?.value === 'custom' ? 'flex' : 'none';
+}
+
+function applyStoryboardTemplateToSettings(key) {
+  const template = STORYBOARD_TEMPLATES[key];
+  if (!template || key === 'custom') return;
+  document.getElementById('sbs-aspect').value = template.aspectRatio;
+  document.getElementById('sbs-orientation').value = template.orientation;
+  document.getElementById('sbs-cols').value = String(template.cols);
+  document.getElementById('sbs-captions').checked = template.captions;
+  toggleStoryboardCustomAspect('settings');
+}
+
+function openStoryboardSettings() {
+  const board = sb.boards.find(item => item.id === sb.activeBoardId);
+  if (!board) return;
+  ensureStoryboardBoardData(board);
+  const templateSelect = document.getElementById('sbs-template');
+  templateSelect.innerHTML = Object.entries(STORYBOARD_TEMPLATES)
+    .map(([key, template]) => `<option value="${key}">${escHtml(template.label)}</option>`).join('');
+  document.getElementById('sbs-name').value = board.name || '';
+  document.getElementById('sbs-description').value = board.description || '';
+  document.getElementById('sbs-status').value = board.status || 'Draft';
+  templateSelect.value = board.template || 'custom';
+  document.getElementById('sbs-aspect').value = board.aspectRatio || '16:9';
+  document.getElementById('sbs-custom-w').value = board.customAspectW || 16;
+  document.getElementById('sbs-custom-h').value = board.customAspectH || 9;
+  document.getElementById('sbs-orientation').value = board.orientation || 'portrait';
+  document.getElementById('sbs-cols').value = String(board.cols || 3);
+  document.getElementById('sbs-captions').checked = board.captions !== false;
+  document.getElementById('sbs-action-safe').checked = !!board.actionSafe;
+  document.getElementById('sbs-title-safe').checked = !!board.titleSafe;
+  toggleStoryboardCustomAspect('settings');
+  document.getElementById('sb-board-settings-modal').classList.add('open');
+}
+
+function closeStoryboardSettings() {
+  document.getElementById('sb-board-settings-modal')?.classList.remove('open');
+}
+
+function scaleStoryboardVectorArtwork(board, scaleX) {
+  if (!Number.isFinite(scaleX) || Math.abs(scaleX - 1) < 0.0001) return;
+  board.frames.forEach(frame => (frame.layers || []).forEach(layer => (layer.objects || []).forEach(object => {
+    if (Number.isFinite(object.x)) object.x *= scaleX;
+    if (Number.isFinite(object.w)) object.w *= scaleX;
+    if (Number.isFinite(object.x1)) object.x1 *= scaleX;
+    if (Number.isFinite(object.x2)) object.x2 *= scaleX;
+  })));
+}
+
+function saveStoryboardSettings() {
+  const board = sb.boards.find(item => item.id === sb.activeBoardId);
+  if (!board) return;
+  const oldRatio = getStoryboardAspect(board);
+  const name = document.getElementById('sbs-name').value.trim();
+  const aspectRatio = document.getElementById('sbs-aspect').value;
+  const customW = Math.max(0.1, Number(document.getElementById('sbs-custom-w').value) || 16);
+  const customH = Math.max(0.1, Number(document.getElementById('sbs-custom-h').value) || 9);
+  sbHistoryPush();
+  board.name = name || board.name || 'Storyboard';
+  board.description = document.getElementById('sbs-description').value.trim();
+  board.status = document.getElementById('sbs-status').value;
+  board.template = document.getElementById('sbs-template').value;
+  board.aspectRatio = aspectRatio;
+  board.customAspectW = customW;
+  board.customAspectH = customH;
+  board.orientation = document.getElementById('sbs-orientation').value;
+  board.cols = Number(document.getElementById('sbs-cols').value) || 3;
+  board.captions = document.getElementById('sbs-captions').checked;
+  board.actionSafe = document.getElementById('sbs-action-safe').checked;
+  board.titleSafe = document.getElementById('sbs-title-safe').checked;
+  const newRatio = getStoryboardAspect(board);
+  scaleStoryboardVectorArtwork(board, newRatio / oldRatio);
+  closeStoryboardSettings();
+  saveStoryboardToStorage();
+  renderBoardList();
+  renderStoryboard(board);
+  showToast('Storyboard settings saved');
+}
+
+function duplicateStoryboardBoard() {
+  const board = sb.boards.find(item => item.id === sb.activeBoardId);
+  if (!board) return;
+  sbHistoryPush();
+  const copy = JSON.parse(JSON.stringify(board, (key, value) => key === '_img' ? undefined : value));
+  copy.id = Date.now();
+  copy.name = `${board.name || 'Storyboard'} Copy`;
+  copy.currentPage = 0;
+  copy.frames.forEach(frame => {
+    frame.id = makeStoryboardFrameId();
+    (frame.layers || []).forEach(layer => (layer.objects || []).forEach(object => { object.id = feMakeObjectId(); }));
+  });
+  sb.boards.push(copy);
+  sb.activeBoardId = copy.id;
+  sb.selectedFrameIds.clear();
+  saveStoryboardToStorage();
+  renderBoardList();
+  renderStoryboard(copy);
+  showToast('Storyboard duplicated');
+}
+
+let storyboardFrameInfoTarget = null;
+
+function renderStoryboardCustomFields(fields = []) {
+  const container = document.getElementById('sbfi-custom-fields');
+  if (!container) return;
+  container.innerHTML = '';
+  fields.forEach(field => addStoryboardCustomField(field));
+}
+
+function addStoryboardCustomField(field = {}) {
+  const container = document.getElementById('sbfi-custom-fields');
+  if (!container) return;
+  const row = document.createElement('div');
+  row.className = 'sb-custom-field-row';
+  row.dataset.fieldId = field.id || `custom-${Date.now()}-${container.children.length}`;
+  row.innerHTML = `<input class="sbfi-custom-label" maxlength="80" placeholder="Field name" value="${escHtml(field.label || '')}">
+    <input class="sbfi-custom-value" maxlength="500" placeholder="Note" value="${escHtml(field.value || '')}">
+    <button type="button" title="Remove custom field" onclick="this.closest('.sb-custom-field-row').remove()">&times;</button>`;
+  container.appendChild(row);
+}
+
+function openStoryboardFrameInfo(boardId, frameIndex) {
+  const board = sb.boards.find(item => String(item.id) === String(boardId));
+  const frame = board?.frames?.[frameIndex];
+  if (!frame) return;
+  ensureStoryboardFrameData(frame);
+  storyboardFrameInfoTarget = { boardId: board.id, frameId: frame.id };
+  document.getElementById('sb-frame-info-context').textContent = `${board.name || 'Storyboard'} - Frame ${frameIndex + 1}`;
+  document.getElementById('sbfi-label').value = frame.label;
+  document.getElementById('sbfi-shot-number').value = frame.shotNumber;
+  document.getElementById('sbfi-duration').value = frame.duration;
+  document.getElementById('sbfi-status').value = frame.status;
+  document.getElementById('sbfi-tags').value = frame.tags.join(', ');
+  document.getElementById('sbfi-action').value = frame.actionNotes;
+  document.getElementById('sbfi-dialogue').value = frame.dialogueNotes;
+  document.getElementById('sbfi-camera').value = frame.cameraNotes;
+  document.getElementById('sbfi-lighting').value = frame.lightingNotes;
+  document.getElementById('sbfi-transition').value = frame.transitionNotes;
+  renderStoryboardCustomFields(frame.customFields);
+  document.getElementById('sb-frame-info-modal').classList.add('open');
+}
+
+function closeStoryboardFrameInfo() {
+  storyboardFrameInfoTarget = null;
+  document.getElementById('sb-frame-info-modal')?.classList.remove('open');
+}
+
+function saveStoryboardFrameInfo() {
+  if (!storyboardFrameInfoTarget) return;
+  const board = sb.boards.find(item => String(item.id) === String(storyboardFrameInfoTarget.boardId));
+  const frame = board?.frames?.find(item => item.id === storyboardFrameInfoTarget.frameId);
+  if (!frame) return closeStoryboardFrameInfo();
+  sbHistoryPush();
+  frame.label = document.getElementById('sbfi-label').value.trim();
+  frame.shotNumber = document.getElementById('sbfi-shot-number').value.trim();
+  frame.duration = document.getElementById('sbfi-duration').value.trim();
+  frame.status = document.getElementById('sbfi-status').value;
+  frame.tags = Array.from(new Set(document.getElementById('sbfi-tags').value.split(',').map(tag => tag.trim()).filter(Boolean)));
+  frame.actionNotes = document.getElementById('sbfi-action').value.trim();
+  frame.dialogueNotes = document.getElementById('sbfi-dialogue').value.trim();
+  frame.cameraNotes = document.getElementById('sbfi-camera').value.trim();
+  frame.lightingNotes = document.getElementById('sbfi-lighting').value.trim();
+  frame.transitionNotes = document.getElementById('sbfi-transition').value.trim();
+  frame.customFields = Array.from(document.querySelectorAll('#sbfi-custom-fields .sb-custom-field-row')).map(row => ({
+    id: row.dataset.fieldId || `custom-${Date.now()}`,
+    label: row.querySelector('.sbfi-custom-label').value.trim(),
+    value: row.querySelector('.sbfi-custom-value').value.trim()
+  })).filter(field => field.label || field.value);
+  closeStoryboardFrameInfo();
+  saveStoryboardToStorage();
+  renderStoryboard(board);
+  showToast('Frame information saved');
 }
 
 // createStoryboard() is defined in the multi-board section
@@ -38115,6 +38622,8 @@ function renderStoryboard(boardOverride) {
     toolbar.innerHTML = `
       <button class="top-btn" onclick="newStoryboard()">＋ New Board</button>
       <button class="top-btn" onclick="addMoreFrames()">＋ Add Frames</button>
+      <button class="top-btn" onclick="openStoryboardSettings()" title="Rename or change this storyboard">⚙ Settings</button>
+      <button class="top-btn" onclick="duplicateStoryboardBoard()" title="Duplicate this storyboard">⧉ Duplicate Board</button>
       <button class="top-btn" id="sb-undo-btn" onclick="sbUndo()" title="Undo storyboard change" ${sb.history.length ? '' : 'disabled'}>↶ Undo</button>
       <button class="top-btn" id="sb-redo-btn" onclick="sbRedo()" title="Redo storyboard change" ${sb.redoHistory.length ? '' : 'disabled'}>↷ Redo</button>
       <details class="sb-card-menu">
@@ -38173,6 +38682,8 @@ function renderStoryboard(boardOverride) {
     const pageHeader = document.createElement('div');
     pageHeader.className = 'sb-page-header';
     pageHeader.innerHTML = `<span class="sb-page-script-title">${escHtml(title.toUpperCase())}</span>
+      <span class="sb-board-description">${escHtml(board.description || '')}</span>
+      <span class="sb-meta-pill status-${String(board.status || 'Draft').toLowerCase()}">${escHtml(board.status || 'Draft')}</span>
       <span class="sb-page-num">Page ${p + 1} of ${pageCount}</span>`;
     page.appendChild(pageHeader);
     const grid = document.createElement('div');
@@ -38206,6 +38717,8 @@ function buildFrameEl(frame, idx, boardId) {
   if (!frame.id) frame.id = makeStoryboardFrameId();
   const frameId = frame.id;
   const isSelected = sb.selectedFrameIds.has(frameId);
+  ensureStoryboardFrameData(frame);
+  const aspect = getStoryboardAspect(board);
   wrap.className = 'sb-frame' + (isSelected ? ' sb-frame-selected' : '');
   wrap.dataset.frameIndex = idx;
   wrap.dataset.frameId = frameId;
@@ -38227,7 +38740,9 @@ function buildFrameEl(frame, idx, boardId) {
   ).join('');
   // Paper orientation affects only the printable page. Film frames stay 16:9.
   const THUMB_W = 480;
-  const THUMB_H = 270;
+  const THUMB_H = Math.max(120, Math.round(THUMB_W / aspect));
+  const statusClass = String(frame.status || 'Draft').toLowerCase();
+  const frameLabel = frame.label || `Frame ${idx + 1}`;
 
   wrap.innerHTML = `
     <div class="sb-frame-num-badge">${idx + 1}</div>
@@ -38242,12 +38757,21 @@ function buildFrameEl(frame, idx, boardId) {
         <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
       </svg>
     </button>
-    <div class="sb-canvas-wrap widescreen" id="sb-wrap-${idx}" role="button" tabindex="0"
+    <div class="sb-canvas-wrap widescreen" id="sb-wrap-${idx}" role="button" tabindex="0" style="--sb-frame-aspect:${aspect};"
       aria-label="Edit storyboard frame ${idx + 1}"
       onclick="openFrameEditor(${idx},${boardId})"
       onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openFrameEditor(${idx},${boardId})}">
       <canvas class="sb-canvas sb-canvas-thumbnail" id="sb-canvas-${idx}"
         width="${THUMB_W}" height="${THUMB_H}"></canvas>
+      ${board.actionSafe || board.titleSafe ? `<div class="sb-safe-overlay">${board.actionSafe ? '<div class="action-safe"></div>' : ''}${board.titleSafe ? '<div class="title-safe"></div>' : ''}</div>` : ''}
+    </div>
+    <div class="sb-frame-metadata">
+      <span class="sb-meta-pill" title="Frame label">${escHtml(frameLabel)}</span>
+      ${frame.shotNumber ? `<span class="sb-meta-pill">Shot ${escHtml(frame.shotNumber)}</span>` : ''}
+      ${frame.duration ? `<span class="sb-meta-pill">${escHtml(frame.duration)}</span>` : ''}
+      <span class="sb-meta-pill status-${statusClass}">${escHtml(frame.status)}</span>
+      ${frame.tags.slice(0, 3).map(tag => `<span class="sb-meta-pill">#${escHtml(tag)}</span>`).join('')}
+      <button type="button" class="sb-frame-info-btn" onclick="event.stopPropagation();openStoryboardFrameInfo(${boardId},${idx})">Edit info</button>
     </div>
     <div class="sb-frame-link-summary" title="${escHtml(sceneText)} — ${escHtml(shotText)}">
       <strong>${escHtml(sceneText)}</strong><br>${escHtml(shotText)}
@@ -38322,6 +38846,7 @@ const fe = {
   resizeHandle: -1,   // 0=NW 1=N 2=NE 3=W 4=E 5=SW 6=S 7=SE
   resizeOrigX: 0, resizeOrigY: 0, resizeOrigW: 0, resizeOrigH: 0,
   resizeAnchorX: 0, resizeAnchorY: 0,
+  aspectLock: true,
   // Selection handles
   selection: null,
   selectedObjectIds: [], primaryObjectId: null,
@@ -38359,6 +38884,10 @@ function feAllObjectRefs(visibleOnly = false) {
 function feGetSelectedRefs() {
   const ids = new Set(fe.selectedObjectIds);
   return feAllObjectRefs(true).filter(ref => ids.has(ref.obj.id));
+}
+
+function feGetEditableSelectedRefs() {
+  return feGetSelectedRefs().filter(ref => !ref.layer.locked && !ref.obj.locked);
 }
 
 function feSetActiveObjectRef(ref) {
@@ -38420,7 +38949,7 @@ function feSelectionBounds(refs = feGetSelectedRefs()) {
 
 // ─── Layer type helpers ──────────────────────────────────────
 function feNewLayer(name, type='drawing') {
-  return { name, type, visible: true, objects: [], activeObjIdx: -1, imageData: null, opacity: 1 };
+  return { name, type, visible: true, locked: false, objects: [], activeObjIdx: -1, imageData: null, opacity: 1 };
 }
 
 // ─── Open frame editor ───────────────────────────────────────
@@ -38449,9 +38978,9 @@ function feAutoSaveCurrentFrame() {
   });
   board.frames[fe.idx].imageData = flat.toDataURL('image/png');
   board.frames[fe.idx].layers = fe.layers.map(l => ({
-    name: l.name, type: l.type, visible: l.visible,
+    name: l.name, type: l.type, visible: l.visible, locked: !!l.locked,
     opacity: l.opacity !== undefined ? l.opacity : 1,
-    objects: l.objects.map(o => ({...o, _img: undefined})),
+    objects: l.objects.map(storyboardSerializableObject),
     imageData: l.imageData
   }));
   saveStoryboardToStorage();
@@ -38486,10 +39015,11 @@ function openFrameEditor(idx, boardId) {
     : '';
   document.getElementById('fe-title').textContent = `FRAME ${idx + 1} EDITOR${editorContext}`;
 
-  // The page may be portrait or landscape, but film composition stays 16:9.
-  fe.canvasW = 1920;
+  // Canvas dimensions follow the board's selected frame aspect ratio.
+  const frameAspect = getStoryboardAspect(board);
   fe.canvasH = 1080;
-  const initZoom = 0.44;
+  fe.canvasW = Math.max(270, Math.round(fe.canvasH * frameAspect));
+  const initZoom = Math.min(0.44, 900 / fe.canvasW, 520 / fe.canvasH);
   fe.zoom = 1; fe.dragging = false; fe.selection = null;
   fe.selectedObjectIds = []; fe.primaryObjectId = null;
   fe.marquee = null; fe.smartGuides = [];
@@ -38504,6 +39034,7 @@ function openFrameEditor(idx, boardId) {
       name: l.name || 'Layer',
       type: l.type || 'drawing',
       visible: l.visible !== false,
+      locked: !!l.locked,
       opacity: l.opacity !== undefined ? l.opacity : 1,
       objects: (l.objects || []).map(o => ({...o})),
       activeObjIdx: -1,
@@ -38530,6 +39061,7 @@ function openFrameEditor(idx, boardId) {
   _feHydrateCompactToolIcons();
   _feSyncCompactToolUI(fe.tool);
   feCloseToolFlyouts();
+  renderMediaLibrary();
   // Init the PS-style gradient/hue colour picker for this session
   setTimeout(() => {
     _cpInitDone = false;  // force re-init in case canvases were removed/re-added
@@ -38585,6 +39117,9 @@ function feSetupCanvas() {
 
   if (container) {
     container.style.position = 'relative';
+    container.ondragover = event => { event.preventDefault(); container.classList.add('fe-drop-active'); };
+    container.ondragleave = event => { if (!container.contains(event.relatedTarget)) container.classList.remove('fe-drop-active'); };
+    container.ondrop = feHandleImageDrop;
   }
 
   // Use Pointer Events (covers mouse + stylus + touch) with setPointerCapture.
@@ -38788,13 +39323,46 @@ function feMeasureTextObject(obj, keepWidth = true) {
   obj.h = Math.max(fontSize * (Number(obj.lineHeight) || 1.25), lines.length * fontSize * (Number(obj.lineHeight) || 1.25));
 }
 
+function feDrawImageObject(ctx, image, obj) {
+  const width = obj.w || image.naturalWidth || image.width;
+  const height = obj.h || image.naturalHeight || image.height;
+  const centreX = obj.x + width / 2;
+  const centreY = obj.y + height / 2;
+  ctx.save();
+  ctx.translate(centreX, centreY);
+  ctx.rotate((Number(obj.rotation) || 0) * Math.PI / 180);
+  ctx.scale(obj.flipX ? -1 : 1, obj.flipY ? -1 : 1);
+  ctx.translate(-centreX, -centreY);
+  const mode = obj.imageMode || 'stretch';
+  if (mode === 'stretch') {
+    ctx.drawImage(image, obj.x, obj.y, width, height);
+  } else {
+    const sourceW = image.naturalWidth || image.width;
+    const sourceH = image.naturalHeight || image.height;
+    const scale = mode === 'fit' ? Math.min(width / sourceW, height / sourceH) : Math.max(width / sourceW, height / sourceH);
+    const drawW = sourceW * scale;
+    const drawH = sourceH * scale;
+    const rawFocusX = Number(obj.cropX), rawFocusY = Number(obj.cropY);
+    const focusX = Math.max(0, Math.min(1, Number.isFinite(rawFocusX) ? rawFocusX : 0.5));
+    const focusY = Math.max(0, Math.min(1, Number.isFinite(rawFocusY) ? rawFocusY : 0.5));
+    const drawX = obj.x - (drawW - width) * focusX;
+    const drawY = obj.y - (drawH - height) * focusY;
+    ctx.beginPath();
+    ctx.rect(obj.x, obj.y, width, height);
+    ctx.clip();
+    ctx.drawImage(image, drawX, drawY, drawW, drawH);
+  }
+  ctx.restore();
+}
+
 function feRenderObject(ctx, obj) {
   ctx.save();
   ctx.globalAlpha = obj.opacity !== undefined ? obj.opacity : 1;
 
   if (obj.type === 'image') {
+    if (!obj.src && obj.mediaId) obj.src = sb.mediaLibrary.find(item => item.id === obj.mediaId)?.src || '';
     if (obj._img) {
-      ctx.drawImage(obj._img, obj.x, obj.y, obj.w, obj.h);
+      feDrawImageObject(ctx, obj._img, obj);
     } else if (obj.src) {
       const img = new Image();
       const _sess2 = fe.session;
@@ -38881,6 +39449,21 @@ function feDrawSelectionHandles(obj) {
   if (!cv) return;
   const ctx = cv.getContext('2d');
   ctx.clearRect(0, 0, cv.width, cv.height);
+  const board = sb.boards.find(item => item.id === fe.boardId);
+  if (board?.actionSafe || board?.titleSafe) {
+    ctx.save();
+    ctx.lineWidth = 2 / Math.max(fe.zoom, 0.2);
+    ctx.setLineDash([10, 7]);
+    if (board.actionSafe) {
+      ctx.strokeStyle = 'rgba(224,74,134,0.82)';
+      ctx.strokeRect(fe.canvasW * 0.05, fe.canvasH * 0.05, fe.canvasW * 0.9, fe.canvasH * 0.9);
+    }
+    if (board.titleSafe) {
+      ctx.strokeStyle = 'rgba(70,140,230,0.86)';
+      ctx.strokeRect(fe.canvasW * 0.1, fe.canvasH * 0.1, fe.canvasW * 0.8, fe.canvasH * 0.8);
+    }
+    ctx.restore();
+  }
   if (fe.gridEnabled) {
     ctx.save();
     ctx.strokeStyle = 'rgba(74,144,226,0.16)';
@@ -39113,9 +39696,10 @@ function feBeginInlineTextEdit(layerIndex, objectIndex, options = {}) {
 
 function feHitTestActiveLayer(x, y) {
   const layer = fe.layers[fe.activeLayerIdx];
-  if (!layer) return -1;
+  if (!layer || layer.locked) return -1;
   for (let i = layer.objects.length - 1; i >= 0; i--) {
     const obj = layer.objects[i];
+    if (obj.locked) continue;
     const pad = 6;
     const ox = obj.x - pad, oy = obj.y - pad;
     const ow = (obj.w || 120) + pad*2, oh = (obj.h || (obj.fontSize||18)+8) + pad*2;
@@ -39228,6 +39812,7 @@ function feGetSelectedTextRef() {
 }
 
 function feSyncTextPanel() {
+  feSyncImagePanel();
   const panel = document.getElementById('fe-text-panel');
   if (!panel) return;
   const ref = feGetSelectedTextRef();
@@ -39251,6 +39836,114 @@ function feSyncTextPanel() {
   document.getElementById('fe-text-italic')?.classList.toggle('active', !!obj.italic);
   ['left', 'center', 'right'].forEach(align =>
     document.getElementById('fe-text-align-' + align)?.classList.toggle('active', (obj.align || 'left') === align));
+}
+
+function feGetSelectedImageRefs() {
+  return feGetSelectedRefs().filter(ref => ref.obj.type === 'image');
+}
+
+function feSyncImagePanel() {
+  const panel = document.getElementById('fe-image-panel');
+  if (!panel) return;
+  const refs = feGetSelectedImageRefs();
+  panel.classList.toggle('visible', refs.length > 0);
+  if (!refs.length) return;
+  const primary = refs.find(ref => ref.obj.id === fe.primaryObjectId) || refs[0];
+  const opacity = Math.round((primary.obj.opacity !== undefined ? primary.obj.opacity : 1) * 100);
+  const slider = document.getElementById('fe-object-opacity-slider');
+  if (slider && document.activeElement !== slider) slider.value = opacity;
+  document.getElementById('fe-object-opacity-val').textContent = `${opacity}%`;
+  document.getElementById('fe-image-selection-label').textContent = refs.length === 1 ? primary.layer.name : `${refs.length} images`;
+  document.querySelectorAll('[data-image-mode]').forEach(button =>
+    button.classList.toggle('active', button.dataset.imageMode === (primary.obj.imageMode || 'stretch')));
+  const aspectButton = document.getElementById('fe-aspect-lock-btn');
+  aspectButton?.classList.toggle('active', fe.aspectLock);
+  if (aspectButton) aspectButton.textContent = fe.aspectLock ? 'Ratio locked' : 'Ratio unlocked';
+  const lockButton = document.getElementById('fe-object-lock-btn');
+  const locked = refs.every(ref => ref.obj.locked);
+  lockButton?.classList.toggle('active', locked);
+  if (lockButton) lockButton.textContent = locked ? 'Unlock object' : 'Lock object';
+}
+
+function feSetSelectedImageMode(mode) {
+  const refs = feGetEditableSelectedRefs().filter(ref => ref.obj.type === 'image');
+  if (!refs.length) return showToast('Select an unlocked image first');
+  feHistoryPush();
+  refs.forEach(ref => {
+    ref.obj.imageMode = mode;
+    if (mode === 'crop' && ref.obj.cropX === undefined) { ref.obj.cropX = 0.5; ref.obj.cropY = 0.5; }
+  });
+  fe.dirty = true;
+  feRenderObjectRefs(refs);
+  feSyncImagePanel();
+}
+
+function feRotateSelected(degrees) {
+  const refs = feGetEditableSelectedRefs().filter(ref => ref.obj.type === 'image');
+  if (!refs.length) return showToast('Select an unlocked image first');
+  feHistoryPush();
+  refs.forEach(ref => { ref.obj.rotation = ((Number(ref.obj.rotation) || 0) + degrees) % 360; });
+  fe.dirty = true;
+  feRenderObjectRefs(refs);
+}
+
+function feFlipSelected(axis) {
+  const refs = feGetEditableSelectedRefs().filter(ref => ref.obj.type === 'image');
+  if (!refs.length) return showToast('Select an unlocked image first');
+  feHistoryPush();
+  refs.forEach(ref => { ref.obj[axis === 'y' ? 'flipY' : 'flipX'] = !ref.obj[axis === 'y' ? 'flipY' : 'flipX']; });
+  fe.dirty = true;
+  feRenderObjectRefs(refs);
+}
+
+function feNudgeCrop(dx, dy) {
+  const refs = feGetEditableSelectedRefs().filter(ref => ref.obj.type === 'image');
+  if (!refs.length) return;
+  feHistoryPush();
+  refs.forEach(ref => {
+    ref.obj.imageMode = 'crop';
+    ref.obj.cropX = Math.max(0, Math.min(1, (Number(ref.obj.cropX) || 0.5) + dx));
+    ref.obj.cropY = Math.max(0, Math.min(1, (Number(ref.obj.cropY) || 0.5) + dy));
+  });
+  fe.dirty = true;
+  feRenderObjectRefs(refs);
+  feSyncImagePanel();
+}
+
+function feToggleAspectLock() {
+  fe.aspectLock = !fe.aspectLock;
+  feSyncImagePanel();
+}
+
+function feBeginObjectOpacityChange() {
+  if (fe._objectOpacityChanging) return;
+  if (!feGetEditableSelectedRefs().length) return;
+  feHistoryPush();
+  fe._objectOpacityChanging = true;
+}
+
+function feEndObjectOpacityChange() { fe._objectOpacityChanging = false; }
+
+function feSetSelectedObjectOpacity(percent) {
+  const refs = feGetEditableSelectedRefs();
+  if (!refs.length) return;
+  if (!fe._objectOpacityChanging) feBeginObjectOpacityChange();
+  refs.forEach(ref => { ref.obj.opacity = Math.max(0, Math.min(1, percent / 100)); });
+  fe.dirty = true;
+  document.getElementById('fe-object-opacity-val').textContent = `${Math.round(percent)}%`;
+  feRenderObjectRefs(refs);
+}
+
+function feToggleSelectedObjectLock() {
+  const refs = feGetSelectedRefs();
+  if (!refs.length) return;
+  feHistoryPush();
+  const lock = refs.some(ref => !ref.obj.locked);
+  refs.forEach(ref => { ref.obj.locked = lock; });
+  fe.dirty = true;
+  feRenderObjectRefs(refs);
+  feSyncImagePanel();
+  renderLayerList();
 }
 
 function feUpdateSelectedText(property, value) {
@@ -39322,7 +40015,7 @@ function feMouseDown(e) {
 
   if (fe.tool === 'move') {
     // Resize handles are available for a single selected object.
-    const selectedBeforeHit = feGetSelectedRefs();
+    const selectedBeforeHit = feGetEditableSelectedRefs();
     if (selectedBeforeHit.length === 1) {
       const selectedRef = selectedBeforeHit[0];
       const selObj = selectedRef.obj;
@@ -39366,7 +40059,7 @@ function feMouseDown(e) {
       else if (!alreadySelected) feSetSelection([hit], hit);
       else feSetActiveObjectRef(hit);
 
-      const selected = feGetSelectedRefs();
+      const selected = feGetEditableSelectedRefs();
       fe.dragging = true;
       fe.dragStarted = false;
       fe.dragStartObjects = selected.map(ref => ({
@@ -39422,7 +40115,7 @@ function feMouseDown(e) {
   // not trigger this path, otherwise an empty drawing layer is left beneath the shape.
   {
     const activeLyr = fe.layers[fe.activeLayerIdx];
-    if (activeLyr && activeLyr.type !== 'drawing' &&
+    if (activeLyr && (activeLyr.type !== 'drawing' || activeLyr.locked) &&
         ['pen','pencil','brush','eraser','fill','marker','ink','chalk','watercolor','stipple'].includes(fe.tool)) {
       feHistoryPush();
       changeAlreadyRecorded = true;
@@ -39514,6 +40207,14 @@ function feMouseMove(e) {
       nh = Math.max(MIN, fe.resizeOrigH + dy);
     }
 
+    if ((fe.aspectLock || e.shiftKey) && [0, 2, 5, 7].includes(h)) {
+      const ratio = fe.resizeOrigW / Math.max(1, fe.resizeOrigH);
+      if (Math.abs(dx) >= Math.abs(dy * ratio)) nh = Math.max(MIN, nw / ratio);
+      else nw = Math.max(MIN, nh * ratio);
+      if ([0, 5].includes(h)) nx = fe.resizeOrigX + fe.resizeOrigW - nw;
+      if ([0, 2].includes(h)) ny = fe.resizeOrigY + fe.resizeOrigH - nh;
+    }
+
     obj.x = nx; obj.y = ny; obj.w = nw; obj.h = nh;
 
     // For shape objects, also update x1/y1/x2/y2
@@ -39539,7 +40240,7 @@ function feMouseMove(e) {
     const snapped = feGetSnappedMoveDelta(fe.selection, dx, dy, e);
     dx = snapped.dx; dy = snapped.dy;
     const startById = new Map(fe.dragStartObjects.map(item => [item.id, item]));
-    const refs = feGetSelectedRefs();
+    const refs = feGetEditableSelectedRefs();
     refs.forEach(ref => {
       const start = startById.get(ref.obj.id);
       if (!start) return;
@@ -40262,8 +40963,9 @@ function feCaptureState() {
       name: layer.name,
       type: layer.type,
       visible: layer.visible,
+      locked: !!layer.locked,
       opacity: layer.opacity !== undefined ? layer.opacity : 1,
-      objects: (layer.objects || []).map(object => ({ ...object, _img: undefined })),
+      objects: (layer.objects || []).map(storyboardSerializableObject),
       imageData: layer.type === 'drawing' ? layer.imageData : null
     })),
     selectedObjectIds: fe.selectedObjectIds.slice(),
@@ -40325,7 +41027,7 @@ function feUpdateHistoryButtons() {
 }
 
 function feAlignSelection(mode) {
-  const refs = feGetSelectedRefs();
+  const refs = feGetEditableSelectedRefs();
   if (!refs.length) return showToast('Select one or more objects first');
   const bounds = refs.length === 1
     ? { x: 0, y: 0, w: fe.canvasW, h: fe.canvasH, right: fe.canvasW, bottom: fe.canvasH }
@@ -40349,7 +41051,7 @@ function feAlignSelection(mode) {
 }
 
 function feDistributeSelection(axis) {
-  const refs = feGetSelectedRefs();
+  const refs = feGetEditableSelectedRefs();
   if (refs.length < 3) return showToast('Select at least three objects to distribute');
   const horizontal = axis === 'horizontal';
   const sorted = refs.slice().sort((a, b) => horizontal ? a.obj.x - b.obj.x : a.obj.y - b.obj.y);
@@ -40418,7 +41120,7 @@ function feDuplicateSelectedObjects() {
 }
 
 function feDeleteSelectedObjects() {
-  const refs = feGetSelectedRefs();
+  const refs = feGetEditableSelectedRefs();
   if (!refs.length) return showToast('Select one or more objects first');
   feHistoryPush();
   const ids = new Set(refs.map(ref => ref.obj.id));
@@ -40439,7 +41141,7 @@ function feDeleteSelectedObjects() {
 }
 
 function feNudgeSelection(dx, dy) {
-  const refs = feGetSelectedRefs();
+  const refs = feGetEditableSelectedRefs();
   if (!refs.length) return false;
   feHistoryPush();
   refs.forEach(ref => feTranslateObject(ref.obj, dx, dy));
@@ -40483,44 +41185,183 @@ function feHandleKeyboardShortcut(event) {
   return false;
 }
 
-// ─── Upload image → new image layer ──────────────────────────
+// ─── Image import, compression and reusable media library ────
+function feReadFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = event => resolve(event.target.result);
+    reader.onerror = () => reject(new Error(`Could not read ${file.name}`));
+    reader.readAsDataURL(file);
+  });
+}
+
+function feLoadImage(src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error('The image could not be decoded'));
+    image.src = src;
+  });
+}
+
+async function fePrepareImageFile(file) {
+  const original = await feReadFileAsDataURL(file);
+  const image = await feLoadImage(original);
+  const maxDimension = 2560;
+  const scale = Math.min(1, maxDimension / Math.max(image.width, image.height));
+  const width = Math.max(1, Math.round(image.width * scale));
+  const height = Math.max(1, Math.round(image.height * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = width; canvas.height = height;
+  canvas.getContext('2d').drawImage(image, 0, 0, width, height);
+  const src = canvas.toDataURL('image/webp', 0.86);
+  return {
+    id: `media-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    name: file.name,
+    src,
+    width,
+    height,
+    originalBytes: file.size || 0,
+    bytes: Math.round(src.length * 0.75),
+    createdAt: new Date().toISOString()
+  };
+}
+
+function feAddMediaItem(item) {
+  const duplicate = sb.mediaLibrary.find(media => media.name === item.name && media.bytes === item.bytes && media.src === item.src);
+  if (duplicate) return duplicate;
+  sb.mediaLibrary.push(item);
+  return item;
+}
+
+function feInsertMediaItem(item, offsetIndex = 0) {
+  const imgLayer = feNewLayer(`Image: ${String(item.name || 'Media').replace(/\.[^.]+$/, '')}`, 'image');
+  const maxW = fe.canvasW * 0.72;
+  const maxH = fe.canvasH * 0.72;
+  const scale = Math.min(1, maxW / item.width, maxH / item.height);
+  const width = Math.max(20, Math.round(item.width * scale));
+  const height = Math.max(20, Math.round(item.height * scale));
+  const stagger = offsetIndex * 28;
+  const object = {
+    id: feMakeObjectId(), type: 'image', src: item.src, mediaId: item.id,
+    x: Math.round((fe.canvasW - width) / 2 + stagger),
+    y: Math.round((fe.canvasH - height) / 2 + stagger),
+    w: width, h: height, opacity: 1, imageMode: 'fit',
+    rotation: 0, flipX: false, flipY: false, cropX: 0.5, cropY: 0.5, locked: false
+  };
+  imgLayer.objects.push(object);
+  fe.layers.push(imgLayer);
+  return { layer: imgLayer, layerIndex: fe.layers.length - 1, objectIndex: 0, obj: object };
+}
+
+async function feImportImageFiles(files) {
+  const valid = Array.from(files || []).filter(file => /^image\//.test(file.type) || /\.(png|jpe?g|gif|webp|bmp)$/i.test(file.name));
+  if (!valid.length) return showToast('Choose one or more image files');
+  showToast(`Preparing ${valid.length} image${valid.length === 1 ? '' : 's'}...`, 6000);
+  const prepared = [];
+  for (const file of valid) {
+    try { prepared.push(await fePrepareImageFile(file)); }
+    catch (error) { showToast(`${file.name}: ${error.message}`, 6000); }
+  }
+  if (!prepared.length) return;
+  feHistoryPush();
+  const inserted = prepared.map((item, index) => feInsertMediaItem(feAddMediaItem(item), index));
+  fe.dirty = true;
+  fe.activeLayerIdx = fe.layers.length - 1;
+  feRebuildLayerCanvases();
+  feSetSelection(inserted, inserted[inserted.length - 1]);
+  feSetTool('move', document.getElementById('fept-move'));
+  renderMediaLibrary();
+  saveStoryboardToStorage();
+  feCheckProjectSize(false);
+  showToast(`${inserted.length} image${inserted.length === 1 ? '' : 's'} imported and added to Project Media`);
+}
+
 function uploadEditorImage() {
   const input = document.createElement('input');
-  input.type = 'file'; input.accept = 'image/jpeg,image/png,image/gif,image/webp';
-  input.onchange = (e) => {
-    const file = e.target.files[0]; if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
+  input.type = 'file'; input.accept = 'image/jpeg,image/png,image/gif,image/webp,image/bmp'; input.multiple = true;
+  input.onchange = event => feImportImageFiles(event.target.files);
+  input.click();
+}
+
+function feHandleImageDrop(event) {
+  event.preventDefault();
+  event.currentTarget?.classList?.remove('fe-drop-active');
+  feImportImageFiles(event.dataTransfer?.files);
+}
+
+async function replaceSelectedImage() {
+  const ref = feGetEditableSelectedRefs().find(candidate => candidate.obj.type === 'image');
+  if (!ref) return showToast('Select an unlocked image to replace');
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = 'image/*';
+  input.onchange = async event => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      const item = feAddMediaItem(await fePrepareImageFile(file));
       feHistoryPush();
-      const imgLayer = feNewLayer('Image: ' + file.name.split('.')[0], 'image');
-      const img = new Image();
-      img.onload = () => {
-        const scale = Math.min(1, fe.canvasW / img.width, fe.canvasH / img.height);
-        const w = Math.round(img.width * scale), h = Math.round(img.height * scale);
-        const x = Math.round((fe.canvasW - w) / 2), y = Math.round((fe.canvasH - h) / 2);
-        imgLayer.imageData = null;  // image layers never use imageData — objects only
-        imgLayer.objects.push({ type:'image', src: ev.target.result, _img: img, x, y, w, h, opacity:1 });
-        fe.layers.push(imgLayer);
-        fe.activeLayerIdx = fe.layers.length - 1;
-        feRebuildLayerCanvases();
-        renderLayerList();
-        feSetTool('move', document.getElementById('fept-move'));
-        feDrawSelectionHandles(imgLayer.objects[0]);
-        showToast('Image imported — use Move tool to reposition & drag corners to resize');
-      };
-      img.src = ev.target.result;
-    };
-    reader.readAsDataURL(file);
+      ref.obj.src = item.src;
+      ref.obj.mediaId = item.id;
+      ref.obj._img = undefined;
+      ref.layer.name = `Image: ${file.name.replace(/\.[^.]+$/, '')}`;
+      feRenderLayer(ref.layerIndex);
+      renderLayerList();
+      renderMediaLibrary();
+      saveStoryboardToStorage();
+      feCheckProjectSize(false);
+      showToast('Image replaced without changing its position or size');
+    } catch (error) { showToast(`Image replacement failed: ${error.message}`, 7000); }
   };
   input.click();
 }
 
+function useProjectMedia(mediaId) {
+  const item = sb.mediaLibrary.find(media => media.id === mediaId);
+  if (!item) return;
+  feHistoryPush();
+  const ref = feInsertMediaItem(item, 0);
+  fe.dirty = true;
+  fe.activeLayerIdx = ref.layerIndex;
+  feRebuildLayerCanvases();
+  feSetSelection([ref], ref);
+  feSetTool('move', document.getElementById('fept-move'));
+}
+
+function renderMediaLibrary() {
+  const list = document.getElementById('fe-media-library-list');
+  const count = document.getElementById('fe-media-count');
+  if (count) count.textContent = String(sb.mediaLibrary.length);
+  if (!list) return;
+  list.innerHTML = sb.mediaLibrary.length ? sb.mediaLibrary.map(item => `
+    <button type="button" class="fe-media-item" onclick="useProjectMedia('${item.id}')" title="Add ${escHtml(item.name)} to this frame">
+      <img src="${item.src}" alt=""><span>${escHtml(item.name)}</span>
+    </button>`).join('') : '<div style="grid-column:1/-1;color:var(--text-3);font-size:9px;padding:5px;">Imported images appear here for reuse.</div>';
+}
+
+function feProjectSizeBytes() {
+  try { return new Blob([JSON.stringify({ boards: storyboardSerializableBoards(), mediaLibrary: sb.mediaLibrary })]).size; }
+  catch (_) { return 0; }
+}
+
+function feCheckProjectSize(alwaysNotify = false) {
+  const bytes = feProjectSizeBytes();
+  const mb = bytes / (1024 * 1024);
+  if (alwaysNotify || mb >= 20) {
+    const warning = mb >= 45 ? ' - project storage is nearly full' : mb >= 20 ? ' - consider removing unused media' : '';
+    showToast(`Storyboard project size: ${mb.toFixed(1)} MB${warning}`, 7000);
+  }
+  return bytes;
+}
+
 // ─── Clear canvas ─────────────────────────────────────────────
 function clearEditorCanvas() {
-  feHistoryPush();
   const layer = fe.layers[fe.activeLayerIdx];
   if (!layer) return;
+  if (layer.locked) return showToast('Unlock the layer before clearing it');
+  feHistoryPush();
   layer.objects = []; layer.imageData = null; layer.activeObjIdx = -1;
+  fe.dirty = true;
   const lc = document.getElementById('fe-layer-canvas-' + fe.activeLayerIdx);
   if (lc) lc.getContext('2d').clearRect(0, 0, lc.width, lc.height);
   feClearObjectSelection();
@@ -40575,6 +41416,7 @@ function feAddLayer() {
   feHistoryPush();
   const n = fe.layers.length + 1;
   fe.layers.push(feNewLayer('Layer ' + n, 'drawing'));
+  fe.dirty = true;
   fe.activeLayerIdx = fe.layers.length - 1;
   feRebuildLayerCanvases();
   renderLayerList();
@@ -40583,8 +41425,10 @@ function feAddLayer() {
 function feDeleteLayer(i, e) {
   if (e) e.stopPropagation();
   if (fe.layers.length <= 1) return showToast('Cannot delete the only layer');
+  if (fe.layers[i]?.locked) return showToast('Unlock this layer before deleting it');
   feHistoryPush();
   fe.layers.splice(i, 1);
+  fe.dirty = true;
   fe.activeLayerIdx = Math.max(0, Math.min(fe.activeLayerIdx, fe.layers.length - 1));
   feRebuildLayerCanvases();
   renderLayerList();
@@ -40595,9 +41439,11 @@ function feDeleteLayer(i, e) {
 function feDeleteActiveLayer() {
   const i = fe.activeLayerIdx;
   if (fe.layers.length <= 1) return showToast('Cannot delete the only layer');
+  if (fe.layers[i]?.locked) return showToast('Unlock this layer before deleting it');
   feHistoryPush();
   feSnapshotAllLayers();
   fe.layers.splice(i, 1);
+  fe.dirty = true;
   fe.activeLayerIdx = Math.max(0, Math.min(i, fe.layers.length - 1));
   feRebuildLayerCanvases();
   renderLayerList();
@@ -40612,10 +41458,53 @@ function feToggleActiveLayerVis() {
   feToggleLayerVis(fe.activeLayerIdx, { stopPropagation: () => {} });
 }
 
+function feToggleActiveLayerLock() {
+  const layer = fe.layers[fe.activeLayerIdx];
+  if (!layer) return;
+  feHistoryPush();
+  layer.locked = !layer.locked;
+  fe.dirty = true;
+  renderLayerList();
+  feSyncTextPanel();
+  feDrawSelectionHandles();
+  showToast(layer.locked ? 'Layer locked' : 'Layer unlocked');
+}
+
+function feDuplicateActiveLayer() {
+  const source = fe.layers[fe.activeLayerIdx];
+  if (!source) return;
+  feHistoryPush();
+  feSnapshotAllLayers();
+  const copy = {
+    ...source,
+    id: 'lyr_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+    name: (source.name || 'Layer') + ' Copy',
+    locked: false,
+    objects: (source.objects || []).map(obj => ({
+      ...obj,
+      id: 'obj_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+      _img: undefined
+    }))
+  };
+  fe.layers.splice(fe.activeLayerIdx + 1, 0, copy);
+  fe.activeLayerIdx += 1;
+  fe.selectedObjectIds = [];
+  fe.dirty = true;
+  feRebuildLayerCanvases();
+  renderLayerList();
+  feSyncTextPanel();
+  showToast('Layer duplicated');
+}
+
 // Per-layer opacity from the Layers panel slider
 function feSetActiveLayerOpacity(pct) {
   const layer = fe.layers[fe.activeLayerIdx];
   if (!layer) return;
+  if (layer.locked) {
+    const slider = document.getElementById('fe-layer-opacity-slider');
+    if (slider) slider.value = Math.round((layer.opacity ?? 1) * 100);
+    return showToast('Unlock this layer before changing its opacity');
+  }
   layer.opacity = pct / 100;
   fe.dirty = true;
   const opVal = document.getElementById('fe-layer-opacity-val');
@@ -40630,6 +41519,7 @@ function feLayerMoveUpByIdx(i) {
 
   // Swap the layer JS objects
   [fe.layers[i], fe.layers[i+1]] = [fe.layers[i+1], fe.layers[i]];
+  fe.dirty = true;
   fe.activeLayerIdx = i + 1;
 
   // Swap canvas DOM elements directly — preserves pixel data without async re-load.
@@ -40668,6 +41558,7 @@ function feLayerMoveDownByIdx(i) {
   feHistoryPush();
 
   [fe.layers[i], fe.layers[i-1]] = [fe.layers[i-1], fe.layers[i]];
+  fe.dirty = true;
   fe.activeLayerIdx = i - 1;
 
   // Swap canvas DOM elements directly — preserves pixel data without async re-load.
@@ -40720,9 +41611,9 @@ function saveFrameEditor() {
     if (fe.dirty) sbHistoryPush();
     board.frames[fe.idx].imageData = flat.toDataURL('image/png');
     board.frames[fe.idx].layers = fe.layers.map(l => ({
-      name: l.name, type: l.type, visible: l.visible,
+      name: l.name, type: l.type, visible: l.visible, locked: !!l.locked,
       opacity: l.opacity !== undefined ? l.opacity : 1,
-      objects: l.objects.map(o => ({...o, _img: undefined})),
+      objects: l.objects.map(storyboardSerializableObject),
       imageData: l.imageData
     }));
   }
@@ -40778,7 +41669,7 @@ function renderLayerList() {
     const typeLbl  = { drawing:'Drawing', image:'Image', text:'Text', shape:'Shape' }[layer.type] || 'Drawing';
 
     const item = document.createElement('div');
-    item.className = 'fe-layer-item' + (isActive ? ' active' : '');
+    item.className = 'fe-layer-item' + (isActive ? ' active' : '') + (layer.locked ? ' locked' : '');
     item.dataset.idx = i;
     // Click row → select layer; don't intercept eye column or double-click
     item.addEventListener('click', (e) => {
@@ -40807,6 +41698,7 @@ function renderLayerList() {
         <div class="fe-layer-name">${escHtml(layer.name)}</div>
         <div class="fe-layer-type-badge">${typeLbl}</div>
       </div>
+      ${layer.locked ? '<span class="fe-layer-lock-badge" title="Layer locked">🔒</span>' : ''}
     `;
 
     list.appendChild(item);
@@ -40823,14 +41715,29 @@ function renderLayerList() {
 }
 
 function feRenameLayer(i, e) {
-  e.stopPropagation();
-  if (fe.layers[i]?.type === 'text' && fe.layers[i].objects.some(obj => obj.type === 'text')) {
-    feSelectLayer(i);
-    feEditSelectedText();
-    return;
-  }
-  const name = prompt('Rename layer:', fe.layers[i].name);
-  if (name && name.trim()) { fe.layers[i].name = name.trim(); renderLayerList(); }
+  e?.stopPropagation?.();
+  if (!fe.layers[i]) return;
+  fe._renameLayerIndex = i;
+  const input = document.getElementById('fe-layer-rename-input');
+  input.value = fe.layers[i].name || '';
+  document.getElementById('fe-layer-rename-modal').style.display = 'flex';
+  setTimeout(() => { input.focus(); input.select(); }, 30);
+}
+
+function closeLayerRenameModal() {
+  document.getElementById('fe-layer-rename-modal').style.display = 'none';
+  fe._renameLayerIndex = -1;
+}
+
+function saveLayerRename() {
+  const index = fe._renameLayerIndex;
+  const name = document.getElementById('fe-layer-rename-input').value.trim();
+  if (index < 0 || !fe.layers[index] || !name) return closeLayerRenameModal();
+  feHistoryPush();
+  fe.layers[index].name = name;
+  fe.dirty = true;
+  closeLayerRenameModal();
+  renderLayerList();
 }
 
 function feLayerMoveUp(e, i) {
@@ -56127,10 +57034,11 @@ function renderProductionSettings(){
 let storyboardAnimatic={index:0,timer:null,duration:3};
 function openStoryboardAnimatic(){
   const board=sb.boards.find(item=>item.id===sb.activeBoardId);if(!board?.frames?.length){showToast('Add storyboard frames first.');return;}
-  let modal=document.getElementById('sb-animatic-modal');if(!modal){modal=document.createElement('div');modal.id='sb-animatic-modal';modal.className='modal-overlay';modal.innerHTML=`<div style="width:min(920px,92vw);background:#111;border:1px solid #555;padding:12px"><div class="ph-actions"><strong id="sb-animatic-title">Animatic</strong><label style="color:#ddd">Seconds <input id="sb-animatic-duration" type="number" min="1" max="30" value="3" style="width:55px"></label><button class="top-btn" onclick="storyboardAnimaticPlay()">▶</button><button class="top-btn" onclick="storyboardAnimaticPause()">Ⅱ</button><button class="top-btn" onclick="storyboardAnimaticStep(-1)">‹</button><button class="top-btn" onclick="storyboardAnimaticStep(1)">›</button><button class="top-btn" onclick="closeStoryboardAnimatic()">×</button></div><div style="aspect-ratio:16/9;background:#fff;display:grid;place-items:center;margin-top:10px"><img id="sb-animatic-image" style="width:100%;height:100%;object-fit:contain;display:none"></div><p id="sb-animatic-caption" style="color:#fff;text-align:center;min-height:20px"></p></div>`;document.body.appendChild(modal);}
+  let modal=document.getElementById('sb-animatic-modal');if(!modal){modal=document.createElement('div');modal.id='sb-animatic-modal';modal.className='modal-overlay';modal.innerHTML=`<div style="width:min(920px,92vw);background:#111;border:1px solid #555;padding:12px"><div class="ph-actions"><strong id="sb-animatic-title">Animatic</strong><label style="color:#ddd">Seconds <input id="sb-animatic-duration" type="number" min="1" max="30" value="3" style="width:55px"></label><button class="top-btn" onclick="storyboardAnimaticPlay()">▶</button><button class="top-btn" onclick="storyboardAnimaticPause()">Ⅱ</button><button class="top-btn" onclick="storyboardAnimaticStep(-1)">‹</button><button class="top-btn" onclick="storyboardAnimaticStep(1)">›</button><button class="top-btn" onclick="closeStoryboardAnimatic()">×</button></div><div id="sb-animatic-stage" style="aspect-ratio:16/9;background:#fff;display:grid;place-items:center;margin-top:10px;max-height:70vh;margin-inline:auto"><img id="sb-animatic-image" style="width:100%;height:100%;object-fit:contain;display:none"></div><p id="sb-animatic-caption" style="color:#fff;text-align:center;min-height:20px"></p></div>`;document.body.appendChild(modal);}
+  const ratio=getStoryboardAspect(board),stage=document.getElementById('sb-animatic-stage');if(stage){stage.style.aspectRatio=String(ratio);stage.style.width=ratio<1?'min(48vh,80vw)':'100%';}
   storyboardAnimatic.index=0;modal.style.display='flex';renderStoryboardAnimatic();
 }
-function renderStoryboardAnimatic(){const board=sb.boards.find(item=>item.id===sb.activeBoardId),frame=board?.frames[storyboardAnimatic.index],image=document.getElementById('sb-animatic-image');if(!frame)return;document.getElementById('sb-animatic-title').textContent=`${board.name||'Storyboard'} · ${storyboardAnimatic.index+1}/${board.frames.length}`;document.getElementById('sb-animatic-caption').textContent=frame.caption||'';if(frame.imageData){image.src=frame.imageData;image.style.display='block';}else{image.removeAttribute('src');image.style.display='none';}}
+function renderStoryboardAnimatic(){const board=sb.boards.find(item=>item.id===sb.activeBoardId),frame=board?.frames[storyboardAnimatic.index],image=document.getElementById('sb-animatic-image');if(!frame)return;document.getElementById('sb-animatic-title').textContent=`${board.name||'Storyboard'} · ${frame.shotNumber||storyboardAnimatic.index+1}/${board.frames.length}`;document.getElementById('sb-animatic-caption').textContent=[frame.label,frame.duration,frame.caption].filter(Boolean).join(' · ');if(frame.imageData){image.src=frame.imageData;image.style.display='block';}else{image.removeAttribute('src');image.style.display='none';}}
 function storyboardAnimaticStep(delta){const board=sb.boards.find(item=>item.id===sb.activeBoardId);if(!board)return;storyboardAnimatic.index=(storyboardAnimatic.index+delta+board.frames.length)%board.frames.length;renderStoryboardAnimatic();}
 function storyboardAnimaticPlay(){storyboardAnimaticPause();storyboardAnimatic.duration=Math.max(1,+document.getElementById('sb-animatic-duration')?.value||3);storyboardAnimatic.timer=setInterval(()=>storyboardAnimaticStep(1),storyboardAnimatic.duration*1000);}
 function storyboardAnimaticPause(){clearInterval(storyboardAnimatic.timer);storyboardAnimatic.timer=null;}

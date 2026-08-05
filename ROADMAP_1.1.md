@@ -44,10 +44,17 @@ The first Storyboard Editor expansion focuses on high-value editing work. The fi
 - undo and redo — implemented for frame editing and storyboard card management;
 - drag-to-reorder storyboard cards while retaining scene and shot links — implemented;
 - alignment, distribution, snap-to-grid and smart guides — implemented;
-- zoom-to-fit and a compact overview;
-- editable shot labels, captions, duration and status;
+- zoom-to-fit and a compact overview — implemented;
+- editable frame labels, shot numbers, captions, duration/timecode and Draft-to-Final status — implemented;
+- action, dialogue/sound, camera, lighting and transition notes, custom fields and tags — implemented;
+- film, television, scope, square, vertical and custom storyboard templates and aspect ratios — implemented;
+- title-safe/action-safe overlays, board descriptions and board-level status — implemented;
+- post-creation orientation, column and caption settings, plus board rename and duplication — implemented;
+- multi-image drag-and-drop, non-destructive replacement, Crop/Fit/Fill/Stretch, rotation and flipping — implemented;
+- object and layer locking, layer rename/duplicate, aspect-locked resize and per-object opacity — implemented;
+- compressed reusable project media library with project-size warnings — implemented;
 - bulk linking from script scenes;
-- safer media replacement and missing-media reporting.
+- missing-media reporting.
 
 Deletion, undo/redo and save/reload behaviour must have automated regression coverage before new drawing or layout tools are added.
 

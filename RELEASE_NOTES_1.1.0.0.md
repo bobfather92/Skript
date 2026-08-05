@@ -32,6 +32,12 @@ This is the first local development package on the road to Skript 1.1. It is int
 - Undo and redo drawing, object, layer, arranging and storyboard-card changes with toolbar buttons or standard keyboard shortcuts.
 - Copy, paste, duplicate, delete and drag-reorder storyboard cards while keeping captions, artwork and scene/shot links together.
 - Copy, paste, duplicate, delete and keyboard-nudge selected frame-editor objects as one group.
+- Add production-ready frame information: editable labels, shot numbers, duration/timecode, Draft-to-Final status, tags, action, dialogue/sound, camera, lighting and transition notes, plus custom note fields.
+- Configure each storyboard after creation, including its name, description, status, orientation, columns, captions, action-safe/title-safe guides, templates and 16:9, 4:3, 2.39:1, 1:1, 9:16 or custom frame ratios.
+- Duplicate a complete storyboard while assigning fresh frame and object identities, so changes to the copy remain independent.
+- Drag several images into a frame at once, replace a selected image without disturbing its placement, and use Crop, Fit, Fill, Stretch, rotate and flip controls.
+- Lock individual images or complete layers, rename and duplicate layers, preserve image proportions while resizing, and set opacity per object or layer.
+- Reuse compressed images from the project media library without storing another full copy for every placement, with project-size warnings as storage grows.
 - Open all valid selected scripts even when another selected file is invalid.
 - Open the initial `com.skript.project-collection` format containing multiple script documents.
 - Access **Import Scripts…** directly from the Navigator's Add Document menu.
@@ -57,7 +63,7 @@ Python and the supported PDF, OCR and Word engines are included in the Windows d
 
 - 12 JavaScript regression suites passed.
 - 9 Python regression suites passed.
-- Complete browser workflow: 111 passed, 11 intentionally skipped, 0 failed across desktop and compact-touch configurations, including dedicated storyboard arrangement and history coverage.
+- Complete browser workflow: 115 passed, 11 intentionally skipped, 0 failed across desktop and compact-touch configurations, including storyboard arrangement, history, linking, rich frame information, board settings and media editing coverage.
 - Packaged Windows title-bar smoke test passed for hold-drag movement and visible-frame alignment.
 - Python compilation and embedded HTML syntax checks passed.
 
