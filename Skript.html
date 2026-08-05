@@ -24774,7 +24774,7 @@ var __async = (__this, __arguments, generator) => {
   .sb-frame {
     border: 1.5px solid #ddd; border-radius: 4px; overflow: hidden;
     display: flex; flex-direction: column; background: #ffffff; position: relative;
-    transition: box-shadow 0.15s;
+    transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
   }
   .sb-frame:hover { box-shadow: 0 2px 16px rgba(0,0,0,0.22); }
   .sb-frame.sb-frame-selected {
@@ -24782,6 +24782,7 @@ var __async = (__this, __arguments, generator) => {
     box-shadow: 0 0 0 3px rgba(91,155,213,0.32), 0 4px 18px rgba(0,0,0,0.2);
   }
   .sb-frame.sb-frame-dragging { opacity: 0.45; }
+  .sb-frame.sb-frame-drag-source { display: none !important; }
   .sb-frame.sb-frame-drop-before::before,
   .sb-frame.sb-frame-drop-after::after {
     content: ''; position: absolute; top: 0; bottom: 0; width: 4px;
@@ -24789,20 +24790,68 @@ var __async = (__this, __arguments, generator) => {
   }
   .sb-frame.sb-frame-drop-before::before { left: -4px; }
   .sb-frame.sb-frame-drop-after::after { right: -4px; }
-  .sb-frame-select, .sb-frame-drag-handle {
-    position: absolute; top: 6px; z-index: 11; width: 25px; height: 25px;
-    display: flex; align-items: center; justify-content: center; padding: 0;
-    border: 1px solid rgba(255,255,255,0.35); border-radius: 5px;
-    background: rgba(15,18,25,0.78); color: #fff; cursor: pointer;
-    opacity: 0; transition: opacity 0.15s, background 0.15s;
+  .sb-frame-order-cluster {
+    position:absolute; top:8px; left:8px; z-index:11;
+    display:flex; align-items:center; gap:5px; pointer-events:none;
   }
-  .sb-frame-select { left: 6px; }
-  .sb-frame-drag-handle { right: 6px; cursor: grab; font-size: 17px; }
+  .sb-frame-num-badge {
+    min-width:24px; height:28px; box-sizing:border-box; padding:0 7px;
+    display:flex; align-items:center; justify-content:center;
+    border:1px solid rgba(255,255,255,.3); border-radius:6px;
+    background:rgba(15,18,25,.82); color:#fff;
+    font:700 10px/1 'Inter',sans-serif; letter-spacing:.35px;
+    box-shadow:0 2px 8px rgba(0,0,0,.22);
+  }
+  .sb-frame-select, .sb-frame-drag-handle {
+    position: absolute; top: 8px; z-index: 11; width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center; padding: 0;
+    border: 1px solid rgba(255,255,255,0.32); border-radius: 7px;
+    background: rgba(15,18,25,0.84); color: #fff; cursor: pointer;
+    box-shadow:0 2px 8px rgba(0,0,0,.24);
+    opacity: 0; transition: opacity .15s ease, background .15s ease, transform .15s ease;
+  }
+  .sb-frame-select { right: 8px; }
+  .sb-frame-drag-handle {
+    position:static; width:30px; height:30px; cursor:grab; opacity:.76;
+    pointer-events:auto; touch-action:none;
+  }
+  .sb-frame-drag-handle svg,.sb-frame-select svg { width:16px; height:16px; display:block; }
+  .sb-frame-drag-handle:hover,.sb-frame-select:hover { background:rgba(49,54,66,.96); transform:translateY(-1px); }
   .sb-frame-drag-handle:active { cursor: grabbing; }
   .sb-frame:hover .sb-frame-select, .sb-frame:hover .sb-frame-drag-handle,
   .sb-frame-select.active { opacity: 1; }
   html.sf-touch .sb-frame-select, html.sf-touch .sb-frame-drag-handle { opacity: 1; }
   .sb-frame-select.active { background: #356fc2; border-color: #80b2f1; }
+  .sb-frame-drop-slot {
+    min-width:0; box-sizing:border-box; position:relative;
+    border:2px dashed var(--brand-purple); border-radius:8px;
+    background:linear-gradient(135deg,rgba(116,83,245,.13),rgba(91,155,213,.07));
+    box-shadow:inset 0 0 0 1px rgba(116,83,245,.12);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--text-2); font:650 10px/1.3 'Inter',sans-serif;
+  }
+  .sb-frame-drop-slot::before {
+    content:''; position:absolute; left:-3px; top:10%; bottom:10%; width:4px;
+    border-radius:4px; background:var(--brand-purple);
+    box-shadow:0 0 12px rgba(116,83,245,.58);
+  }
+  .sb-frame-drop-slot span {
+    display:flex; align-items:center; gap:7px; padding:7px 10px;
+    border-radius:999px; background:var(--surface); border:1px solid var(--border2);
+    box-shadow:0 4px 14px rgba(0,0,0,.2);
+  }
+  .sb-frame-drop-slot svg { width:14px; height:14px; color:var(--brand-purple); }
+  .sb-frame-drag-ghost {
+    position:fixed; left:-10000px; top:-10000px; z-index:-1;
+    width:190px; padding:10px 12px; display:flex; align-items:center; gap:9px;
+    border:1px solid var(--brand-purple); border-radius:8px;
+    background:var(--surface); color:var(--text); box-shadow:0 12px 28px rgba(0,0,0,.4);
+    font:650 11px 'Inter',sans-serif;
+  }
+  .sb-frame-drag-ghost svg { width:17px; height:17px; color:var(--brand-purple); }
+  @media (prefers-reduced-motion: reduce) {
+    .sb-frame,.sb-frame-select,.sb-frame-drag-handle { transition:none!important; }
+  }
 
   .sb-card-menu { position: relative; flex: 0 0 auto; }
   .sb-card-menu > summary { list-style: none; }
@@ -24903,7 +24952,12 @@ var __async = (__this, __arguments, generator) => {
   .sb-meta-pill { border:1px solid var(--border2);border-radius:10px;padding:2px 6px;color:var(--text-2);font-size:9px;line-height:1.3; }
   .sb-meta-pill.status-approved,.sb-meta-pill.status-final { color:#70c987;border-color:rgba(112,201,135,.45); }
   .sb-meta-pill.status-review,.sb-meta-pill.status-revision { color:#e9b454;border-color:rgba(233,180,84,.45); }
-  .sb-frame-info-btn { margin-left:auto;border:0;background:transparent;color:var(--amber);font-size:9px;cursor:pointer;padding:1px 4px; }
+  .sb-frame-info-btn {
+    width:24px;height:22px;margin-left:auto;padding:0;display:flex;align-items:center;justify-content:center;
+    border:1px solid transparent;border-radius:5px;background:transparent;color:var(--text-3);cursor:pointer;
+  }
+  .sb-frame-info-btn svg { width:13px;height:13px; }
+  .sb-frame-info-btn:hover { border-color:var(--border2);background:var(--surface3);color:var(--amber); }
   .sb-safe-overlay { position:absolute;inset:0;pointer-events:none;z-index:5; }
   .sb-safe-overlay .action-safe,.sb-safe-overlay .title-safe { position:absolute;border:1px dashed rgba(224,74,134,.7); }
   .sb-safe-overlay .action-safe { inset:5%; }
@@ -37513,6 +37567,7 @@ const sb = {
 };
 
 let _storyboardFrameSequence = 0;
+let _sbFrameDragState = null;
 function makeStoryboardFrameId() {
   _storyboardFrameSequence += 1;
   return `sb-frame-${Date.now().toString(36)}-${_storyboardFrameSequence.toString(36)}`;
@@ -38563,7 +38618,63 @@ function sbMoveSelectedFrames(direction) {
   sbHistoryPush();
   board.frames = frames;
   saveStoryboardToStorage();
+  const beforeLayout = sbCaptureFrameLayout();
   renderStoryboard(board);
+  sbAnimateRenderedFrameLayout(beforeLayout);
+}
+
+function sbMotionAllowed() {
+  return !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+}
+
+function sbCaptureFrameLayout() {
+  const positions = new Map();
+  document.querySelectorAll('#storyboard-area .sb-frame[data-frame-id]').forEach(card => {
+    if (!card.classList.contains('sb-frame-drag-source')) positions.set(card.dataset.frameId,card.getBoundingClientRect());
+  });
+  return positions;
+}
+
+function sbAnimateRenderedFrameLayout(beforeLayout) {
+  if (!beforeLayout?.size || !sbMotionAllowed()) return;
+  requestAnimationFrame(() => {
+    document.querySelectorAll('#storyboard-area .sb-frame[data-frame-id]').forEach(card => {
+      const before = beforeLayout.get(card.dataset.frameId);
+      if (!before) return;
+      const after = card.getBoundingClientRect();
+      const dx = before.left - after.left;
+      const dy = before.top - after.top;
+      if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+      card.animate?.([
+        { transform:`translate(${dx}px,${dy}px)`, zIndex:2 },
+        { transform:'translate(0,0)', zIndex:2 }
+      ],{ duration:240, easing:'cubic-bezier(.2,.8,.2,1)' });
+    });
+  });
+}
+
+function sbAnimateFrameReflow(containers, mutate) {
+  const grids = Array.from(new Set((containers || []).filter(Boolean)));
+  if (!grids.length || !sbMotionAllowed()) { mutate(); return; }
+  const positions = new Map();
+  grids.forEach(grid => grid.querySelectorAll('.sb-frame:not(.sb-frame-drag-source)').forEach(card => positions.set(card,card.getBoundingClientRect())));
+  mutate();
+  grids.forEach(grid => grid.querySelectorAll('.sb-frame:not(.sb-frame-drag-source)').forEach(card => {
+    const before = positions.get(card);
+    if (!before) return;
+    const after = card.getBoundingClientRect();
+    const dx = before.left - after.left;
+    const dy = before.top - after.top;
+    if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+    card.animate?.([
+      { transform:`translate(${dx}px,${dy}px)` },
+      { transform:'translate(0,0)' }
+    ],{ duration:210, easing:'cubic-bezier(.2,.8,.2,1)' });
+  }));
+}
+
+function sbFrameMoveIcon() {
+  return '<svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><circle cx="7" cy="4" r="1.55"/><circle cx="13" cy="4" r="1.55"/><circle cx="7" cy="10" r="1.55"/><circle cx="13" cy="10" r="1.55"/><circle cx="7" cy="16" r="1.55"/><circle cx="13" cy="16" r="1.55"/></svg>';
 }
 
 function sbFrameDragStart(event, boardId, frameId) {
@@ -38571,41 +38682,101 @@ function sbFrameDragStart(event, boardId, frameId) {
     sb.selectedFrameIds.clear();
     sb.selectedFrameIds.add(frameId);
   }
+  const sourceCard = event.currentTarget.closest('.sb-frame');
+  const selectedCards = Array.from(document.querySelectorAll('#storyboard-area .sb-frame'))
+    .filter(card => sb.selectedFrameIds.has(card.dataset.frameId));
+  if (!sourceCard || !selectedCards.length) return;
+  const placeholder = document.createElement('div');
+  placeholder.className = 'sb-frame-drop-slot';
+  placeholder.setAttribute('aria-hidden','true');
+  placeholder.style.minHeight = `${Math.max(86,sourceCard.getBoundingClientRect().height)}px`;
+  placeholder.innerHTML = `<span>${sbFrameMoveIcon()}Move ${selectedCards.length === 1 ? 'frame' : `${selectedCards.length} frames`}</span>`;
+  const ghost = document.createElement('div');
+  ghost.className = 'sb-frame-drag-ghost';
+  ghost.innerHTML = `${sbFrameMoveIcon()}<span>${selectedCards.length === 1 ? 'Move frame' : `Move ${selectedCards.length} frames`}</span>`;
+  document.body.appendChild(ghost);
+  event.dataTransfer.setDragImage?.(ghost,22,22);
   event.dataTransfer.effectAllowed = 'move';
   event.dataTransfer.setData('text/plain', String(frameId));
-  event.currentTarget.closest('.sb-frame')?.classList.add('sb-frame-dragging');
+  event.currentTarget.setAttribute('aria-grabbed','true');
+  sourceCard.classList.add('sb-frame-dragging');
+  _sbFrameDragState = {
+    boardId:String(boardId), frameIds:selectedCards.map(card => card.dataset.frameId),
+    sourceCard, selectedCards, placeholder, ghost, targetFrameId:null, after:false
+  };
+  setTimeout(() => {
+    const state = _sbFrameDragState;
+    if (!state || state.sourceCard !== sourceCard || !sourceCard.isConnected) return;
+    const grid = sourceCard.parentElement;
+    sbAnimateFrameReflow([grid],() => {
+      grid.insertBefore(placeholder,sourceCard);
+      selectedCards.forEach(card => card.classList.add('sb-frame-drag-source'));
+    });
+    ghost.remove();
+  },0);
 }
 
-function sbFrameDragEnd(event) {
-  event.currentTarget.closest('.sb-frame')?.classList.remove('sb-frame-dragging');
+function sbCleanupFrameDrag(animate = true) {
+  const state = _sbFrameDragState;
+  if (!state) return;
+  const grids = [state.placeholder?.parentElement,...state.selectedCards.map(card => card.parentElement)];
+  const cleanup = () => {
+    state.selectedCards.forEach(card => card.classList.remove('sb-frame-drag-source','sb-frame-dragging'));
+    state.sourceCard?.querySelector('.sb-frame-drag-handle')?.setAttribute('aria-grabbed','false');
+    state.placeholder?.remove();
+    state.ghost?.remove();
+  };
+  if (animate) sbAnimateFrameReflow(grids,cleanup); else cleanup();
+  _sbFrameDragState = null;
   document.querySelectorAll('.sb-frame-drop-before,.sb-frame-drop-after').forEach(card =>
     card.classList.remove('sb-frame-drop-before', 'sb-frame-drop-after'));
 }
 
+function sbFrameDragEnd() {
+  sbCleanupFrameDrag(true);
+}
+
 function sbFrameDragOver(event) {
   event.preventDefault();
+  if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
   const card = event.currentTarget;
+  const state = _sbFrameDragState;
+  if (!state || state.frameIds.includes(card.dataset.frameId)) return;
   const rect = card.getBoundingClientRect();
-  const after = event.clientX > rect.left + rect.width / 2;
-  card.classList.toggle('sb-frame-drop-before', !after);
-  card.classList.toggle('sb-frame-drop-after', after);
+  const grid = card.parentElement;
+  const after = grid.classList.contains('list')
+    ? event.clientY > rect.top + rect.height / 2
+    : event.clientX > rect.left + rect.width / 2;
+  if (state.targetFrameId === card.dataset.frameId && state.after === after && state.placeholder.parentElement === grid) return;
+  const previousGrid = state.placeholder.parentElement;
+  sbAnimateFrameReflow([previousGrid,grid],() => {
+    if (after) card.after(state.placeholder); else card.before(state.placeholder);
+  });
+  state.targetFrameId = card.dataset.frameId;
+  state.after = after;
 }
 
 function sbFrameDrop(event, boardId, targetFrameId) {
   event.preventDefault();
   const board = sb.boards.find(item => String(item.id) === String(boardId));
-  if (!board || sb.selectedFrameIds.has(targetFrameId)) return sbFrameDragEnd(event);
+  const dragState = _sbFrameDragState;
+  if (!board || sb.selectedFrameIds.has(targetFrameId)) return sbFrameDragEnd();
   const selected = board.frames.filter(frame => sb.selectedFrameIds.has(frame.id));
   if (!selected.length) return;
   const target = board.frames.find(frame => frame.id === targetFrameId);
   const remaining = board.frames.filter(frame => !sb.selectedFrameIds.has(frame.id));
   let insertAt = remaining.indexOf(target);
   const rect = event.currentTarget.getBoundingClientRect();
-  if (event.clientX > rect.left + rect.width / 2) insertAt += 1;
+  const grid = event.currentTarget.parentElement;
+  const pointerAfter = grid?.classList.contains('list')
+    ? event.clientY > rect.top + rect.height / 2
+    : event.clientX > rect.left + rect.width / 2;
+  if ((dragState?.targetFrameId === targetFrameId ? dragState.after : pointerAfter)) insertAt += 1;
   sbHistoryPush();
   remaining.splice(Math.max(0, insertAt), 0, ...selected);
   board.frames = remaining;
   saveStoryboardToStorage();
+  sbCleanupFrameDrag(false);
   renderStoryboard(board);
   showToast(`${selected.length} frame${selected.length === 1 ? '' : 's'} reordered`);
 }
@@ -39467,12 +39638,26 @@ function buildFrameEl(frame, idx, boardId) {
   const frameLabel = frame.label || `Frame ${idx + 1}`;
 
   wrap.innerHTML = `
-    <div class="sb-frame-num-badge">${idx + 1}</div>
+    <div class="sb-frame-order-cluster">
+      <button type="button" class="sb-frame-drag-handle" draggable="true" aria-label="Move frame ${idx + 1}"
+        aria-grabbed="false" title="Drag to reorder${isSelected ? ' selected frames' : ' this frame'}"
+        ondragstart="sbFrameDragStart(event,${boardId},'${frameId}')" ondragend="sbFrameDragEnd(event)" onclick="event.stopPropagation()">
+        <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <circle cx="7" cy="4" r="1.55"/><circle cx="13" cy="4" r="1.55"/>
+          <circle cx="7" cy="10" r="1.55"/><circle cx="13" cy="10" r="1.55"/>
+          <circle cx="7" cy="16" r="1.55"/><circle cx="13" cy="16" r="1.55"/>
+        </svg>
+      </button>
+      <span class="sb-frame-num-badge" title="Frame ${idx + 1}">${String(idx + 1).padStart(2,'0')}</span>
+    </div>
     <button type="button" class="sb-frame-select${isSelected ? ' active' : ''}"
-      aria-pressed="${isSelected}" title="${isSelected ? 'Remove from selection' : 'Select frame'}"
-      onclick="event.stopPropagation();sbToggleFrameSelection(${boardId},'${frameId}',event.shiftKey||event.ctrlKey||event.metaKey)">${isSelected ? '✓' : ''}</button>
-    <button type="button" class="sb-frame-drag-handle" draggable="true" title="Drag to reorder selected frames"
-      ondragstart="sbFrameDragStart(event,${boardId},'${frameId}')" ondragend="sbFrameDragEnd(event)" onclick="event.stopPropagation()">⠿</button>
+      aria-pressed="${isSelected}" aria-label="${isSelected ? 'Remove frame from selection' : 'Select frame'}"
+      title="${isSelected ? 'Remove from selection' : 'Select frame'}"
+      onclick="event.stopPropagation();sbToggleFrameSelection(${boardId},'${frameId}',event.shiftKey||event.ctrlKey||event.metaKey)">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+        <rect x="3" y="3" width="14" height="14" rx="3"/>${isSelected ? '<path d="m6.5 10 2.2 2.3 4.8-5" stroke-linecap="round" stroke-linejoin="round"/>' : ''}
+      </svg>
+    </button>
     <button class="sb-frame-edit-icon" onclick="event.stopPropagation();openFrameEditor(${idx},${boardId})" title="Open frame editor">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 20h9"/>
@@ -39494,7 +39679,9 @@ function buildFrameEl(frame, idx, boardId) {
       ${frame.duration ? `<span class="sb-meta-pill">${escHtml(frame.duration)}</span>` : ''}
       <span class="sb-meta-pill status-${statusClass}">${escHtml(frame.status)}</span>
       ${frame.tags.slice(0, 3).map(tag => `<span class="sb-meta-pill">#${escHtml(tag)}</span>`).join('')}
-      <button type="button" class="sb-frame-info-btn" onclick="event.stopPropagation();openStoryboardFrameInfo(${boardId},${idx})">Edit info</button>
+      <button type="button" class="sb-frame-info-btn" aria-label="Edit frame details" title="Edit frame details" onclick="event.stopPropagation();openStoryboardFrameInfo(${boardId},${idx})">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 14.5V17h2.5L15 8.5 11.5 5 3 13.5Z"/><path d="m10.8 5.7 3.5 3.5"/></svg>
+      </button>
     </div>
     <div class="sb-frame-link-summary" title="${escHtml([sceneText,shotText].filter(Boolean).join(' — '))}">
       <strong>${escHtml(sceneText)}</strong>${shotText ? `<br>${escHtml(shotText)}` : ''}

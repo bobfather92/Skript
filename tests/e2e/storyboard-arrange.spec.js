@@ -25,6 +25,9 @@ test('storyboard cards support multi-select, duplicate, reorder, delete, undo an
 
   const cards = page.locator('.sb-frame');
   await expect(cards).toHaveCount(3);
+  await expect(cards.nth(0).locator('.sb-frame-drag-handle')).toHaveAttribute('aria-label', 'Move frame 1');
+  await expect(cards.nth(0).locator('.sb-frame-drag-handle svg')).toBeVisible();
+  await expect(cards.nth(0).locator('.sb-frame-num-badge')).toHaveText('01');
   await cards.nth(0).locator('.sb-frame-select').click();
   await cards.nth(1).locator('.sb-frame-select').click({ modifiers: ['Shift'] });
   await expect(page.locator('.sb-frame-selected')).toHaveCount(2);
@@ -52,6 +55,70 @@ test('storyboard cards support multi-select, duplicate, reorder, delete, undo an
   await expect(cards).toHaveCount(3);
   await page.evaluate(() => sbUndo());
   await expect(cards).toHaveCount(5);
+});
+
+test('dragging a storyboard frame opens a live animated insertion slot and reorders the sequence', async ({ page, skript }) => {
+  const result = await page.evaluate(async () => {
+    const board = {
+      id: 91002,
+      name: 'Animated frame movement',
+      orientation: 'portrait',
+      cols: 3,
+      captions: true,
+      currentPage: 0,
+      frames: Array.from({ length: 3 }, (_, index) => ({
+        ...makeStoryboardFrame(index),
+        caption: `Sequence ${index + 1}`,
+      })),
+    };
+    sb.boards = [board];
+    sb.activeBoardId = board.id;
+    sb.selectedFrameIds.clear();
+    showStoryboardArea();
+    renderStoryboard(board);
+
+    const source = document.querySelectorAll('.sb-frame')[0];
+    const target = document.querySelectorAll('.sb-frame')[1];
+    const handle = source.querySelector('.sb-frame-drag-handle');
+    const dataTransfer = new DataTransfer();
+    sbFrameDragStart({ currentTarget:handle, dataTransfer },board.id,source.dataset.frameId);
+    await new Promise(resolve => setTimeout(resolve,30));
+    const targetRect = target.getBoundingClientRect();
+    const event = {
+      currentTarget:target,
+      dataTransfer,
+      clientX:targetRect.right - 2,
+      clientY:targetRect.top + targetRect.height / 2,
+      preventDefault() {},
+    };
+    sbFrameDragOver(event);
+    const placeholder = document.querySelector('.sb-frame-drop-slot');
+    const liveState = {
+      placeholderVisible:Boolean(placeholder),
+      placeholderAfterTarget:placeholder?.previousElementSibling === target,
+      sourceHidden:source.classList.contains('sb-frame-drag-source'),
+      label:placeholder?.textContent.trim(),
+      reflowAnimations:document.getAnimations().filter(animation => animation.playState === 'running').length,
+    };
+    sbFrameDrop(event,board.id,target.dataset.frameId);
+    return {
+      ...liveState,
+      captions:board.frames.map(frame => frame.caption),
+      placeholderRemoved:!document.querySelector('.sb-frame-drop-slot'),
+      renumbered:Array.from(document.querySelectorAll('.sb-frame-num-badge')).map(node => node.textContent),
+    };
+  });
+
+  expect(result).toMatchObject({
+    placeholderVisible:true,
+    placeholderAfterTarget:true,
+    sourceHidden:true,
+    label:'Move frame',
+    captions:['Sequence 2', 'Sequence 1', 'Sequence 3'],
+    placeholderRemoved:true,
+    renumbered:['01', '02', '03'],
+  });
+  expect(result.reflowAnimations).toBeGreaterThan(0);
 });
 
 test('frame editor multi-object arrange commands and redo restore exact object state', async ({ page, skript }) => {
