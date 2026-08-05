@@ -22,8 +22,10 @@ test('script scenes, shots, and storyboard frames stay visibly connected', async
   await expect(frames.nth(0).locator('.sb-frame-link-summary')).toContainText('Scene 1');
   await expect(frames.nth(0).locator('.sb-frame-link-summary')).toContainText('Shot 1');
   await expect(frames.nth(1).locator('.sb-frame-link-summary')).toContainText('Shot 2');
-  await expect(frames.nth(1).getByLabel('Scene for frame 2')).toHaveValue(/line-/);
-  await expect(frames.nth(1).getByLabel('Shot for frame 2')).toHaveValue(/sl\d+/);
+  await frames.nth(1).locator('.sb-canvas-wrap').click();
+  if ((await page.viewportSize()).width <= 900) await page.evaluate(() => storyboardStudioTogglePane('inspector'));
+  await expect(page.locator('.sb-studio-inspector').getByLabel('Scene link')).toHaveValue(/line-/);
+  await expect(page.locator('.sb-studio-inspector').getByLabel('Shot List link')).toHaveValue(/sl\d+/);
   const storedFrame = await page.evaluate(() =>
     JSON.parse(localStorage.getItem('sf-storyboard')).boards[0].frames[1]
   );

@@ -45,6 +45,10 @@ test('storyboard studio provides linked panes, views, filters, inspector sync an
   await expect(page.locator('.sb-studio-scene', { hasText:'Unlinked Frames' })).toContainText('1 frame');
   await expect(page.locator('.sb-studio-group')).toHaveCount(2);
   await expect(page.locator('.sb-frame')).toHaveCount(3);
+  await expect(page.locator('.sb-frame-link-controls')).toHaveCount(0);
+  await expect(page.locator('#sb-zoom-bar')).toBeHidden();
+  await expect(page.locator('.sb-studio-zoom')).toBeVisible();
+  await expect(page.locator('#sb-toolbar .sb-board-menu-btn')).toBeVisible();
 
   await page.locator('.sb-studio-view-switch [title="List view"]').click();
   await expect(page.locator('.sb-studio-grid.list')).toHaveCount(2);

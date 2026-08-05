@@ -3,7 +3,7 @@ import path from 'node:path';
 import fs from 'node:fs/promises';
 
 
-test('a storyboard can remain blank or import only selected scenes', async ({ page, skript }) => {
+test('a new storyboard starts linked and can import only selected scenes', async ({ page, skript }) => {
   const lines = skript.activeLines;
   await lines.nth(0).fill('INT. FIRST ROOM - DAY');
   await lines.nth(0).press('Enter');
@@ -19,24 +19,27 @@ test('a storyboard can remain blank or import only selected scenes', async ({ pa
   await page.getByRole('button', { name: 'Continue →' }).click();
   await page.getByRole('button', { name: 'Continue →' }).click();
   await page.getByRole('button', { name: /Create Storyboard/ }).click();
-  await page.getByRole('button', { name: 'Keep blank' }).click();
-  await expect(page.locator('.sb-frame').nth(0).locator('.sb-frame-link-summary')).toContainText('No scene linked');
+  await page.getByRole('button', { name: 'Use current scene' }).click();
+  await expect(page.locator('.sb-frame').nth(0).locator('.sb-frame-link-summary')).toContainText('Scene 1');
+  await expect(page.locator('.sb-studio-scene', { hasText:'Unlinked Frames' })).toHaveCount(0);
 
-  await page.getByRole('button', { name: 'Link Shots' }).click();
+  await page.locator('#sb-toolbar .sb-board-menu-btn').click();
+  await page.getByRole('button', { name: /Link scenes and shots/ }).click();
   const picks = page.locator('#sb-link-scene-list input[type="checkbox"]');
   await expect(picks).toHaveCount(2);
   await picks.nth(1).uncheck();
   await page.locator('#sb-link-modal').getByRole('button', { name: 'Done' }).click();
-  await expect(page.locator('.sb-frame-link-summary').filter({ hasText: 'Scene 1' })).toHaveCount(2);
+  await expect(page.locator('.sb-frame-link-summary').filter({ hasText: 'Scene 1' })).toHaveCount(6);
   await expect(page.locator('.sb-frame-link-summary').filter({ hasText: 'Scene 2' })).toHaveCount(0);
 
-  await page.getByRole('button', { name: 'Link Shots' }).click();
+  await page.locator('#sb-toolbar .sb-board-menu-btn').click();
+  await page.getByRole('button', { name: /Link scenes and shots/ }).click();
   await page.getByRole('button', { name: 'Clear all' }).click();
-  let confirmMessage = '';
-  page.once('dialog', async dialog => { confirmMessage = dialog.message(); await dialog.accept(); });
   await page.locator('#sb-link-modal').getByRole('button', { name: 'Done' }).click();
-  expect(confirmMessage).toContain('Any artwork');
-  await expect(page.locator('.sb-frame-link-summary').filter({ hasText: 'Scene 1' })).toHaveCount(0);
+  await expect(page.locator('#sb-link-modal')).toHaveClass(/open/);
+  await expect(page.locator('.sb-frame-link-summary').filter({ hasText: 'Scene 1' })).toHaveCount(6);
+  await picks.nth(0).check();
+  await page.locator('#sb-link-modal').getByRole('button', { name: 'Done' }).click();
 });
 
 test('Writing mode keeps production-only and archived tools out of the default surface', async ({ page, skript }) => {

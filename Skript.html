@@ -30820,8 +30820,8 @@ button.primary:hover,
 .sb-studio-group-head strong { font-size:12px; }
 .sb-studio-group-head span { color:var(--text-3); font-size:9px; }
 .sb-studio-group-head button { margin-left:auto; height:27px; padding:0 10px; border:1px solid var(--border2); border-radius:5px; background:var(--surface2); color:var(--text-2); cursor:pointer; font-size:9px; }
-.sb-studio-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:12px; align-items:start; }
-.sb-studio-grid.compact { grid-template-columns:repeat(auto-fill,minmax(175px,1fr)); gap:8px; }
+.sb-studio-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(var(--sb-card-min,230px),1fr)); gap:12px; align-items:start; }
+.sb-studio-grid.compact { gap:8px; }
 .sb-studio-grid.list { display:flex; flex-direction:column; gap:7px; }
 #storyboard-area .sb-studio .sb-frame { min-width:0; border:1px solid var(--border2); border-radius:7px; background:var(--surface)!important; color:var(--text); overflow:hidden; }
 #storyboard-area .sb-studio .sb-frame:hover { border-color:#575c69; box-shadow:0 7px 20px rgba(0,0,0,.25); }
@@ -30830,12 +30830,11 @@ button.primary:hover,
 #storyboard-area .sb-studio .sb-frame-metadata { background:var(--surface2); }
 .sb-studio-grid.compact .sb-frame-link-controls,.sb-studio-grid.compact .sb-caption,.sb-studio-grid.compact .sb-frame-link-summary { display:none; }
 .sb-studio-grid.compact .sb-frame-metadata { max-height:28px; overflow:hidden; }
-.sb-studio-grid.list .sb-frame { display:grid; grid-template-columns:210px minmax(180px,1fr) minmax(190px,.85fr); grid-template-rows:auto auto; }
-.sb-studio-grid.list .sb-canvas-wrap { grid-row:1/3; }
+.sb-studio-grid.list .sb-frame { display:grid; grid-template-columns:210px minmax(240px,1fr); grid-template-rows:auto 1fr auto; }
+.sb-studio-grid.list .sb-canvas-wrap { grid-row:1/4; }
 .sb-studio-grid.list .sb-frame-metadata { align-content:center; }
 .sb-studio-grid.list .sb-frame-link-summary { border-bottom:0; }
-.sb-studio-grid.list .sb-frame-link-controls { grid-column:2/4; display:flex; }
-.sb-studio-grid.list .sb-caption { grid-column:2/4; min-height:38px; }
+.sb-studio-grid.list .sb-caption { grid-column:2; min-height:38px; }
 .sb-studio-empty { min-height:180px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:7px; border:1px dashed var(--border2); border-radius:8px; color:var(--text-3); text-align:center; }
 .sb-studio-empty strong { color:var(--text-2); }
 .sb-studio-inspector { position:relative; width:var(--sb-inspector-width,330px); min-width:0; display:flex; flex-direction:column; border-left:1px solid var(--border); background:var(--surface); overflow:hidden; }
@@ -30879,12 +30878,23 @@ button.primary:hover,
 body #sb-toolbar { overflow-x:auto; overflow-y:hidden; scrollbar-width:none; }
 body #sb-toolbar::-webkit-scrollbar { display:none; }
 body #sb-toolbar > * { flex:0 0 auto; }
+#sb-toolbar.sb-studio-commandbar { height:42px!important; gap:6px; padding-top:5px!important; padding-bottom:5px!important; overflow:visible; }
+.sb-command-title { min-width:90px; max-width:230px; display:flex; flex-direction:column; line-height:1.15; margin-right:auto; }
+.sb-command-title strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text); font-size:10px; }
+.sb-command-title span { color:var(--text-3); font-size:8px; }
+.sb-command-icon { width:30px!important; min-width:30px!important; padding:0!important; justify-content:center; font-size:14px!important; }
+.sb-command-group { display:flex; gap:2px; padding:2px; border:1px solid var(--border); border-radius:6px; background:var(--surface2); }
+.sb-command-group .top-btn { border:0!important; background:transparent!important; }
+.sb-command-group .top-btn:hover { background:var(--surface3)!important; }
+.sb-board-menu-panel { left:auto; right:0; min-width:205px; }
+.sb-board-menu-panel .menu-separator { height:1px; margin:4px 3px; background:var(--border); }
+.sb-toolbar-popover { position:fixed!important; left:auto!important; right:auto!important; top:auto; z-index:12000!important; min-width:205px; }
+.sb-studio-zoom { display:flex; align-items:center; gap:2px; padding:3px; border:1px solid var(--border); border-radius:6px; background:var(--surface2); }
+.sb-studio-zoom button { width:25px; height:25px; border:0; border-radius:4px; background:transparent; color:var(--text-3); cursor:pointer; }
+.sb-studio-zoom button:hover { background:var(--surface3); color:var(--text); }
+.sb-studio-zoom span { min-width:35px; text-align:center; color:var(--text-3); font-size:9px; }
 @media (max-width:1500px) {
   .sb-studio-scenes { width:210px; }
-  .sb-studio-grid { grid-template-columns:repeat(auto-fill,minmax(205px,1fr)); }
-}
-@media (max-width:1180px) {
-  .sb-studio-grid { grid-template-columns:repeat(auto-fill,minmax(205px,1fr)); }
 }
 @media (max-height:760px) and (min-width:901px) { .sb-studio-dock { height:170px; } }
 @media (max-width:900px) {
@@ -30903,7 +30913,7 @@ body #sb-toolbar > * { flex:0 0 auto; }
   .sb-studio-controls { flex-wrap:wrap; }
   .sb-studio-filter { margin-left:auto; }
   .sb-studio-grid.list .sb-frame { grid-template-columns:140px minmax(150px,1fr); }
-  .sb-studio-grid.list .sb-frame-link-controls,.sb-studio-grid.list .sb-caption { grid-column:1/3; }
+  .sb-studio-grid.list .sb-caption { grid-column:2; }
 }
 @media print {
   #storyboard-area .sb-studio { display:none!important; }
@@ -32749,7 +32759,7 @@ body #sb-toolbar > * { flex:0 0 auto; }
     </div>
     <div id="sb-link-scene-list" class="sb-scene-pick-list"></div>
     <div class="modal-btns" style="margin-top:14px;">
-      <button class="top-btn" type="button" onclick="keepStoryboardBlank()">Keep blank</button>
+      <button class="top-btn" type="button" onclick="keepStoryboardBlank()">Use current scene</button>
       <button class="top-btn primary" type="button" onclick="applyStoryboardSceneLinks()">Done</button>
     </div>
   </div>
@@ -37809,7 +37819,7 @@ function updateStoryboardSceneSelectionCount() {
 function keepStoryboardBlank() {
   storyboardLinkBoardId = null;
   document.getElementById('sb-link-modal')?.classList.remove('open');
-  showToast('Storyboard left blank.');
+  showToast('Storyboard kept with its current scene.');
 }
 
 function applyStoryboardSceneLinks() {
@@ -37817,6 +37827,10 @@ function applyStoryboardSceneLinks() {
   if (!board) return;
   const selectedIds = new Set(Array.from(document.querySelectorAll('#sb-link-scene-list input:checked'))
     .map(input => input.dataset.sceneLineId));
+  if (!selectedIds.size) {
+    showToast('Select at least one scene for this storyboard.');
+    return;
+  }
   const removedFrames = board.frames.filter(frame => frame.sceneLineId && !selectedIds.has(frame.sceneLineId));
   if (removedFrames.length && !confirm(`Remove ${removedFrames.length} storyboard frame${removedFrames.length === 1 ? '' : 's'} for the unticked scenes? Any artwork in those frames will also be deleted.`)) return;
 
@@ -37831,7 +37845,8 @@ function applyStoryboardSceneLinks() {
     const refs = sceneShots.length ? sceneShots : [null];
     refs.forEach(shot => {
       if (shot && linkedShotIds.has(shot.id)) return;
-      const blank = board.frames.find(frame => !frame.sceneLineId && !frame.shotId && !frame.imageData && !frame.caption && !frame.layers);
+      const blank = board.frames.find(frame => (!frame.sceneLineId || frame.sceneLineId === lineId)
+        && !frame.shotId && !frame.imageData && !frame.caption && !frame.layers);
       const target = blank || makeStoryboardFrame(board.frames.length);
       target.sceneLineId = lineId;
       target.shotId = shot?.id || null;
@@ -38621,6 +38636,12 @@ function createStoryboard() {
   const boardId = Date.now();
   const tab = tabs.find(t => t.id === activeTabId);
   const name = (sb.setupName || ((tab ? tab.title : 'Storyboard') + ' #' + (sb.boards.length + 1))).trim();
+  const initialScene = getStoryboardSceneRefs()[0] || null;
+  const initialFrames = initialScene ? Array.from({ length: sb.frameCount }, (_, index) => {
+    const frame = makeStoryboardFrame(index);
+    frame.sceneLineId = initialScene.lineId;
+    return frame;
+  }) : [];
   const board = {
     id: boardId,
     name,
@@ -38636,7 +38657,7 @@ function createStoryboard() {
     description: '',
     status: 'Draft',
     currentPage: 0,
-    frames: Array.from({ length: sb.frameCount }, (_, index) => makeStoryboardFrame(index))
+    frames: initialFrames
   };
 
   sbHistoryPush();
@@ -38894,7 +38915,7 @@ function storyboardStudioGroups(board) {
   const valid = new Set(scenes.map(scene => scene.lineId));
   const groups = scenes.map(scene => ({
     id: scene.lineId,
-    title: `Scene ${scene.idx} · ${scene.text}`,
+    title: scene.text.toLowerCase() === `scene ${scene.idx}`.toLowerCase() ? `Scene ${scene.idx}` : `Scene ${scene.idx} · ${scene.text}`,
     scene,
     frames: board.frames.map((frame,index) => ({frame,index})).filter(item => item.frame.sceneLineId === scene.lineId)
   }));
@@ -39031,7 +39052,10 @@ function storyboardStudioAddFrame(sceneLineId = null) {
   if (!board) return;
   sbHistoryPush();
   const frame = makeStoryboardFrame(board.frames.length);
-  frame.sceneLineId = sceneLineId && sceneLineId !== 'unlinked' ? sceneLineId : null;
+  const activeFrame = board.frames.find(item => item.id === sb.activeFrameId);
+  const fallbackSceneId = activeFrame?.sceneLineId || getStoryboardSceneRefs()[0]?.lineId || null;
+  frame.sceneLineId = sceneLineId === 'unlinked' ? null
+    : (sceneLineId && sceneLineId !== 'all' ? sceneLineId : fallbackSceneId);
   board.frames.push(frame);
   sb.activeFrameId = frame.id;
   sb.selectedFrameIds = new Set([frame.id]);
@@ -39079,6 +39103,12 @@ function storyboardStudioInspectorHtml(board, activeEntry, activeGroup) {
   if (!frame) return `<div class="sb-inspector-placeholder">Select a frame</div><div class="sb-inspector-help">Choose a storyboard card to inspect its production information. Use Ctrl or Shift to keep multiple cards selected.</div>`;
   const context = getStoryboardFrameContext(frame);
   const aspect = getStoryboardAspect(board);
+  const sceneOptions = context.scenes.map(scene => {
+    const label = scene.text.toLowerCase() === `scene ${scene.idx}`.toLowerCase() ? `Scene ${scene.idx}` : `Scene ${scene.idx} · ${scene.text}`;
+    return `<option value="${escHtml(scene.lineId)}" ${scene.lineId === frame.sceneLineId ? 'selected' : ''}>${escHtml(label)}</option>`;
+  }).join('');
+  const availableShots = context.shots.filter(shot => !context.scene || (shot.sceneLineId ? shot.sceneLineId === context.scene.lineId : shot.sceneIdx === context.scene.idx));
+  const shotOptions = availableShots.map(shot => `<option value="${escHtml(shot.id)}" ${shot.id === frame.shotId ? 'selected' : ''}>${escHtml(storyboardShotLabel(shot,context.shots))}</option>`).join('');
   return `
     ${frame.imageData ? `<img class="sb-inspector-preview" style="--sb-frame-aspect:${aspect}" src="${frame.imageData}" alt="Selected frame preview">` : `<div class="sb-inspector-placeholder" style="aspect-ratio:${aspect}">No artwork</div>`}
     <div class="sb-inspector-section"><div class="sb-inspector-section-title">Frame</div><div class="sb-inspector-fields">
@@ -39087,6 +39117,10 @@ function storyboardStudioInspectorHtml(board, activeEntry, activeGroup) {
       <label>Duration<input value="${escHtml(frame.duration)}" placeholder="00:00:07" onchange="storyboardStudioFrameField('${frame.id}','duration',this.value)"></label>
       <label class="wide">Status<select onchange="storyboardStudioFrameField('${frame.id}','status',this.value)">${sbStudioOptions(SB_STUDIO_OPTIONS.status,frame.status)}</select></label>
     </div></div>
+    <div class="sb-inspector-section"><div class="sb-inspector-section-title">Script connection</div><div class="sb-inspector-fields">
+      <label class="wide">Scene<select aria-label="Scene link" onchange="setStoryboardFrameScene(${board.id},${activeEntry.index},this.value)"><option value="">Unlinked</option>${sceneOptions}</select></label>
+      <label class="wide">Shot List entry<select aria-label="Shot List link" onchange="setStoryboardFrameShot(${board.id},${activeEntry.index},this.value)"><option value="">No Shot List entry</option>${shotOptions}</select></label>
+    </div><div class="sb-inspector-help" style="margin-top:7px">Scene and Shot List connections are managed here so storyboard cards stay clean.</div></div>
     <div class="sb-inspector-section"><div class="sb-inspector-section-title">Camera and shot list</div><div class="sb-inspector-fields">
       <label>Shot size<select onchange="storyboardStudioFrameField('${frame.id}','shotSize',this.value)">${sbStudioOptions(SB_STUDIO_OPTIONS.shotSize,frame.shotSize || context.shot?.size || '')}</select></label>
       <label>Movement<select onchange="storyboardStudioFrameField('${frame.id}','movement',this.value)">${sbStudioOptions(SB_STUDIO_OPTIONS.movement,frame.movement || context.shot?.movement || '')}</select></label>
@@ -39141,6 +39175,49 @@ function buildStoryboardPrintDocument(board, title) {
   return documentEl;
 }
 
+function closeStoryboardCommandMenu() {
+  document.querySelector('.sb-toolbar-popover')?.remove();
+}
+
+function openStoryboardCommandMenu(kind, anchor, boardId) {
+  closeStoryboardCommandMenu();
+  const board = sb.boards.find(item => String(item.id) === String(boardId));
+  if (!board || !anchor) return;
+  const menu = document.createElement('div');
+  menu.className = `sb-card-menu-panel sb-toolbar-popover${kind === 'board' ? ' sb-board-menu-panel' : ''}`;
+  menu.setAttribute('role','menu');
+  if (kind === 'cards') {
+    menu.innerHTML = `<button onclick="closeStoryboardCommandMenu();sbSelectAllFrames()">Select all</button><button onclick="closeStoryboardCommandMenu();sbClearFrameSelection()">Clear selection</button>
+      <button onclick="closeStoryboardCommandMenu();sbCopySelectedFrames()">Copy</button><button onclick="closeStoryboardCommandMenu();sbPasteFrames()">Paste</button><button onclick="closeStoryboardCommandMenu();sbDuplicateSelectedFrames()">Duplicate</button>
+      <button onclick="closeStoryboardCommandMenu();sbMoveSelectedFrames(-1)">Move earlier</button><button onclick="closeStoryboardCommandMenu();sbMoveSelectedFrames(1)">Move later</button>
+      <button class="danger" onclick="closeStoryboardCommandMenu();sbDeleteSelectedFrames()">Delete selected</button>`;
+  } else {
+    menu.innerHTML = `<button onclick="closeStoryboardCommandMenu();newStoryboard()">＋ New storyboard</button>
+      <button onclick="closeStoryboardCommandMenu();openStoryboardSettings()">⚙ Board settings</button>
+      <button onclick="closeStoryboardCommandMenu();duplicateStoryboardBoard()">⧉ Duplicate storyboard</button>
+      <div class="menu-separator"></div>
+      <button onclick="closeStoryboardCommandMenu();linkStoryboardToShotList()">🔗 Link scenes and shots</button>
+      <button onclick="closeStoryboardCommandMenu();openStoryboardAnimatic()">▶ Open animatic</button>
+      <button onclick="closeStoryboardCommandMenu();exportStoryboardPDF()">📄 Export PDF</button>
+      <div class="menu-separator"></div>
+      <button class="danger sb-delete-btn" onclick="closeStoryboardCommandMenu();confirmDeleteStoryboard(${board.id})">🗑 Delete storyboard</button>`;
+  }
+  document.body.appendChild(menu);
+  const rect = anchor.getBoundingClientRect();
+  const menuWidth = Math.max(205,menu.offsetWidth || 205);
+  menu.style.left = `${Math.max(8,Math.min(window.innerWidth - menuWidth - 8,rect.right - menuWidth))}px`;
+  menu.style.top = `${Math.min(window.innerHeight - menu.offsetHeight - 8,rect.bottom + 5)}px`;
+  setTimeout(() => {
+    const close = event => {
+      if (!menu.contains(event.target) && event.target !== anchor) {
+        menu.remove();
+        document.removeEventListener('pointerdown',close,true);
+      }
+    };
+    document.addEventListener('pointerdown',close,true);
+  },0);
+}
+
 function renderStoryboard(boardOverride) {
   const sbArea = document.getElementById('storyboard-area');
   if (!sbArea) return;
@@ -39177,22 +39254,17 @@ function renderStoryboard(boardOverride) {
 
   const studioToolbar = document.getElementById('sb-toolbar');
   if (studioToolbar) {
+    studioToolbar.classList.add('sb-studio-commandbar');
     studioToolbar.innerHTML = `
-      <button class="top-btn" onclick="storyboardStudioTogglePane('scenes')" title="Show or hide the scene browser">☰ Scenes</button>
-      <button class="top-btn" onclick="newStoryboard()">＋ New Board</button>
-      <button class="top-btn" onclick="storyboardStudioAddFrame(sb.studioScene)">＋ Add Frame</button>
-      <button class="top-btn" onclick="openStoryboardSettings()">⚙ Settings</button>
-      <button class="top-btn" id="sb-undo-btn" onclick="sbUndo()" ${sb.history.length ? '' : 'disabled'}>↶ Undo</button>
-      <button class="top-btn" id="sb-redo-btn" onclick="sbRedo()" ${sb.redoHistory.length ? '' : 'disabled'}>↷ Redo</button>
-      <details class="sb-card-menu"><summary class="top-btn">Cards${studioSelectedCount ? ` (${studioSelectedCount})` : ''} ▾</summary><div class="sb-card-menu-panel">
-        <button onclick="sbSelectAllFrames()">Select all</button><button onclick="sbClearFrameSelection()">Clear selection</button>
-        <button onclick="sbCopySelectedFrames()">Copy</button><button onclick="sbPasteFrames()">Paste</button><button onclick="sbDuplicateSelectedFrames()">Duplicate</button>
-        <button onclick="sbMoveSelectedFrames(-1)">Move earlier</button><button onclick="sbMoveSelectedFrames(1)">Move later</button>
-        <button class="danger" onclick="sbDeleteSelectedFrames()">Delete selected</button></div></details>
-      <button class="top-btn" onclick="linkStoryboardToShotList()">🔗 Link Shots</button>
-      <button class="top-btn" onclick="openStoryboardAnimatic()">▶ Animatic</button>
-      <button class="top-btn primary" onclick="exportStoryboardPDF()">📄 Export PDF</button>
-      <button class="top-btn sb-delete-btn" onclick="confirmDeleteStoryboard(${board.id})" title="Delete this storyboard">🗑 Delete</button>
+      <button class="top-btn sb-command-icon" aria-label="Toggle scene browser" onclick="storyboardStudioTogglePane('scenes')" title="Show or hide scenes">☰</button>
+      <div class="sb-command-title"><strong>${escHtml(board.name || 'Storyboard')}</strong><span>${board.frames.length} frame${board.frames.length === 1 ? '' : 's'}</span></div>
+      <button class="top-btn primary" onclick="storyboardStudioAddFrame(sb.studioScene)">＋ Frame</button>
+      <div class="sb-command-group" aria-label="History">
+        <button class="top-btn sb-command-icon" id="sb-undo-btn" aria-label="Undo" title="Undo" onclick="sbUndo()" ${sb.history.length ? '' : 'disabled'}>↶</button>
+        <button class="top-btn sb-command-icon" id="sb-redo-btn" aria-label="Redo" title="Redo" onclick="sbRedo()" ${sb.redoHistory.length ? '' : 'disabled'}>↷</button>
+      </div>
+      <button class="top-btn sb-cards-menu-btn" aria-haspopup="menu" onclick="openStoryboardCommandMenu('cards',this,${board.id})">Cards${studioSelectedCount ? ` (${studioSelectedCount})` : ''} ▾</button>
+      <button class="top-btn sb-board-menu-btn" aria-haspopup="menu" onclick="openStoryboardCommandMenu('board',this,${board.id})">Board ▾</button>
       `;
     studioToolbar.style.display = 'flex';
   }
@@ -39203,13 +39275,13 @@ function renderStoryboard(boardOverride) {
 
   const scenesPane = document.createElement('aside');
   scenesPane.className = `sb-studio-scenes${sb.sceneBrowserCollapsed ? ' collapsed' : ''}`;
-  scenesPane.innerHTML = `<div class="sb-studio-pane-head"><strong>Scenes</strong><div><button title="Add an unlinked frame" onclick="storyboardStudioAddFrame(null)">＋</button> <button title="Close scene browser" onclick="storyboardStudioClosePane('scenes')">‹</button></div></div><div class="sb-studio-scene-list">
+  scenesPane.innerHTML = `<div class="sb-studio-pane-head"><strong>Scenes</strong><div><button title="Add frame to current scene" onclick="storyboardStudioAddFrame(null)">＋</button> <button title="Close scene browser" onclick="storyboardStudioClosePane('scenes')">‹</button></div></div><div class="sb-studio-scene-list">
     <button class="sb-studio-scene${sb.studioScene === 'all' ? ' active' : ''}" onclick="storyboardStudioSetScene('all')"><span class="sb-studio-scene-thumb">▦</span><span class="sb-studio-scene-copy"><strong>All scenes</strong><span>${board.frames.length} frames</span></span></button>
     ${allGroups.filter(group => group.scene).map(group => {
       const image = group.frames.find(item => item.frame.imageData)?.frame.imageData;
       return `<button class="sb-studio-scene${sb.studioScene === group.id ? ' active' : ''}" onclick="storyboardStudioSetScene('${escHtml(group.id)}')"><span class="sb-studio-scene-thumb">${image ? `<img src="${image}" alt="">` : '◇'}</span><span class="sb-studio-scene-copy"><strong>${escHtml(group.title)}</strong><span>${group.frames.length} frame${group.frames.length === 1 ? '' : 's'}</span></span></button>`;
     }).join('')}
-    <div class="sb-studio-unlinked">${allGroups.filter(group => group.id === 'unlinked').map(group => `<button class="sb-studio-scene${sb.studioScene === 'unlinked' ? ' active' : ''}" onclick="storyboardStudioSetScene('unlinked')"><span class="sb-studio-scene-thumb">↯</span><span class="sb-studio-scene-copy"><strong>Unlinked Frames</strong><span>${group.frames.length} frame${group.frames.length === 1 ? '' : 's'}</span></span></button>`).join('')}</div>
+    ${allGroups.filter(group => group.id === 'unlinked' && group.frames.length).map(group => `<div class="sb-studio-unlinked"><button class="sb-studio-scene${sb.studioScene === 'unlinked' ? ' active' : ''}" onclick="storyboardStudioSetScene('unlinked')"><span class="sb-studio-scene-thumb">↯</span><span class="sb-studio-scene-copy"><strong>Unlinked Frames</strong><span>${group.frames.length} frame${group.frames.length === 1 ? '' : 's'}</span></span></button></div>`).join('')}
   </div>`;
   studio.appendChild(scenesPane);
 
@@ -39221,6 +39293,11 @@ function renderStoryboard(boardOverride) {
       <button class="${sb.studioView === 'grid' ? 'active' : ''}" onclick="storyboardStudioSetView('grid')" title="Grid view">▦</button>
       <button class="${sb.studioView === 'compact' ? 'active' : ''}" onclick="storyboardStudioSetView('compact')" title="Compact view">▥</button>
       <button class="${sb.studioView === 'list' ? 'active' : ''}" onclick="storyboardStudioSetView('list')" title="List view">☷</button>
+    </div>
+    <div class="sb-studio-zoom" aria-label="Card size">
+      <button onclick="setSbZoom(storyboardZoom - 0.1)" title="Smaller cards">−</button>
+      <span id="sb-studio-zoom-pct">${Math.round(storyboardZoom * 100)}%</span>
+      <button onclick="setSbZoom(storyboardZoom + 0.1)" title="Larger cards">＋</button>
     </div>
     <div class="sb-studio-search"><input id="sb-studio-search" type="search" placeholder="Search frames…" value="${escHtml(sb.studioSearch)}" oninput="storyboardStudioSearch(this.value)">${sb.studioSearch ? '<button onclick="storyboardStudioSearch(\'\')">×</button>' : ''}</div>
     <details class="sb-studio-filter"><summary>⌁ Filters${filterCount ? ` (${filterCount})` : ''}</summary><div class="sb-studio-filter-menu">
@@ -39244,6 +39321,7 @@ function renderStoryboard(boardOverride) {
       section.innerHTML = `<div class="sb-studio-group-head"><strong>${escHtml(group.title)}</strong><span>${group.frames.length} frame${group.frames.length === 1 ? '' : 's'}${seconds ? ` · ${seconds.toFixed(1)} sec` : ''}</span><button onclick="storyboardStudioAddFrame('${escHtml(group.id)}')">＋ Add Frame</button></div>`;
       const grid = document.createElement('div');
       grid.className = `sb-studio-grid ${sb.studioView}`;
+      grid.style.setProperty('--sb-card-min',`${Math.round((sb.studioView === 'compact' ? 175 : 230) * storyboardZoom)}px`);
       group.frames.forEach(item => grid.appendChild(buildFrameEl(item.frame,item.index,board.id)));
       section.appendChild(grid);
       canvas.appendChild(section);
@@ -39377,18 +39455,11 @@ function buildFrameEl(frame, idx, boardId) {
   wrap.setAttribute('ondragleave', "this.classList.remove('sb-frame-drop-before','sb-frame-drop-after')");
   wrap.setAttribute('ondrop', `sbFrameDrop(event,${boardId},'${frameId}')`);
   const context = getStoryboardFrameContext(frame);
+  const defaultSceneLabel = context.scene && context.scene.text.toLowerCase() === `scene ${context.scene.idx}`.toLowerCase();
   const sceneText = context.scene
-    ? `Scene ${context.scene.idx} · ${context.scene.text}`
+    ? (defaultSceneLabel ? `Scene ${context.scene.idx}` : `Scene ${context.scene.idx} · ${context.scene.text}`)
     : (frame.orphanedScene?.heading ? `Unlinked · ${frame.orphanedScene.heading}` : 'No scene linked');
-  const shotText = storyboardShotLabel(context.shot, context.shots);
-  const sceneOptions = context.scenes.map(scene =>
-    `<option value="${escHtml(scene.lineId)}" ${scene.lineId === frame.sceneLineId ? 'selected' : ''}>Scene ${scene.idx} · ${escHtml(scene.text)}</option>`
-  ).join('');
-  const availableShots = context.shots.filter(shot => !context.scene
-    || (shot.sceneLineId ? shot.sceneLineId === context.scene.lineId : shot.sceneIdx === context.scene.idx));
-  const shotOptions = availableShots.map(shot =>
-    `<option value="${escHtml(shot.id)}" ${shot.id === frame.shotId ? 'selected' : ''}>${escHtml(storyboardShotLabel(shot, context.shots))}</option>`
-  ).join('');
+  const shotText = context.shot ? storyboardShotLabel(context.shot, context.shots) : '';
   // Paper orientation affects only the printable page. Film frames stay 16:9.
   const THUMB_W = 480;
   const THUMB_H = Math.max(120, Math.round(THUMB_W / aspect));
@@ -39425,17 +39496,8 @@ function buildFrameEl(frame, idx, boardId) {
       ${frame.tags.slice(0, 3).map(tag => `<span class="sb-meta-pill">#${escHtml(tag)}</span>`).join('')}
       <button type="button" class="sb-frame-info-btn" onclick="event.stopPropagation();openStoryboardFrameInfo(${boardId},${idx})">Edit info</button>
     </div>
-    <div class="sb-frame-link-summary" title="${escHtml(sceneText)} — ${escHtml(shotText)}">
-      <strong>${escHtml(sceneText)}</strong><br>${escHtml(shotText)}
-    </div>
-    <div class="sb-frame-link-controls">
-      <select aria-label="Scene for frame ${idx + 1}" onchange="setStoryboardFrameScene(${boardId},${idx},this.value)">
-        <option value="">No scene</option>${sceneOptions}
-      </select>
-      <select aria-label="Shot for frame ${idx + 1}" onchange="setStoryboardFrameShot(${boardId},${idx},this.value)">
-        <option value="">No shot</option>${shotOptions}
-      </select>
-      ${frame.sceneLineId || frame.shotId ? `<button type="button" class="sb-frame-unlink" onclick="removeStoryboardFrame(${boardId},${idx})">Remove scene from storyboard</button>` : ''}
+    <div class="sb-frame-link-summary" title="${escHtml([sceneText,shotText].filter(Boolean).join(' — '))}">
+      <strong>${escHtml(sceneText)}</strong>${shotText ? `<br>${escHtml(shotText)}` : ''}
     </div>
     ${board.captions ? `<textarea class="sb-caption" placeholder="Shot description, dialogue…" id="sb-caption-${idx}"
       oninput="feUpdateCaption(${boardId}, ${idx}, this.value)">${frame.caption || ''}</textarea>` : ''}
@@ -43796,6 +43858,12 @@ function setSbZoom(z) {
   });
   const lbl = document.getElementById('sb-zoom-pct');
   if (lbl) lbl.textContent = Math.round(storyboardZoom * 100) + '%';
+  const studioLabel = document.getElementById('sb-studio-zoom-pct');
+  if (studioLabel) studioLabel.textContent = Math.round(storyboardZoom * 100) + '%';
+  document.querySelectorAll('.sb-studio-grid').forEach(grid => {
+    const base = grid.classList.contains('compact') ? 175 : 230;
+    grid.style.setProperty('--sb-card-min',`${Math.round(base * storyboardZoom)}px`);
+  });
 }
 
 function _updateZoomBarVisibility() {
@@ -43808,7 +43876,9 @@ function _updateZoomBarVisibility() {
   if (scriptBar) scriptBar.style.display = scriptActive ? 'flex' : 'none';
 
   const sbBar = document.getElementById('sb-zoom-bar');
-  if (sbBar) sbBar.style.display = (sbActive && !feActive) ? 'flex' : 'none';
+  // Storyboard card sizing now lives in the central Studio controls so it
+  // cannot overlap the inspector or compact layouts.
+  if (sbBar) sbBar.style.display = 'none';
 
   // Page view bar: only in script view (not storyboard, not cover/title page)
   const pvBar = document.getElementById('page-view-bar');
