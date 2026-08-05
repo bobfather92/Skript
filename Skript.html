@@ -25080,11 +25080,31 @@ var __async = (__this, __arguments, generator) => {
   .sb-storyboard-scene-item.active .sb-storyboard-scene-index { background:var(--brand-purple);color:#fff; }
   .sb-storyboard-scene-name { min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
   .sb-storyboard-scene-count { color:var(--text-3);font-size:8px; }
+  .storyboard-ribbon-group { display:none; }
   body.storyboard-workspace-active #elements-rg,
   body.storyboard-workspace-active #acts-rg,
   body.storyboard-workspace-active #touch-elements-rg,
+  body.storyboard-workspace-active .script-writing-control,
   body.storyboard-workspace-active .ribbon-tab[data-panel="edit"],
-  body.storyboard-workspace-active .ribbon-panel[data-panel="edit"] { display:none!important; }
+  body.storyboard-workspace-active .ribbon-panel[data-panel="edit"],
+  body.storyboard-workspace-active .ribbon-tab[data-panel="production"],
+  body.storyboard-workspace-active .ribbon-panel[data-panel="production"],
+  body.storyboard-workspace-active .ribbon-tab[data-panel="studio"],
+  body.storyboard-workspace-active .ribbon-panel[data-panel="studio"],
+  body.storyboard-workspace-active .ribbon-tab[data-panel="revision"],
+  body.storyboard-workspace-active .ribbon-panel[data-panel="revision"],
+  body.storyboard-workspace-active .ribbon-tab[data-panel="import"],
+  body.storyboard-workspace-active .ribbon-panel[data-panel="import"],
+  body.storyboard-workspace-active .ribbon-tab[data-panel="export"],
+  body.storyboard-workspace-active .ribbon-panel[data-panel="export"],
+  body.storyboard-workspace-active #workspace-mode-switch { display:none!important; }
+  body.storyboard-workspace-active .storyboard-ribbon-group { display:flex; }
+  body.storyboard-workspace-active #sb-toolbar { display:none!important; }
+  .storyboard-ribbon-group .rel-btn { min-width:104px; }
+  .storyboard-ribbon-group .rel-btn:disabled,
+  .storyboard-ribbon-group .rb:disabled { opacity:.38;cursor:default; }
+  .storyboard-ribbon-group .sb-ribbon-danger { color:#e58a8a; }
+  #sb-ribbon-selection-count { color:var(--amber);font-weight:700; }
   /* ─── LIGHT MODE ─── */
   :root[data-theme="light"] {
     --bg:           #f0f0f0;
@@ -31121,12 +31141,57 @@ body #sb-toolbar > * { flex:0 0 auto; }
         </div>
         <div class="rg-label">Acts</div>
       </div>
+      <div class="rg storyboard-ribbon-group" id="storyboard-cards-rg">
+        <div class="rg-inner" style="gap:2px;">
+          <div class="rb-col">
+            <button class="rel-btn" onclick="storyboardStudioAddFrame(sb.studioScene)"><span class="rel-dot" style="background:#6f5bf5;"></span><span>Add Frame</span></button>
+            <button class="rel-btn" onclick="sbSelectAllFrames()"><span class="rel-dot" style="background:#5b9bd5;"></span><span>Select All</span></button>
+            <button class="rel-btn" id="sb-ribbon-clear" onclick="sbClearFrameSelection()"><span class="rel-dot" style="background:#888;"></span><span>Clear Selection</span></button>
+          </div>
+          <div class="rb-col">
+            <button class="rel-btn" id="sb-ribbon-copy" onclick="sbCopySelectedFrames()"><span class="rel-dot" style="background:#5b9bd5;"></span><span>Copy</span></button>
+            <button class="rel-btn" id="sb-ribbon-paste" onclick="sbPasteFrames()"><span class="rel-dot" style="background:#3ba38a;"></span><span>Paste</span></button>
+            <button class="rel-btn" id="sb-ribbon-duplicate" onclick="sbDuplicateSelectedFrames()"><span class="rel-dot" style="background:#d4a843;"></span><span>Duplicate</span></button>
+          </div>
+          <div class="rb-col">
+            <button class="rel-btn" id="sb-ribbon-move-earlier" onclick="sbMoveSelectedFrames(-1)"><span class="rel-dot" style="background:#b09fd4;"></span><span>Move Earlier</span></button>
+            <button class="rel-btn" id="sb-ribbon-move-later" onclick="sbMoveSelectedFrames(1)"><span class="rel-dot" style="background:#b09fd4;"></span><span>Move Later</span></button>
+            <button class="rel-btn sb-ribbon-danger" id="sb-ribbon-delete-cards" onclick="sbDeleteSelectedFrames()"><span class="rel-dot" style="background:#d95f5f;"></span><span>Delete Cards</span></button>
+          </div>
+        </div>
+        <div class="rg-label">Cards <span id="sb-ribbon-selection-count"></span></div>
+      </div>
+      <div class="rg storyboard-ribbon-group" id="storyboard-history-rg">
+        <div class="rg-inner">
+          <button class="rb rb-tall" id="sb-ribbon-undo" onclick="sbUndo()"><span class="rb-icon">↶</span><span class="rb-label">Undo</span></button>
+          <button class="rb rb-tall" id="sb-ribbon-redo" onclick="sbRedo()"><span class="rb-icon">↷</span><span class="rb-label">Redo</span></button>
+        </div>
+        <div class="rg-label">History</div>
+      </div>
+      <div class="rg storyboard-ribbon-group" id="storyboard-board-rg">
+        <div class="rg-inner" style="gap:2px;">
+          <div class="rb-col">
+            <button class="rel-btn" onclick="newStoryboard()"><span class="rel-dot" style="background:#6f5bf5;"></span><span>New Storyboard</span></button>
+            <button class="rel-btn" onclick="openStoryboardSettings()"><span class="rel-dot" style="background:#d4a843;"></span><span>Board Settings</span></button>
+            <button class="rel-btn" onclick="duplicateStoryboardBoard()"><span class="rel-dot" style="background:#5b9bd5;"></span><span>Duplicate Board</span></button>
+          </div>
+          <div class="rb-col">
+            <button class="rel-btn" onclick="linkStoryboardToShotList()"><span class="rel-dot" style="background:#3ba38a;"></span><span>Link Shots</span></button>
+            <button class="rel-btn" onclick="openStoryboardAnimatic()"><span class="rel-dot" style="background:#b09fd4;"></span><span>Animatic</span></button>
+            <button class="rel-btn" onclick="exportStoryboardPDF()"><span class="rel-dot" style="background:#d4834a;"></span><span>Export PDF</span></button>
+          </div>
+          <div class="rb-col">
+            <button class="rel-btn sb-ribbon-danger" onclick="confirmDeleteStoryboard(sb.activeBoardId)"><span class="rel-dot" style="background:#d95f5f;"></span><span>Delete Board</span></button>
+          </div>
+        </div>
+        <div class="rg-label">Board</div>
+      </div>
       <div style="flex:1;"></div>
 
       <div class="rg" style="border-right:none;border-left:none;">
         <div class="rg-inner">
-          <button class="rb rb-tall touch-home-hide" onclick="openFindReplace()" title="Find &amp; Replace (Ctrl+H)"><span class="rb-icon">🔍</span><span class="rb-label">Find &amp; Replace</span></button>
-          <button class="rb rb-tall touch-home-hide" onclick="openProductionHub('settings')"><span class="rb-icon">⚙</span><span class="rb-label">Writing Tools</span></button>
+          <button class="rb rb-tall touch-home-hide script-writing-control" onclick="openFindReplace()" title="Find &amp; Replace (Ctrl+H)"><span class="rb-icon">🔍</span><span class="rb-label">Find &amp; Replace</span></button>
+          <button class="rb rb-tall touch-home-hide script-writing-control" onclick="openProductionHub('settings')"><span class="rb-icon">⚙</span><span class="rb-label">Writing Tools</span></button>
           <button class="rb rb-tall" onclick="openOptions()" style="min-width:60px;"><span class="rb-icon">⚙️</span><span class="rb-label">Options</span></button>
         </div>
         <div class="rg-label">Settings</div>
@@ -31551,10 +31616,6 @@ body #sb-toolbar > * { flex:0 0 auto; }
           <button class="sb-section-remove-btn" onclick="event.stopPropagation();sbConfirmDelete('sb-storyboard-section')" title="Remove Storyboard from Navigator" style="position:relative;z-index:20;flex-shrink:0;margin-right:8px;">×</button>
         </div>
         <div class="sidebar-section-body">
-          <button class="sb-action-btn" onclick="newStoryboard()">
-            <span class="sb-icon">＋</span> New Storyboard
-          </button>
-          <div id="sb-board-list"></div>
           <div id="sb-storyboard-scenes-nav" class="sb-storyboard-scenes-nav"></div>
         </div>
       </div>
@@ -37219,6 +37280,9 @@ function renderNotesList() {
 //  RIBBON TAB SWITCHING
 // ═══════════════════════════════════════
 function switchRibbonTab(panelId) {
+  if (document.body.classList.contains('storyboard-workspace-active') && !['home','view','help'].includes(panelId)) {
+    panelId = 'home';
+  }
   if (panelId === 'edit' && !document.documentElement.classList.contains('sf-touch')) {
     panelId = 'home';
   }
@@ -38309,7 +38373,7 @@ function openStoryboardTab() {
 
 function showStoryboardArea() {
   _activateDocumentWorkspace('storyboard');
-  if (document.querySelector('.ribbon-tab.active')?.dataset.panel === 'edit') switchRibbonTab('home');
+  if (!['home','view','help'].includes(document.querySelector('.ribbon-tab.active')?.dataset.panel)) switchRibbonTab('home');
   const navSection = document.getElementById('sb-storyboard-section');
   if (navSection) { navSection.style.display = ''; navSection.classList.add('open'); }
   const sbArea = document.getElementById('storyboard-area');
@@ -38317,9 +38381,9 @@ function showStoryboardArea() {
   document.getElementById('sb-storyboard-section')?.classList.add('sb-nav-active');
   document.getElementById('sb-scripts-section')?.classList.remove('sb-nav-active');
   document.getElementById('sb-cover-section')?.classList.remove('sb-nav-active');
-  // Show the storyboard toolbar
+  // Storyboard commands live in the contextual Home ribbon, not a second command bar.
   const tb = document.getElementById('sb-toolbar');
-  if (tb) tb.style.display = 'flex';
+  if (tb) tb.style.display = 'none';
   _updateZoomBarVisibility();
 }
 
@@ -38362,26 +38426,6 @@ function loadStoryboardFromStorage() {
 }
 
 function renderBoardList() {
-  const list = document.getElementById('sb-board-list');
-  if (!list) return;
-  list.innerHTML = '';
-  sb.boards.forEach(board => {
-    const item = document.createElement('div');
-    item.className = 'sb-board-item' + (board.id === sb.activeBoardId ? ' active' : '');
-    item.style.cssText = 'display:flex;align-items:center;justify-content:space-between;' +
-      'padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px;' +
-      'color:var(--text-2);gap:6px;margin-bottom:2px;';
-    item.innerHTML = `
-      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
-            onclick="switchToBoard(${board.id})">🎬 ${board.name}</span>
-      <button type="button" onclick="event.stopPropagation();switchToBoard(${board.id})" title="Open storyboard"
-              style="background:none;border:none;color:var(--amber);cursor:pointer;font-size:10px;">Open</button>`;
-    if (board.id === sb.activeBoardId) {
-      item.style.background = 'var(--amber-soft)';
-      item.style.color = 'var(--text)';
-    }
-    list.appendChild(item);
-  });
   renderStoryboardSceneNavigator(sb.boards.find(board => board.id === sb.activeBoardId));
 }
 
@@ -39178,6 +39222,7 @@ function storyboardStudioSetView(view) {
 function storyboardStudioSetScene(sceneId) {
   sb.studioScene = sceneId || 'all';
   sb.mobilePane = 'board';
+  showStoryboardArea();
   renderStoryboard();
 }
 
@@ -39402,6 +39447,22 @@ function closeStoryboardCommandMenu() {
   document.querySelector('.sb-toolbar-popover')?.remove();
 }
 
+function updateStoryboardRibbonState(board) {
+  const selected = sbGetSelectedFrameEntries(board);
+  const hasSelection = selected.length > 0;
+  const setDisabled = (id, disabled) => {
+    const control = document.getElementById(id);
+    if (control) control.disabled = !!disabled;
+  };
+  ['sb-ribbon-clear','sb-ribbon-copy','sb-ribbon-duplicate','sb-ribbon-move-earlier','sb-ribbon-move-later','sb-ribbon-delete-cards']
+    .forEach(id => setDisabled(id,!hasSelection));
+  setDisabled('sb-ribbon-paste',!sb.frameClipboard.length);
+  setDisabled('sb-ribbon-undo',!sb.history.length);
+  setDisabled('sb-ribbon-redo',!sb.redoHistory.length);
+  const count = document.getElementById('sb-ribbon-selection-count');
+  if (count) count.textContent = hasSelection ? `(${selected.length} selected)` : '';
+}
+
 function openStoryboardCommandMenu(kind, anchor, boardId) {
   closeStoryboardCommandMenu();
   const board = sb.boards.find(item => String(item.id) === String(boardId));
@@ -39476,21 +39537,9 @@ function renderStoryboard(boardOverride) {
   const studioSelectedCount = sbGetSelectedFrameEntries(board).length;
   const filterCount = Object.values(sb.studioFilters || {}).filter(Boolean).length + (sb.studioSearch ? 1 : 0);
 
+  updateStoryboardRibbonState(board);
   const studioToolbar = document.getElementById('sb-toolbar');
-  if (studioToolbar) {
-    studioToolbar.classList.add('sb-studio-commandbar');
-    studioToolbar.innerHTML = `
-      <div class="sb-command-title"><strong>${escHtml(board.name || 'Storyboard')}</strong><span>${board.frames.length} frame${board.frames.length === 1 ? '' : 's'}</span></div>
-      <button class="top-btn primary" onclick="storyboardStudioAddFrame(sb.studioScene)">＋ Frame</button>
-      <div class="sb-command-group" aria-label="History">
-        <button class="top-btn sb-command-icon" id="sb-undo-btn" aria-label="Undo" title="Undo" onclick="sbUndo()" ${sb.history.length ? '' : 'disabled'}>↶</button>
-        <button class="top-btn sb-command-icon" id="sb-redo-btn" aria-label="Redo" title="Redo" onclick="sbRedo()" ${sb.redoHistory.length ? '' : 'disabled'}>↷</button>
-      </div>
-      <button class="top-btn sb-cards-menu-btn" aria-haspopup="menu" onclick="openStoryboardCommandMenu('cards',this,${board.id})">Cards${studioSelectedCount ? ` (${studioSelectedCount})` : ''} ▾</button>
-      <button class="top-btn sb-board-menu-btn" aria-haspopup="menu" onclick="openStoryboardCommandMenu('board',this,${board.id})">Board ▾</button>
-      `;
-    studioToolbar.style.display = 'flex';
-  }
+  if (studioToolbar) { studioToolbar.innerHTML = ''; studioToolbar.style.display = 'none'; }
 
   const studio = document.createElement('div');
   studio.className = 'sb-studio';

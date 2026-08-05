@@ -26,8 +26,7 @@ test('a new storyboard starts linked and can import only selected scenes', async
   })).toBeTruthy();
   await expect(page.locator('#sb-storyboard-scenes-nav .sb-storyboard-scene-item', { hasText:'Unlinked frames' })).toHaveCount(0);
 
-  await page.locator('#sb-toolbar .sb-board-menu-btn').click();
-  await page.getByRole('button', { name: /Link scenes and shots/ }).click();
+  await page.locator('#storyboard-board-rg').getByRole('button', { name: 'Link Shots' }).click();
   const picks = page.locator('#sb-link-scene-list input[type="checkbox"]');
   await expect(picks).toHaveCount(2);
   await picks.nth(1).uncheck();
@@ -35,8 +34,7 @@ test('a new storyboard starts linked and can import only selected scenes', async
   await expect(page.locator('#sb-storyboard-scenes-nav .sb-storyboard-scene-item', { hasText:'Scene 1' }).locator('.sb-storyboard-scene-count')).toHaveText('6');
   await expect(page.locator('#sb-storyboard-scenes-nav .sb-storyboard-scene-item', { hasText:'Scene 2' }).locator('.sb-storyboard-scene-count')).toHaveText('0');
 
-  await page.locator('#sb-toolbar .sb-board-menu-btn').click();
-  await page.getByRole('button', { name: /Link scenes and shots/ }).click();
+  await page.locator('#storyboard-board-rg').getByRole('button', { name: 'Link Shots' }).click();
   await page.getByRole('button', { name: 'Clear all' }).click();
   await page.locator('#sb-link-modal').getByRole('button', { name: 'Done' }).click();
   await expect(page.locator('#sb-link-modal')).toHaveClass(/open/);

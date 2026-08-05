@@ -88,7 +88,7 @@ test('touch ribbon separates file and editing commands without overflow', async 
     elements.every(element => getComputedStyle(element).display === 'none')
   )).toBeTruthy();
   const homeLabels = await page.locator('.ribbon-panel[data-panel="home"] .rb-label').evaluateAll(labels =>
-    labels.filter(label => getComputedStyle(label.closest('.rb')).display !== 'none').map(label => label.textContent.trim())
+    labels.filter(label => label.closest('.rb').getClientRects().length > 0).map(label => label.textContent.trim())
   );
   expect(homeLabels).toEqual([
     'New', 'Open', 'Recent', 'Save', 'Save As', 'Options',

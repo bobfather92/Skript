@@ -50,9 +50,17 @@ test('storyboard studio provides linked panes, views, filters, inspector sync an
   await expect(page.locator('.sb-frame-metadata .sb-meta-pill[title="Frame label"]')).toHaveCount(0);
   await expect(page.locator('#elements-rg')).toBeHidden();
   await expect(page.locator('#acts-rg')).toBeHidden();
+  await expect(page.locator('.ribbon-tab[data-panel="revision"]')).toBeHidden();
+  await expect(page.locator('.ribbon-tab[data-panel="production"]')).toBeHidden();
+  await expect(page.getByRole('button', { name:'Find & Replace' })).toBeHidden();
+  await expect(page.getByRole('button', { name:'Writing Tools' })).toBeHidden();
   await expect(page.locator('#sb-zoom-bar')).toBeHidden();
   await expect(page.locator('.sb-studio-zoom')).toBeVisible();
-  await expect(page.locator('#sb-toolbar .sb-board-menu-btn')).toBeVisible();
+  await expect(page.locator('#sb-toolbar')).toBeHidden();
+  await expect(page.locator('#storyboard-cards-rg')).toBeVisible();
+  await expect(page.locator('#storyboard-board-rg')).toBeVisible();
+  await expect(page.locator('#sb-storyboard-section .sb-action-btn')).toHaveCount(0);
+  await expect(page.locator('#sb-board-list')).toHaveCount(0);
 
   await page.locator('.sb-studio-view-switch [title="List view"]').click();
   await expect(page.locator('.sb-studio-grid.list')).toHaveCount(2);

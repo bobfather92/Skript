@@ -331,15 +331,13 @@ test('storyboard deletion uses the Skript confirmation dialog', async ({ page, s
     renderStoryboard();
     showStoryboardArea();
   });
-  await page.locator('#sb-toolbar .sb-board-menu-btn').click();
-  await page.locator('.sb-toolbar-popover .sb-delete-btn').click();
+  await page.locator('#storyboard-board-rg').getByRole('button', { name: 'Delete Board' }).click();
   await expect(page.locator('#sb-delete-confirm')).toBeVisible();
   await expect(page.locator('#sb-del-msg')).toContainText('Delete Test Board');
   await page.locator('#sb-delete-confirm').getByRole('button', { name: 'Cancel' }).click();
   expect(await page.evaluate(() => sb.boards.length)).toBe(1);
 
-  await page.locator('#sb-toolbar .sb-board-menu-btn').click();
-  await page.locator('.sb-toolbar-popover .sb-delete-btn').click();
+  await page.locator('#storyboard-board-rg').getByRole('button', { name: 'Delete Board' }).click();
   await page.locator('#sb-delete-confirm').getByRole('button', { name: 'Delete' }).click();
   await expect(page.locator('#sb-delete-confirm')).toBeHidden();
   expect(await page.evaluate(() => sb.boards.length)).toBe(0);
