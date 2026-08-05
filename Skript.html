@@ -24791,11 +24791,11 @@ var __async = (__this, __arguments, generator) => {
   .sb-frame.sb-frame-drop-before::before { left: -4px; }
   .sb-frame.sb-frame-drop-after::after { right: -4px; }
   .sb-frame-order-cluster {
-    position:absolute; top:8px; left:8px; z-index:11;
+    position:absolute; top:6px; left:6px; z-index:11;
     display:flex; align-items:center; gap:5px; pointer-events:none;
   }
   .sb-frame-num-badge {
-    min-width:24px; height:28px; box-sizing:border-box; padding:0 7px;
+    min-width:22px; height:24px; box-sizing:border-box; padding:0 6px;
     display:flex; align-items:center; justify-content:center;
     border:1px solid rgba(255,255,255,.3); border-radius:6px;
     background:rgba(15,18,25,.82); color:#fff;
@@ -24803,19 +24803,20 @@ var __async = (__this, __arguments, generator) => {
     box-shadow:0 2px 8px rgba(0,0,0,.22);
   }
   .sb-frame-select, .sb-frame-drag-handle {
-    position: absolute; top: 8px; z-index: 11; width: 30px; height: 30px;
+    position: absolute; top: 6px; z-index: 11; width: 26px; height: 26px;
     display: flex; align-items: center; justify-content: center; padding: 0;
     border: 1px solid rgba(255,255,255,0.32); border-radius: 7px;
     background: rgba(15,18,25,0.84); color: #fff; cursor: pointer;
     box-shadow:0 2px 8px rgba(0,0,0,.24);
     opacity: 0; transition: opacity .15s ease, background .15s ease, transform .15s ease;
   }
-  .sb-frame-select { right: 8px; }
+  .sb-frame-select { right: 6px; }
   .sb-frame-drag-handle {
-    position:static; width:30px; height:30px; cursor:grab; opacity:.76;
+    position:static; width:24px; height:24px; cursor:grab; opacity:.76;
     pointer-events:auto; touch-action:none;
   }
-  .sb-frame-drag-handle svg,.sb-frame-select svg { width:16px; height:16px; display:block; }
+  .sb-frame-drag-handle svg { width:13px; height:13px; display:block; }
+  .sb-frame-select svg { width:14px; height:14px; display:block; }
   .sb-frame-drag-handle:hover,.sb-frame-select:hover { background:rgba(49,54,66,.96); transform:translateY(-1px); }
   .sb-frame-drag-handle:active { cursor: grabbing; }
   .sb-frame:hover .sb-frame-select, .sb-frame:hover .sb-frame-drag-handle,
@@ -25059,6 +25060,31 @@ var __async = (__this, __arguments, generator) => {
   }
   .sb-board-item:hover .sb-board-item-del { opacity: 1; }
   .sb-board-item-del:hover { background: rgba(217,95,95,0.2); color: #d95f5f; }
+  .sb-storyboard-scenes-nav { margin:7px 8px 5px; padding-top:8px; border-top:1px solid var(--border); }
+  .sb-storyboard-scenes-head {
+    display:flex;align-items:center;justify-content:space-between;margin:0 4px 5px;
+    color:var(--text-3);font:700 9px/1.3 'Inter',sans-serif;letter-spacing:.65px;text-transform:uppercase;
+  }
+  .sb-storyboard-scene-item {
+    width:100%;min-height:30px;margin:0 0 3px;padding:5px 7px;display:grid;
+    grid-template-columns:22px minmax(0,1fr) auto;align-items:center;gap:6px;
+    border:1px solid transparent;border-radius:5px;background:transparent;color:var(--text-3);
+    font:500 10px/1.3 'Inter',sans-serif;text-align:left;cursor:pointer;
+  }
+  .sb-storyboard-scene-item:hover { background:var(--surface2);color:var(--text-2); }
+  .sb-storyboard-scene-item.active { border-color:rgba(116,83,245,.45);background:var(--brand-purple-soft);color:var(--text); }
+  .sb-storyboard-scene-index {
+    width:20px;height:20px;display:flex;align-items:center;justify-content:center;
+    border-radius:4px;background:var(--surface3);color:var(--text-3);font-size:8px;font-weight:750;
+  }
+  .sb-storyboard-scene-item.active .sb-storyboard-scene-index { background:var(--brand-purple);color:#fff; }
+  .sb-storyboard-scene-name { min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+  .sb-storyboard-scene-count { color:var(--text-3);font-size:8px; }
+  body.storyboard-workspace-active #elements-rg,
+  body.storyboard-workspace-active #acts-rg,
+  body.storyboard-workspace-active #touch-elements-rg,
+  body.storyboard-workspace-active .ribbon-tab[data-panel="edit"],
+  body.storyboard-workspace-active .ribbon-panel[data-panel="edit"] { display:none!important; }
   /* ─── LIGHT MODE ─── */
   :root[data-theme="light"] {
     --bg:           #f0f0f0;
@@ -30835,7 +30861,7 @@ button.primary:hover,
 
 /* Storyboard Studio — a production workspace inside Skript's existing shell. */
 #storyboard-area.active { display:block; padding:0; overflow:hidden; align-items:stretch; }
-.sb-studio { height:100%; min-height:0; display:grid; grid-template-columns:auto minmax(360px,1fr) auto; background:var(--bg); color:var(--text); }
+.sb-studio { height:100%; min-height:0; display:grid; grid-template-columns:minmax(360px,1fr) auto; background:var(--bg); color:var(--text); }
 .sb-studio button,.sb-studio input,.sb-studio select,.sb-studio textarea { font-family:'Inter',sans-serif; }
 .sb-studio-scenes { width:248px; min-width:0; display:flex; flex-direction:column; border-right:1px solid var(--border); background:var(--surface); overflow:hidden; transition:width .16s ease; }
 .sb-studio-scenes.collapsed { width:0; border-right:0; }
@@ -30884,8 +30910,8 @@ button.primary:hover,
 #storyboard-area .sb-studio .sb-frame-metadata { background:var(--surface2); }
 .sb-studio-grid.compact .sb-frame-link-controls,.sb-studio-grid.compact .sb-caption,.sb-studio-grid.compact .sb-frame-link-summary { display:none; }
 .sb-studio-grid.compact .sb-frame-metadata { max-height:28px; overflow:hidden; }
-.sb-studio-grid.list .sb-frame { display:grid; grid-template-columns:210px minmax(240px,1fr); grid-template-rows:auto 1fr auto; }
-.sb-studio-grid.list .sb-canvas-wrap { grid-row:1/4; }
+.sb-studio-grid.list .sb-frame { display:grid; grid-template-columns:210px minmax(240px,1fr); grid-template-rows:auto 1fr; }
+.sb-studio-grid.list .sb-canvas-wrap { grid-row:1/3; }
 .sb-studio-grid.list .sb-frame-metadata { align-content:center; }
 .sb-studio-grid.list .sb-frame-link-summary { border-bottom:0; }
 .sb-studio-grid.list .sb-caption { grid-column:2; min-height:38px; }
@@ -31529,6 +31555,7 @@ body #sb-toolbar > * { flex:0 0 auto; }
             <span class="sb-icon">＋</span> New Storyboard
           </button>
           <div id="sb-board-list"></div>
+          <div id="sb-storyboard-scenes-nav" class="sb-storyboard-scenes-nav"></div>
         </div>
       </div>
 
@@ -37360,6 +37387,7 @@ function updateNavActiveState(view) {
 }
 
 function _activateDocumentWorkspace(view) {
+  document.body.classList.toggle('storyboard-workspace-active',view === 'storyboard');
   const classViews = [
     ['storyboard', 'storyboard-area'],
     ['beat', 'beat-sheet-area'],
@@ -38281,6 +38309,9 @@ function openStoryboardTab() {
 
 function showStoryboardArea() {
   _activateDocumentWorkspace('storyboard');
+  if (document.querySelector('.ribbon-tab.active')?.dataset.panel === 'edit') switchRibbonTab('home');
+  const navSection = document.getElementById('sb-storyboard-section');
+  if (navSection) { navSection.style.display = ''; navSection.classList.add('open'); }
   const sbArea = document.getElementById('storyboard-area');
   if (sbArea) sbArea.classList.add('active');
   document.getElementById('sb-storyboard-section')?.classList.add('sb-nav-active');
@@ -38351,6 +38382,26 @@ function renderBoardList() {
     }
     list.appendChild(item);
   });
+  renderStoryboardSceneNavigator(sb.boards.find(board => board.id === sb.activeBoardId));
+}
+
+function renderStoryboardSceneNavigator(board, groupsOverride) {
+  const host = document.getElementById('sb-storyboard-scenes-nav');
+  if (!host) return;
+  if (!board) { host.innerHTML = ''; return; }
+  const groups = groupsOverride || storyboardStudioGroups(board);
+  const linkedGroups = groups.filter(group => group.scene);
+  const unlinked = groups.find(group => group.id === 'unlinked' && group.frames.length);
+  host.innerHTML = `<div class="sb-storyboard-scenes-head"><span>Scenes</span><span>${linkedGroups.length}</span></div>
+    <button type="button" class="sb-storyboard-scene-item${sb.studioScene === 'all' ? ' active' : ''}" onclick="storyboardStudioSetScene('all')" title="Show every storyboard scene">
+      <span class="sb-storyboard-scene-index">▦</span><span class="sb-storyboard-scene-name">All scenes</span><span class="sb-storyboard-scene-count">${board.frames.length}</span>
+    </button>
+    ${linkedGroups.map(group => `<button type="button" class="sb-storyboard-scene-item${sb.studioScene === group.id ? ' active' : ''}" onclick="storyboardStudioSetScene('${escHtml(group.id)}')" title="${escHtml(group.title)}">
+      <span class="sb-storyboard-scene-index">${group.scene.idx}</span><span class="sb-storyboard-scene-name">${escHtml(group.title)}</span><span class="sb-storyboard-scene-count">${group.frames.length}</span>
+    </button>`).join('')}
+    ${unlinked ? `<button type="button" class="sb-storyboard-scene-item${sb.studioScene === 'unlinked' ? ' active' : ''}" onclick="storyboardStudioSetScene('unlinked')" title="Frames no longer connected to a script scene">
+      <span class="sb-storyboard-scene-index">↯</span><span class="sb-storyboard-scene-name">Unlinked frames</span><span class="sb-storyboard-scene-count">${unlinked.frames.length}</span>
+    </button>` : ''}`;
 }
 
 function switchToBoard(boardId) {
@@ -38365,6 +38416,7 @@ function switchToBoard(boardId) {
 function hideStoryboardArea() {
   const sbArea = document.getElementById('storyboard-area');
   if (sbArea) sbArea.classList.remove('active');
+  document.body.classList.remove('storyboard-workspace-active');
   document.getElementById('sb-storyboard-section')?.classList.remove('sb-nav-active');
   // Hide the storyboard toolbar
   const tb = document.getElementById('sb-toolbar');
@@ -39408,6 +39460,7 @@ function renderStoryboard(boardOverride) {
   }
   const allGroups = storyboardStudioGroups(board);
   if (sb.studioScene !== 'all' && !allGroups.some(group => group.id === sb.studioScene)) sb.studioScene = 'all';
+  renderStoryboardSceneNavigator(board,allGroups);
   const sceneCharacters = storyboardStudioSceneCharacters();
   const visibleGroups = allGroups
     .filter(group => sb.studioScene === 'all' || group.id === sb.studioScene)
@@ -39427,7 +39480,6 @@ function renderStoryboard(boardOverride) {
   if (studioToolbar) {
     studioToolbar.classList.add('sb-studio-commandbar');
     studioToolbar.innerHTML = `
-      <button class="top-btn sb-command-icon" aria-label="Toggle scene browser" onclick="storyboardStudioTogglePane('scenes')" title="Show or hide scenes">☰</button>
       <div class="sb-command-title"><strong>${escHtml(board.name || 'Storyboard')}</strong><span>${board.frames.length} frame${board.frames.length === 1 ? '' : 's'}</span></div>
       <button class="top-btn primary" onclick="storyboardStudioAddFrame(sb.studioScene)">＋ Frame</button>
       <div class="sb-command-group" aria-label="History">
@@ -39442,24 +39494,12 @@ function renderStoryboard(boardOverride) {
 
   const studio = document.createElement('div');
   studio.className = 'sb-studio';
+  if (sb.mobilePane === 'scenes') sb.mobilePane = 'board';
   studio.dataset.mobilePane = sb.mobilePane || 'board';
-
-  const scenesPane = document.createElement('aside');
-  scenesPane.className = `sb-studio-scenes${sb.sceneBrowserCollapsed ? ' collapsed' : ''}`;
-  scenesPane.innerHTML = `<div class="sb-studio-pane-head"><strong>Scenes</strong><div><button title="Add frame to current scene" onclick="storyboardStudioAddFrame(null)">＋</button> <button title="Close scene browser" onclick="storyboardStudioClosePane('scenes')">‹</button></div></div><div class="sb-studio-scene-list">
-    <button class="sb-studio-scene${sb.studioScene === 'all' ? ' active' : ''}" onclick="storyboardStudioSetScene('all')"><span class="sb-studio-scene-thumb">▦</span><span class="sb-studio-scene-copy"><strong>All scenes</strong><span>${board.frames.length} frames</span></span></button>
-    ${allGroups.filter(group => group.scene).map(group => {
-      const image = group.frames.find(item => item.frame.imageData)?.frame.imageData;
-      return `<button class="sb-studio-scene${sb.studioScene === group.id ? ' active' : ''}" onclick="storyboardStudioSetScene('${escHtml(group.id)}')"><span class="sb-studio-scene-thumb">${image ? `<img src="${image}" alt="">` : '◇'}</span><span class="sb-studio-scene-copy"><strong>${escHtml(group.title)}</strong><span>${group.frames.length} frame${group.frames.length === 1 ? '' : 's'}</span></span></button>`;
-    }).join('')}
-    ${allGroups.filter(group => group.id === 'unlinked' && group.frames.length).map(group => `<div class="sb-studio-unlinked"><button class="sb-studio-scene${sb.studioScene === 'unlinked' ? ' active' : ''}" onclick="storyboardStudioSetScene('unlinked')"><span class="sb-studio-scene-thumb">↯</span><span class="sb-studio-scene-copy"><strong>Unlinked Frames</strong><span>${group.frames.length} frame${group.frames.length === 1 ? '' : 's'}</span></span></button></div>`).join('')}
-  </div>`;
-  studio.appendChild(scenesPane);
 
   const main = document.createElement('main');
   main.className = 'sb-studio-main';
   main.innerHTML = `<div class="sb-studio-controls">
-    <button class="sb-studio-icon-btn" onclick="storyboardStudioTogglePane('scenes')" title="Scene browser">☰</button>
     <div class="sb-studio-view-switch" aria-label="Storyboard view">
       <button class="${sb.studioView === 'grid' ? 'active' : ''}" onclick="storyboardStudioSetView('grid')" title="Grid view">▦</button>
       <button class="${sb.studioView === 'compact' ? 'active' : ''}" onclick="storyboardStudioSetView('compact')" title="Compact view">▥</button>
@@ -39625,17 +39665,10 @@ function buildFrameEl(frame, idx, boardId) {
   wrap.setAttribute('ondragover', 'sbFrameDragOver(event)');
   wrap.setAttribute('ondragleave', "this.classList.remove('sb-frame-drop-before','sb-frame-drop-after')");
   wrap.setAttribute('ondrop', `sbFrameDrop(event,${boardId},'${frameId}')`);
-  const context = getStoryboardFrameContext(frame);
-  const defaultSceneLabel = context.scene && context.scene.text.toLowerCase() === `scene ${context.scene.idx}`.toLowerCase();
-  const sceneText = context.scene
-    ? (defaultSceneLabel ? `Scene ${context.scene.idx}` : `Scene ${context.scene.idx} · ${context.scene.text}`)
-    : (frame.orphanedScene?.heading ? `Unlinked · ${frame.orphanedScene.heading}` : 'No scene linked');
-  const shotText = context.shot ? storyboardShotLabel(context.shot, context.shots) : '';
   // Paper orientation affects only the printable page. Film frames stay 16:9.
   const THUMB_W = 480;
   const THUMB_H = Math.max(120, Math.round(THUMB_W / aspect));
   const statusClass = String(frame.status || 'Draft').toLowerCase();
-  const frameLabel = frame.label || `Frame ${idx + 1}`;
 
   wrap.innerHTML = `
     <div class="sb-frame-order-cluster">
@@ -39674,7 +39707,6 @@ function buildFrameEl(frame, idx, boardId) {
       ${board.actionSafe || board.titleSafe ? `<div class="sb-safe-overlay">${board.actionSafe ? '<div class="action-safe"></div>' : ''}${board.titleSafe ? '<div class="title-safe"></div>' : ''}</div>` : ''}
     </div>
     <div class="sb-frame-metadata">
-      <span class="sb-meta-pill" title="Frame label">${escHtml(frameLabel)}</span>
       ${frame.shotNumber ? `<span class="sb-meta-pill">Shot ${escHtml(frame.shotNumber)}</span>` : ''}
       ${frame.duration ? `<span class="sb-meta-pill">${escHtml(frame.duration)}</span>` : ''}
       <span class="sb-meta-pill status-${statusClass}">${escHtml(frame.status)}</span>
@@ -39682,9 +39714,6 @@ function buildFrameEl(frame, idx, boardId) {
       <button type="button" class="sb-frame-info-btn" aria-label="Edit frame details" title="Edit frame details" onclick="event.stopPropagation();openStoryboardFrameInfo(${boardId},${idx})">
         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 14.5V17h2.5L15 8.5 11.5 5 3 13.5Z"/><path d="m10.8 5.7 3.5 3.5"/></svg>
       </button>
-    </div>
-    <div class="sb-frame-link-summary" title="${escHtml([sceneText,shotText].filter(Boolean).join(' — '))}">
-      <strong>${escHtml(sceneText)}</strong>${shotText ? `<br>${escHtml(shotText)}` : ''}
     </div>
     ${board.captions ? `<textarea class="sb-caption" placeholder="Shot description, dialogue…" id="sb-caption-${idx}"
       oninput="feUpdateCaption(${boardId}, ${idx}, this.value)">${frame.caption || ''}</textarea>` : ''}

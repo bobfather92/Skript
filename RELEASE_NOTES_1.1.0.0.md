@@ -42,6 +42,7 @@ This is the first local development package on the road to Skript 1.1. It is int
 - Switch to a single active Scenes, Board or Inspector pane on compact screens while retaining selection, arranging and undo/redo behavior.
 - Keep new storyboard frames connected to the current script scene, manage scene/shot links in the inspector instead of on every card, size cards from the central workspace and use a condensed Cards/Board command bar.
 - Use professional six-dot frame handles, clear selection controls and a live insertion slot while surrounding cards glide into their new positions during drag reordering.
+- Remove duplicate frame and scene labels from storyboard cards, place scene filtering beneath the Storyboard Navigator, and hide script-only Elements and Acts controls while Storyboard Studio is active.
 - Duplicate a complete storyboard while assigning fresh frame and object identities, so changes to the copy remain independent.
 - Drag several images into a frame at once, replace a selected image without disturbing its placement, and use Crop, Fit, Fill, Stretch, rotate and flip controls.
 - Lock individual images or complete layers, rename and duplicate layers, preserve image proportions while resizing, and set opacity per object or layer.

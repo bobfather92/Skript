@@ -35,17 +35,21 @@ test('storyboard studio provides linked panes, views, filters, inspector sync an
 
   const compactAtStart = (await page.viewportSize()).width <= 900;
   await expect(page.locator('.sb-studio')).toBeVisible();
+  await expect(page.locator('.sb-studio-scenes')).toHaveCount(0);
+  await expect(page.locator('#sb-storyboard-scenes-nav')).toBeVisible();
   if (compactAtStart) {
-    await expect(page.locator('.sb-studio-scenes')).toBeHidden();
     await expect(page.locator('.sb-studio-inspector')).toBeHidden();
   } else {
-    await expect(page.locator('.sb-studio-scenes')).toBeVisible();
     await expect(page.locator('.sb-studio-inspector')).toBeVisible();
   }
-  await expect(page.locator('.sb-studio-scene', { hasText:'Unlinked Frames' })).toContainText('1 frame');
+  await expect(page.locator('#sb-storyboard-scenes-nav .sb-storyboard-scene-item', { hasText:'Unlinked frames' }).locator('.sb-storyboard-scene-count')).toHaveText('1');
   await expect(page.locator('.sb-studio-group')).toHaveCount(2);
   await expect(page.locator('.sb-frame')).toHaveCount(3);
   await expect(page.locator('.sb-frame-link-controls')).toHaveCount(0);
+  await expect(page.locator('.sb-frame-link-summary')).toHaveCount(0);
+  await expect(page.locator('.sb-frame-metadata .sb-meta-pill[title="Frame label"]')).toHaveCount(0);
+  await expect(page.locator('#elements-rg')).toBeHidden();
+  await expect(page.locator('#acts-rg')).toBeHidden();
   await expect(page.locator('#sb-zoom-bar')).toBeHidden();
   await expect(page.locator('.sb-studio-zoom')).toBeVisible();
   await expect(page.locator('#sb-toolbar .sb-board-menu-btn')).toBeVisible();
@@ -57,10 +61,10 @@ test('storyboard studio provides linked panes, views, filters, inspector sync an
 
   await page.evaluate(() => storyboardStudioSetFilter('status','Review'));
   await expect(page.locator('.sb-frame')).toHaveCount(1);
-  await expect(page.locator('.sb-frame')).toContainText('City Establishing');
   await page.evaluate(() => storyboardStudioClearFilters());
 
   if (compactAtStart) await page.evaluate(() => storyboardStudioTogglePane('inspector'));
+  await expect(page.locator('.sb-studio-inspector').getByLabel('Label')).toHaveValue('City Establishing');
   await page.locator('.sb-studio-inspector').getByLabel('Shot size').selectOption('Close-Up');
   const synced = await page.evaluate(() => ({
     frame: sb.boards[0].frames[0].shotSize,
@@ -74,11 +78,8 @@ test('storyboard studio provides linked panes, views, filters, inspector sync an
 
   await page.setViewportSize({ width:800, height:600 });
   await page.evaluate(() => { sb.mobilePane = 'board'; renderStoryboard(); });
-  await page.evaluate(() => storyboardStudioTogglePane('scenes'));
-  await expect(page.locator('.sb-studio')).toHaveAttribute('data-mobile-pane','scenes');
-  await expect(page.locator('.sb-studio-scenes')).toBeVisible();
-  await expect(page.locator('.sb-studio-main')).toBeHidden();
-  await page.evaluate(() => storyboardStudioClosePane('scenes'));
+  await expect(page.locator('.sb-studio-main')).toBeVisible();
+  await expect(page.locator('#sb-storyboard-scenes-nav')).toBeVisible();
   await page.evaluate(() => storyboardStudioTogglePane('inspector'));
   await expect(page.locator('.sb-studio')).toHaveAttribute('data-mobile-pane','inspector');
   await expect(page.locator('.sb-studio-inspector')).toBeVisible();

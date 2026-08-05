@@ -19,9 +19,11 @@ test('script scenes, shots, and storyboard frames stay visibly connected', async
 
   const frames = page.locator('.sb-frame');
   await expect(frames).toHaveCount(6);
-  await expect(frames.nth(0).locator('.sb-frame-link-summary')).toContainText('Scene 1');
-  await expect(frames.nth(0).locator('.sb-frame-link-summary')).toContainText('Shot 1');
-  await expect(frames.nth(1).locator('.sb-frame-link-summary')).toContainText('Shot 2');
+  await expect(page.locator('.sb-frame-link-summary')).toHaveCount(0);
+  await expect(frames.nth(0).locator('.sb-meta-pill[title="Frame label"]')).toHaveCount(0);
+  const initialLinks = await page.evaluate(() => sb.boards[0].frames.slice(0,2).map(frame => ({ sceneLineId:frame.sceneLineId, shotId:frame.shotId })));
+  expect(initialLinks.every(frame => /^line-/.test(frame.sceneLineId))).toBeTruthy();
+  expect(initialLinks.map(frame => frame.shotId)).toEqual(['sl1','sl2']);
   await frames.nth(1).locator('.sb-canvas-wrap').click();
   if ((await page.viewportSize()).width <= 900) await page.evaluate(() => storyboardStudioTogglePane('inspector'));
   await expect(page.locator('.sb-studio-inspector').getByLabel('Scene link')).toHaveValue(/line-/);
@@ -40,5 +42,5 @@ test('script scenes, shots, and storyboard frames stay visibly connected', async
 
   await shotRows.nth(1).locator('.sl-storyboard-link').click();
   await expect(page.locator('#storyboard-area')).toHaveClass(/active/);
-  await expect(page.locator('.sb-frame[data-frame-index="1"] .sb-frame-link-summary')).toContainText('Shot 2');
+  await expect(page.locator('.sb-frame[data-frame-index="1"]')).toHaveClass(/sb-frame-active/);
 });

@@ -20,8 +20,11 @@ test('a new storyboard starts linked and can import only selected scenes', async
   await page.getByRole('button', { name: 'Continue →' }).click();
   await page.getByRole('button', { name: /Create Storyboard/ }).click();
   await page.getByRole('button', { name: 'Use current scene' }).click();
-  await expect(page.locator('.sb-frame').nth(0).locator('.sb-frame-link-summary')).toContainText('Scene 1');
-  await expect(page.locator('.sb-studio-scene', { hasText:'Unlinked Frames' })).toHaveCount(0);
+  expect(await page.evaluate(() => {
+    const sceneId = getStoryboardSceneRefs()[0].lineId;
+    return sb.boards[0].frames.every(frame => frame.sceneLineId === sceneId);
+  })).toBeTruthy();
+  await expect(page.locator('#sb-storyboard-scenes-nav .sb-storyboard-scene-item', { hasText:'Unlinked frames' })).toHaveCount(0);
 
   await page.locator('#sb-toolbar .sb-board-menu-btn').click();
   await page.getByRole('button', { name: /Link scenes and shots/ }).click();
@@ -29,15 +32,15 @@ test('a new storyboard starts linked and can import only selected scenes', async
   await expect(picks).toHaveCount(2);
   await picks.nth(1).uncheck();
   await page.locator('#sb-link-modal').getByRole('button', { name: 'Done' }).click();
-  await expect(page.locator('.sb-frame-link-summary').filter({ hasText: 'Scene 1' })).toHaveCount(6);
-  await expect(page.locator('.sb-frame-link-summary').filter({ hasText: 'Scene 2' })).toHaveCount(0);
+  await expect(page.locator('#sb-storyboard-scenes-nav .sb-storyboard-scene-item', { hasText:'Scene 1' }).locator('.sb-storyboard-scene-count')).toHaveText('6');
+  await expect(page.locator('#sb-storyboard-scenes-nav .sb-storyboard-scene-item', { hasText:'Scene 2' }).locator('.sb-storyboard-scene-count')).toHaveText('0');
 
   await page.locator('#sb-toolbar .sb-board-menu-btn').click();
   await page.getByRole('button', { name: /Link scenes and shots/ }).click();
   await page.getByRole('button', { name: 'Clear all' }).click();
   await page.locator('#sb-link-modal').getByRole('button', { name: 'Done' }).click();
   await expect(page.locator('#sb-link-modal')).toHaveClass(/open/);
-  await expect(page.locator('.sb-frame-link-summary').filter({ hasText: 'Scene 1' })).toHaveCount(6);
+  expect(await page.evaluate(() => new Set(sb.boards[0].frames.map(frame => frame.sceneLineId)).size)).toBe(1);
   await picks.nth(0).check();
   await page.locator('#sb-link-modal').getByRole('button', { name: 'Done' }).click();
 });
