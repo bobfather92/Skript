@@ -24847,17 +24847,18 @@ var __async = (__this, __arguments, generator) => {
     align-items:center;justify-content:center;
   }
   #sb-wiz-box {
-    width:640px;height:min(650px,calc(100vh - 32px));max-width:calc(100vw - 32px);max-height:calc(100vh - 32px);
+    width:760px;height:min(740px,calc(100vh - 32px));max-width:calc(100vw - 32px);max-height:calc(100vh - 32px);
     display:flex;flex-direction:column;overflow:hidden;background:var(--surface);color:var(--text);
     border:1px solid var(--border2);border-radius:8px;box-shadow:0 20px 56px rgba(0,0,0,.55);
   }
   #sb-wiz-body { flex:1;min-height:0;height:auto; }
-  #sb-wiz-body .wiz-slide { padding:20px 24px;gap:12px; }
-  .sb-wiz-template-grid .wiz-type-card { min-height:94px; }
+  #sb-wiz-body .wiz-slide { padding:18px 22px;gap:10px; }
+  .wiz-type-grid.sb-wiz-template-grid { grid-template-columns:repeat(3,minmax(0,1fr));gap:8px; }
+  .sb-wiz-template-grid .wiz-type-card { min-height:82px;padding:11px;gap:4px; }
   .sb-wiz-template-grid .wiz-type-desc { white-space:normal; }
   .sb-wiz-aspect-grid { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px; }
   .sb-wiz-choice {
-    min-height:66px;padding:10px 12px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;
+    min-height:54px;padding:8px 10px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;
     border:1px solid var(--border2);border-radius:7px;background:var(--surface2);color:var(--text);font:inherit;text-align:left;cursor:pointer;
   }
   .sb-wiz-choice:hover { border-color:rgba(212,168,67,.65);background:var(--surface3); }
@@ -24865,9 +24866,11 @@ var __async = (__this, __arguments, generator) => {
   .sb-wiz-choice strong { font-size:12px; }
   .sb-wiz-choice span { color:var(--text-3);font-size:9px;line-height:1.35; }
   .sb-wiz-layout-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px; }
-  .sb-wiz-setting-card { padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--surface2); }
-  .sb-wiz-setting-card .wiz-section-label { margin-bottom:9px; }
-  .sb-wiz-toggle-list { display:grid;gap:7px; }
+  .sb-wiz-setting-card { padding:10px;border:1px solid var(--border);border-radius:7px;background:var(--surface2); }
+  .sb-wiz-setting-card .wiz-section-label { margin-bottom:7px; }
+  .sb-wiz-toggle-list { display:grid;gap:6px; }
+  .sb-wiz-setting-card .sb-wiz-toggle-list { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .sb-wiz-setting-card:nth-child(4) .sb-wiz-toggle-list { grid-template-columns:repeat(3,minmax(0,1fr)); }
   .sb-wiz-toggle {
     display:flex;align-items:flex-start;gap:9px;padding:8px 9px;border:1px solid var(--border2);border-radius:6px;
     background:var(--surface3);color:var(--text-2);font-size:10px;line-height:1.4;cursor:pointer;
@@ -24879,9 +24882,22 @@ var __async = (__this, __arguments, generator) => {
   @media (max-width:640px) {
     #sb-setup-modal { padding:8px; }
     #sb-wiz-box { width:100%;height:calc(100vh - 16px);max-width:calc(100vw - 16px);max-height:calc(100vh - 16px); }
-    #sb-wiz-body .wiz-slide { padding:16px; }
+    #sb-wiz-body .wiz-slide { padding:12px; }
+    .wiz-type-grid.sb-wiz-template-grid { grid-template-columns:repeat(3,minmax(0,1fr));gap:6px; }
+    .sb-wiz-template-grid .wiz-type-card { min-height:76px;padding:8px; }
     .sb-wiz-aspect-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
-    .sb-wiz-layout-grid { grid-template-columns:1fr; }
+    .sb-wiz-layout-grid { grid-template-columns:repeat(2,minmax(0,1fr));gap:6px; }
+  }
+  @media (max-height:700px) {
+    #sb-setup-modal .wiz-header { padding:12px 18px 10px; }
+    #sb-setup-modal .wiz-steps { margin-bottom:11px; }
+    #sb-wiz-body .wiz-slide { padding:11px 18px;gap:7px; }
+    #sb-setup-modal .wiz-footer { padding:8px 14px; }
+    .sb-wiz-template-grid .wiz-type-card { min-height:74px;padding:8px 9px; }
+    .sb-wiz-template-grid .wiz-type-desc { font-size:8.5px;line-height:1.3; }
+    .sb-wiz-setting-card { padding:8px; }
+    .sb-wiz-choice { min-height:48px;padding:6px 8px; }
+    .sb-wiz-toggle { padding:6px 8px; }
   }
   .sb-frame-metadata { display:flex;flex-wrap:wrap;gap:4px;padding:5px 7px;border-bottom:1px solid var(--border);background:var(--surface2);min-height:25px; }
   .sb-meta-pill { border:1px solid var(--border2);border-radius:10px;padding:2px 6px;color:var(--text-2);font-size:9px;line-height:1.3; }

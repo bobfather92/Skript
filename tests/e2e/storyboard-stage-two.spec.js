@@ -16,19 +16,32 @@ test('new storyboard uses a guided wizard matching the New Script flow', async (
   });
 
   const modal = page.locator('#sb-setup-modal');
+  const expectStageToFit = async () => {
+    const dimensions = await page.locator('#sb-wiz-body .wiz-slide.active').evaluate(element => ({
+      clientHeight: element.clientHeight,
+      scrollHeight: element.scrollHeight,
+      clientWidth: element.clientWidth,
+      scrollWidth: element.scrollWidth,
+    }));
+    expect(dimensions.scrollHeight).toBeLessThanOrEqual(dimensions.clientHeight + 1);
+    expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth + 1);
+  };
   await expect(modal).toHaveClass(/open/);
   await expect(page.locator('#sb-wiz-header .wiz-step')).toHaveCount(4);
   await expect(page.locator('#sb-wiz-title-line')).toHaveText('Choose a storyboard template');
   await expect(page.locator('.sb-wiz-template-grid .wiz-type-card')).toHaveCount(7);
+  await expectStageToFit();
 
   await page.getByRole('button', { name: /Feature Film Scope/ }).click();
   await page.locator('#sb-wiz-next').click();
   await expect(page.locator('#sb-wiz-title-line')).toHaveText('Name and frame your board');
+  await expectStageToFit();
   await page.locator('#sb-wiz-name').fill('Opening Chase');
   await page.getByRole('button', { name: /^1:1 Square$/ }).click();
   await page.locator('#sb-wiz-next').click();
 
   await expect(page.locator('#sb-wiz-title-line')).toHaveText('Configure the page layout');
+  await expectStageToFit();
   await page.getByRole('button', { name: /Landscape Wider presentation/ }).click();
   await page.getByRole('button', { name: /Two frames Larger artwork/ }).click();
   await page.getByRole('button', { name: /Hide captions Artwork/ }).click();
@@ -37,6 +50,7 @@ test('new storyboard uses a guided wizard matching the New Script flow', async (
   await page.locator('#sb-wiz-next').click();
 
   await expect(page.locator('#sb-wiz-title-line')).toHaveText('Ready to create?');
+  await expectStageToFit();
   await expect(page.locator('#sb-wiz-body')).toContainText('Opening Chase');
   await expect(page.locator('#sb-wiz-body')).toContainText('1:1 · 12 starting frames');
   await expect(page.locator('#sb-wiz-body')).toContainText('Landscape · 2 per row · no captions');

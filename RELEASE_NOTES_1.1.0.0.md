@@ -34,7 +34,7 @@ This is the first local development package on the road to Skript 1.1. It is int
 - Copy, paste, duplicate, delete and keyboard-nudge selected frame-editor objects as one group.
 - Add production-ready frame information: editable labels, shot numbers, duration/timecode, Draft-to-Final status, tags, action, dialogue/sound, camera, lighting and transition notes, plus custom note fields.
 - Configure each storyboard after creation, including its name, description, status, orientation, columns, captions, action-safe/title-safe guides, templates and 16:9, 4:3, 2.39:1, 1:1, 9:16 or custom frame ratios.
-- Create storyboards through a four-stage Template, Frame, Layout and Review wizard that matches the New Script Wizard, including progress indicators, production template cards and a final settings summary.
+- Create storyboards through a four-stage Template, Frame, Layout and Review wizard that matches the New Script Wizard, including progress indicators, production template cards and a final settings summary that fits without internal scrollbars at supported window sizes.
 - Duplicate a complete storyboard while assigning fresh frame and object identities, so changes to the copy remain independent.
 - Drag several images into a frame at once, replace a selected image without disturbing its placement, and use Crop, Fit, Fill, Stretch, rotate and flip controls.
 - Lock individual images or complete layers, rename and duplicate layers, preserve image proportions while resizing, and set opacity per object or layer.
