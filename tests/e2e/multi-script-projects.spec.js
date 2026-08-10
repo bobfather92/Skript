@@ -212,3 +212,20 @@ test('Navigator duplicate button copies an empty project script', async ({ page,
   await expect(page.locator('#sf-toast')).toContainText('Duplicated');
   expect(await page.evaluate(() => new Set(tabs.map(tab => tab.projectId)).size)).toBe(3);
 });
+
+test('project scripts switch from Navigator without a visible tab strip', async ({ page, skript }) => {
+  await skript.activeLines.first().fill('INT. FIRST SCRIPT - DAY');
+  await page.evaluate(() => addScriptToActiveProject('SECOND SCRIPT'));
+  await skript.activeLines.first().fill('EXT. SECOND SCRIPT - NIGHT');
+
+  await expect(page.locator('#tabbar')).toBeHidden();
+  await expect(page.locator('#tabbar')).toHaveAttribute('aria-hidden', 'true');
+  const rows = page.locator('#project-scripts-navigator .project-script-row');
+  await expect(rows).toHaveCount(2);
+  await expect(rows.nth(1).locator('.project-script-open')).toHaveAttribute('aria-current', 'page');
+
+  await rows.nth(0).locator('.project-script-open').click();
+  await expect(page.locator('.script-panel.active .script-line').first()).toHaveText('INT. FIRST SCRIPT - DAY');
+  await expect(page.locator('#project-scripts-navigator .project-script-row').nth(0).locator('.project-script-open')).toHaveAttribute('aria-current', 'page');
+  await expect(page.locator('#project-scripts-navigator .project-script-row').nth(1).locator('.project-script-open')).not.toHaveAttribute('aria-current', 'page');
+});

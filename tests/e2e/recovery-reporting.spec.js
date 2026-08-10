@@ -60,10 +60,12 @@ test('Report a Problem removes project titles, paths and email addresses', async
 });
 
 
-test('closing a project with unsaved work requires confirmation', async ({ page, skript }) => {
+test('removing a project script with unsaved work requires confirmation', async ({ page, skript }) => {
   await skript.activeLines.first().fill('INT. UNSAVED ROOM - DAY');
+  await page.evaluate(() => addScriptToActiveProject('SECOND UNSAVED SCRIPT'));
+  await skript.activeLines.first().fill('EXT. UNSAVED STREET - NIGHT');
   page.once('dialog', dialog => dialog.dismiss());
-  await page.locator('.tab.active .tab-close').click();
-  await expect(page.locator('.tab.active')).toHaveCount(1);
-  await expect(page.locator('.tab.active')).toHaveClass(/has-unsaved/);
+  await page.locator('#project-scripts-navigator .project-script-row.active').getByTitle('Remove script').click();
+  await expect(page.locator('#project-scripts-navigator .project-script-row')).toHaveCount(2);
+  await expect(page.locator('#project-scripts-navigator .project-script-row.active .project-script-dirty')).toContainText('•');
 });

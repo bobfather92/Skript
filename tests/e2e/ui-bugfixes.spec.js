@@ -325,8 +325,8 @@ test('Navigator can be resized wider or narrower by dragging its edge', async ({
   const widerWidth = await sidebar.evaluate(el => el.getBoundingClientRect().width);
   expect(widerWidth).toBeGreaterThan(initialWidth + 70);
   await expect(handle).toHaveAttribute('aria-valuenow', String(Math.round(widerWidth)));
-  const tabbarPadding = await page.locator('#tabbar').evaluate(el => parseFloat(getComputedStyle(el).paddingLeft));
-  expect(tabbarPadding).toBeGreaterThan(widerWidth);
+  const configuredWidth = await page.locator('html').evaluate(el => parseFloat(getComputedStyle(el).getPropertyValue('--sidebar-w')));
+  expect(configuredWidth).toBeCloseTo(widerWidth, 0);
 
   const widerHandleBox = await handle.boundingBox();
   await page.mouse.move(widerHandleBox.x + widerHandleBox.width / 2, widerHandleBox.y + 24);

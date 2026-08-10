@@ -23515,6 +23515,10 @@ var __async = (__this, __arguments, generator) => {
   #tabbar.sidebar-closed { padding-left: 8px; }
   #tabbar::-webkit-scrollbar { display: none; }
 
+  /* Project documents are switched from the Navigator. The legacy strip is
+     retained only as an internal DOM registry for compatibility. */
+  #tabbar { display: none !important; }
+
   .tab {
     background: transparent;
     border: 1px solid transparent;
@@ -31520,7 +31524,7 @@ body #sb-toolbar > * { flex:0 0 auto; }
 </div><!-- /ribbon -->
 
 <!-- ══ TABS BAR ══ -->
-<div id="tabbar">
+<div id="tabbar" aria-hidden="true" inert>
   <div id="tabs-container"></div>
   <button id="new-tab-btn" onclick="openNewProjectWizard()" title="New Script (Ctrl+T)">＋</button>
 </div>
@@ -31551,7 +31555,7 @@ body #sb-toolbar > * { flex:0 0 auto; }
           <span class="sidebar-chevron">›</span>
         </div>
         <div class="sidebar-section-body">
-          <div id="project-scripts-navigator"></div>
+          <div id="project-scripts-navigator" aria-label="Scripts in this project"></div>
         </div>
       </div>
 
@@ -32814,6 +32818,7 @@ body #sb-toolbar > * { flex:0 0 auto; }
             <div class="opt-section"><strong>Complete multi-script projects</strong><div class="opt-note" style="margin-top:5px;">Add, rename, reorder, duplicate and remove scripts in one project; save and reopen the complete collection with shared storyboards, media and production documents; and recover or Save As the whole project safely.</div></div>
             <div class="opt-section"><strong>Reliable script renaming</strong><div class="opt-note" style="margin-top:5px;">The Project Scripts rename window now supports both Cancel and Rename correctly, prefills the current name and cannot be overridden by another editor dialog.</div></div>
             <div class="opt-section"><strong>Reliable script duplication</strong><div class="opt-note" style="margin-top:5px;">Duplicating a project script now always retains the source and creates a separately identified copy, including when the original script is still empty.</div></div>
+            <div class="opt-section"><strong>Navigator-only script switching</strong><div class="opt-note" style="margin-top:5px;">Removes the redundant document tab strip below the ribbon. Scripts are now opened and switched exclusively from Project Scripts in the Navigator.</div></div>
             <div class="opt-section"><strong>Safer batch handling</strong><div class="opt-note" style="margin-top:5px;">A damaged or invalid file no longer prevents other valid files in the same selection from opening.</div></div>
             <div class="opt-section"><strong>Recovery accessibility</strong><div class="opt-note" style="margin-top:5px;">Keeps keyboard focus inside the Recovery Centre when it is opened over the startup recovery prompt.</div></div>
             <div class="opt-section"><strong>Development verification</strong><div class="opt-note" style="margin-top:5px;">Source and browser regression checks cover desktop, compact-touch, storyboard arranging, deletion and history restoration.</div></div>
@@ -35712,12 +35717,14 @@ function renderProjectScriptsNavigator() {
   host.innerHTML = `<div class="project-scripts-summary">
     <button class="project-scripts-name" onclick="renameActiveProject()" title="Rename project">${escHtml(title)}</button>
     <button class="project-scripts-add" onclick="addScriptToActiveProject()" title="Add script to project" aria-label="Add script to project">+</button>
-  </div>`;
+  </div><div class="project-script-list" role="list" aria-label="Project scripts"></div>`;
+  const list = host.querySelector('.project-script-list');
   members.forEach((tab, index) => {
     const row = document.createElement('div');
     row.className = `project-script-row${tab.id === activeTabId ? ' active' : ''}`;
     row.dataset.projectScriptId = tab.id;
-    row.innerHTML = `<button class="project-script-open" title="Open ${escHtml(tab.title)}">${escHtml(tab.title || 'Untitled')}<span class="project-script-dirty">${tab.dirty ? ' •' : ''}</span></button>
+    row.setAttribute('role', 'listitem');
+    row.innerHTML = `<button class="project-script-open" title="Open ${escHtml(tab.title)}" ${tab.id === activeTabId ? 'aria-current="page"' : ''}>${escHtml(tab.title || 'Untitled')}<span class="project-script-dirty">${tab.dirty ? ' •' : ''}</span></button>
       <button class="project-script-action" title="Move up" aria-label="Move script up" ${index === 0 ? 'disabled' : ''}>↑</button>
       <button class="project-script-action" title="Move down" aria-label="Move script down" ${index === members.length - 1 ? 'disabled' : ''}>↓</button>
       <button class="project-script-action" title="Duplicate script" aria-label="Duplicate script">⧉</button>
@@ -35730,7 +35737,7 @@ function renderProjectScriptsNavigator() {
     buttons[3].onclick = () => duplicateProjectScript(tab.id);
     buttons[4].onclick = () => renameProjectScript(tab.id);
     buttons[5].onclick = () => removeProjectScript(tab.id);
-    host.appendChild(row);
+    list.appendChild(row);
   });
 }
 
@@ -54210,8 +54217,7 @@ function sfEnhanceAccessibility(root=document) {
   document.getElementById('ribbon')?.setAttribute('aria-label', 'Script commands');
 
   const tabGroups = [
-    [document.getElementById('ribbon-tabs'), '.ribbon-tab'],
-    [document.getElementById('tabbar'), '.tab']
+    [document.getElementById('ribbon-tabs'), '.ribbon-tab']
   ];
   tabGroups.forEach(([group, selector]) => {
     if (!group) return;

@@ -67,6 +67,7 @@ This is the first local development package on the road to Skript 1.1. It is int
 - Keep ordinary Skript 1.0 `.script` files readable and writable as standalone documents.
 - Cancel or confirm script and project renaming reliably from the Project Scripts Navigator, with the current name prefilled and a clearly labelled Rename action.
 - Duplicate project scripts directly from the Navigator without losing an empty source document; every copy receives fresh script and line identities.
+- Switch scripts exclusively through Project Scripts in the Navigator; the redundant tab strip beneath the ribbon is no longer displayed.
 - Keep Recovery Centre keyboard focus reliable when it opens over the startup recovery prompt.
 
 ## Reliability and safety

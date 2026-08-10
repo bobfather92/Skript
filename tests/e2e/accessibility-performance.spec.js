@@ -4,9 +4,10 @@ import { test, expect } from './support/fixtures.js';
 test('workspace exposes keyboard and screen-reader semantics', async ({ page, skript }) => {
   await expect(page.locator('#editor-area')).toHaveAttribute('role', 'main');
   await expect(page.locator('#sidebar')).toHaveAttribute('role', 'navigation');
-  await expect(page.locator('#tabbar')).toHaveAttribute('role', 'tablist');
-  await expect(page.locator('.tab.active')).toHaveAttribute('role', 'tab');
-  await expect(page.locator('.tab.active')).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('#tabbar')).toBeHidden();
+  await expect(page.locator('#tabbar')).toHaveAttribute('aria-hidden', 'true');
+  await expect(page.locator('#project-scripts-navigator [role="list"]')).toHaveAttribute('aria-label', 'Project scripts');
+  await expect(page.locator('#project-scripts-navigator .project-script-open')).toHaveAttribute('aria-current', 'page');
   await expect(skript.activeLines.nth(0)).toHaveAttribute('role', 'textbox');
   await expect(skript.activeLines.nth(0)).toHaveAttribute('aria-label', /screenplay element/);
   await expect(page.locator('.sf-skip-link')).toHaveAttribute('href', '#editor-area');
@@ -116,12 +117,12 @@ test('touch ribbon separates file and editing commands without overflow', async 
   expect(editLayout.rows).toBe(2);
   expect(editLayout.toolsRightGap).toBeLessThanOrEqual(1);
 
-  const tabAlignment = await page.locator('.tab.active').evaluate(tab => {
-    const tabRect = tab.getBoundingClientRect();
-    const titleRect = tab.querySelector('.tab-title').getBoundingClientRect();
-    return Math.abs((tabRect.top + tabRect.height / 2) - (titleRect.top + titleRect.height / 2));
+  const scriptAlignment = await page.locator('.project-script-row.active').evaluate(row => {
+    const rowRect = row.getBoundingClientRect();
+    const titleRect = row.querySelector('.project-script-open').getBoundingClientRect();
+    return Math.abs((rowRect.top + rowRect.height / 2) - (titleRect.top + titleRect.height / 2));
   });
-  expect(tabAlignment).toBeLessThanOrEqual(1);
+  expect(scriptAlignment).toBeLessThanOrEqual(1);
 
   await page.evaluate(() => sfSetInputMode('mouse'));
   await expect(page.locator('.ribbon-tab[data-panel="home"]')).toHaveClass(/active/);
@@ -134,16 +135,16 @@ test('mouse mode keeps the standard ribbon dimensions', async ({ page, skript },
   await expect(page.locator('html')).toHaveClass(/(^|\s)sf-mouse(\s|$)/);
   await expect(page.locator('.ribbon-tab[data-panel="edit"]')).toBeHidden();
   await expect(page.locator('#ribbon-content')).toHaveCSS('height', '84px');
-  const tabLayout = await page.locator('.tab.active').evaluate(tab => {
-    const tabRect = tab.getBoundingClientRect();
-    const titleRect = tab.querySelector('.tab-title').getBoundingClientRect();
+  const scriptLayout = await page.locator('.project-script-row.active').evaluate(row => {
+    const rowRect = row.getBoundingClientRect();
+    const titleRect = row.querySelector('.project-script-open').getBoundingClientRect();
     return {
-      height: tabRect.height,
-      titleOffset: Math.abs((tabRect.top + tabRect.height / 2) - (titleRect.top + titleRect.height / 2)),
+      height: rowRect.height,
+      titleOffset: Math.abs((rowRect.top + rowRect.height / 2) - (titleRect.top + titleRect.height / 2)),
     };
   });
-  expect(tabLayout.height).toBeGreaterThanOrEqual(30);
-  expect(tabLayout.titleOffset).toBeLessThanOrEqual(1);
+  expect(scriptLayout.height).toBeGreaterThanOrEqual(30);
+  expect(scriptLayout.titleOffset).toBeLessThanOrEqual(1);
 });
 
 test('Acts matches the other ribbon groups and cannot open the text-selection menu', async ({ page, skript }, testInfo) => {
