@@ -34,13 +34,13 @@ The project keeps shared:
 
 ### Delivery stages
 
-1. **Batch import:** select several existing `.script` files in one operation and open every valid script as a document.
-2. **Collection compatibility:** recognise the new `com.skript.project-collection` container and open all script documents stored inside it.
-3. **Project navigation:** show the project name and its scripts clearly in the Navigator, with add, rename, reorder, duplicate and remove actions.
-4. **Project save:** save and reopen the whole collection as one project without losing compatibility with individual 1.0 `.script` files.
+1. **Batch import — implemented:** select several existing `.script` files in one operation and open every valid script as a document.
+2. **Collection compatibility — implemented:** recognise the `com.skript.project-collection` container and open all script documents stored inside it.
+3. **Project navigation — implemented:** show the project name and its scripts clearly in the Navigator, with add, rename, reorder, duplicate and remove actions.
+4. **Project save — implemented:** save, Save As, autosave, recover and reopen the whole collection as one project without losing compatibility with individual 1.0 `.script` files.
 5. **Import queue:** allow several Fountain, Final Draft, WriterDuet, PDF and Word files to be selected together, with a clear review queue for formats that need import confirmation.
 
-The first two stages begin in the initial 1.1 development increment. The existing 1.0 single-script save format remains readable.
+The first four stages are implemented with desktop, compact-touch and native persistence regression coverage. The existing 1.0 single-script save format remains readable.
 
 ## 2. Storyboard Editor tools
 

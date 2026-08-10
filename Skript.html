@@ -25080,6 +25080,34 @@ var __async = (__this, __arguments, generator) => {
   .sb-storyboard-scene-item.active .sb-storyboard-scene-index { background:var(--brand-purple);color:#fff; }
   .sb-storyboard-scene-name { min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
   .sb-storyboard-scene-count { color:var(--text-3);font-size:8px; }
+  .project-scripts-summary { display:flex;align-items:center;gap:5px;padding:6px 7px 5px; }
+  .project-scripts-name {
+    min-width:0;flex:1;border:0;background:transparent;color:var(--text-2);
+    font:650 10px/1.3 'Inter',sans-serif;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;
+  }
+  .project-scripts-name:hover { color:var(--text); }
+  .project-scripts-add {
+    width:24px;height:24px;border:1px solid var(--border);border-radius:5px;background:var(--surface2);
+    color:var(--text-2);cursor:pointer;font:700 14px/1 'Inter',sans-serif;
+  }
+  .project-scripts-add:hover { border-color:var(--brand-purple);color:var(--text); }
+  .project-script-row {
+    display:grid;grid-template-columns:minmax(0,1fr) repeat(5,22px);align-items:center;gap:1px;
+    min-height:31px;padding:3px 5px 3px 9px;border-left:2px solid transparent;color:var(--text-3);
+  }
+  .project-script-row.active { border-left-color:var(--brand-purple);background:var(--brand-purple-soft);color:var(--text); }
+  .project-script-open {
+    min-width:0;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer;
+    font:550 10px/1.3 'Inter',sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .project-script-open .project-script-dirty { color:var(--amber); }
+  .project-script-action {
+    width:22px;height:24px;border:0;border-radius:4px;background:transparent;color:var(--text-3);
+    cursor:pointer;font:600 10px/1 'Inter',sans-serif;
+  }
+  .project-script-action:hover:not(:disabled) { background:var(--surface3);color:var(--text); }
+  .project-script-action:disabled { opacity:.25;cursor:default; }
+  .project-scripts-empty { padding:8px 10px;color:var(--text-3);font-size:9px;line-height:1.4; }
   .storyboard-ribbon-group { display:none; }
   body:not(.storyboard-workspace-active) .storyboard-workspace-tab,
   body:not(.storyboard-workspace-active) .storyboard-workspace-panel { display:none!important; }
@@ -31515,6 +31543,18 @@ body #sb-toolbar > * { flex:0 0 auto; }
 
       <!-- ── PERMANENT SECTIONS ───────────────────────────────── -->
 
+      <!-- Multi-script project documents -->
+      <div class="sidebar-section open" id="sb-project-scripts-section">
+        <div class="sidebar-section-header" onclick="toggleSidebarSection('sb-project-scripts-section')" style="cursor:pointer;" title="Scripts in this project">
+          <span class="sidebar-section-icon">📚</span>
+          <span class="sidebar-section-title">Project Scripts</span>
+          <span class="sidebar-chevron">›</span>
+        </div>
+        <div class="sidebar-section-body">
+          <div id="project-scripts-navigator"></div>
+        </div>
+      </div>
+
       <!-- Script -->
       <div class="sidebar-section open" id="sb-scripts-section">
         <div class="sidebar-section-header" onclick="activateScriptNavigator()" style="cursor:pointer;" title="Open or collapse Script scenes">
@@ -32771,7 +32811,7 @@ body #sb-toolbar > * { flex:0 0 auto; }
             <div class="opt-section"><strong>Snapping and smart guides</strong><div class="opt-note" style="margin-top:5px;">Snap objects to the canvas, grid and other objects while live guide lines show matching edges and centres.</div></div>
             <div class="opt-section"><strong>Storyboard Undo and Redo</strong><div class="opt-note" style="margin-top:5px;">Undo and redo drawing, object, layer, card deletion, duplication and reordering changes with toolbar buttons or standard keyboard shortcuts.</div></div>
             <div class="opt-section"><strong>Frame and card management</strong><div class="opt-note" style="margin-top:5px;">Copy, paste, duplicate, delete and drag-reorder storyboard cards without separating their artwork, captions or script links.</div></div>
-            <div class="opt-section"><strong>Multi-script project foundation</strong><div class="opt-note" style="margin-top:5px;">Introduces the project-collection format used to group multiple script documents under one project identity.</div></div>
+            <div class="opt-section"><strong>Complete multi-script projects</strong><div class="opt-note" style="margin-top:5px;">Add, rename, reorder, duplicate and remove scripts in one project; save and reopen the complete collection with shared storyboards, media and production documents; and recover or Save As the whole project safely.</div></div>
             <div class="opt-section"><strong>Safer batch handling</strong><div class="opt-note" style="margin-top:5px;">A damaged or invalid file no longer prevents other valid files in the same selection from opening.</div></div>
             <div class="opt-section"><strong>Recovery accessibility</strong><div class="opt-note" style="margin-top:5px;">Keeps keyboard focus inside the Recovery Centre when it is opened over the startup recovery prompt.</div></div>
             <div class="opt-section"><strong>Development verification</strong><div class="opt-note" style="margin-top:5px;">Source and browser regression checks cover desktop, compact-touch, storyboard arranging, deletion and history restoration.</div></div>
@@ -33562,6 +33602,8 @@ body #sb-toolbar > * { flex:0 0 auto; }
 //  STATE
 // ═══════════════════════════════════════
 let tabs = [];
+const projectCollections = new Map();
+let activeProjectContextKey = '';
 // ── Window controls ──────────────────────────────────────────────────
 // ── Right-click: disabled everywhere except spell suggestions ─────────
 document.addEventListener('contextmenu', function(e) {
@@ -33859,7 +33901,11 @@ function decorateProjectTabElement(tabEl, title) {
 function createTab(title, openCover = false) {
   const id = ++tabCounter;
   const initialView = openCover ? 'cover' : 'script';
-  const tab = { id, title, lines: [], saved: false, dirty: true, view: initialView };
+  const tab = {
+    id, title, lines: [], saved: false, dirty: true, view: initialView,
+    projectId: newProjectId(), createdAt: new Date().toISOString(),
+    _sharedProjectState: emptySharedProjectData(), _notesSnapshot: []
+  };
   tabs.push(tab);
 
   // ── Tab element with view toggle ──
@@ -33947,15 +33993,29 @@ function createTab(title, openCover = false) {
 function activateTab(id) {
   const isProjectSwitch = activeTabId !== id;
   const previousTab = tabs.find(t => t.id === activeTabId);
+  const nextTab = tabs.find(t => t.id === id);
+  const previousContextKey = projectContextKey(previousTab);
+  const nextContextKey = projectContextKey(nextTab);
   if (previousTab && previousTab.id !== id) {
     if (typeof shotListData !== 'undefined') previousTab._shotListSnapshot = cloneProjectValue(shotListData, {});
     try { if (typeof SL !== 'undefined' && SL.getData) previousTab._studioShotListSnapshot = SL.getData(); } catch (_) {}
     if (typeof bdData !== 'undefined') previousTab._bdSnapshot = cloneProjectValue(bdData, {});
     if (typeof beatData !== 'undefined') previousTab._beatDataSnapshot = cloneProjectValue(beatData, {});
     previousTab.format = activeFormat || previousTab.format || 'film';
+    previousTab._notesSnapshot = cloneProjectValue(appState.notes, []);
+    if (previousContextKey !== nextContextKey) getSharedProjectData(previousTab, true);
   }
   activeTabId = id;
   const activeTab = tabs.find(t => t.id === id);
+  if (activeTab && previousContextKey !== nextContextKey) {
+    applySharedProjectData(getSharedProjectData(activeTab));
+  }
+  if (activeTab && isProjectSwitch) {
+    appState.notes = cloneProjectValue(activeTab._notesSnapshot, []);
+    if (typeof renderNotesList === 'function') renderNotesList();
+    if (typeof updateSidebarNotesPreview === 'function') updateSidebarNotesPreview();
+  }
+  activeProjectContextKey = nextContextKey;
   document.body.classList.toggle('title-page-workspace-active', activeTab?.view === 'cover');
   syncUnsavedState();
   if (activeTab?.format && activeTab.format !== activeFormat && typeof switchFormat === 'function') {
@@ -33999,6 +34059,7 @@ function activateTab(id) {
 
   if (activeTab) updateNavActiveState(activeTab.view || 'script');
   updateStatusBar();
+  renderProjectScriptsNavigator();
 
   // Focus after paint
   if (activeTab && activeTab.view === 'script') {
@@ -34114,6 +34175,10 @@ function tabHasAuthoredContent(tab) {
 function closeTab(e, id) {
   e.stopPropagation();
   const closingTab = tabs.find(tab => tab.id === id);
+  if (closingTab?.collectionId && collectionTabs(closingTab.collectionId).length > 1) {
+    removeProjectScript(id);
+    return;
+  }
   if (closingTab?.dirty && tabHasAuthoredContent(closingTab)) {
     const title = closingTab.title || 'Untitled project';
     if (!window.confirm(`“${title}” has unsaved changes. Close it without saving?`)) return;
@@ -34127,11 +34192,14 @@ function closeTab(e, id) {
     return;
   }
   tabs = tabs.filter(t => t.id !== id);
+  if (closingTab?.collectionId && !tabs.some(tab => tab.collectionId === closingTab.collectionId)) {
+    projectCollections.delete(closingTab.collectionId);
+  }
   document.querySelector(`.tab[data-id="${id}"]`)?.remove();
   document.querySelector(`.script-panel[data-tab-id="${id}"]`)?.remove();
   document.querySelector(`.cover-view[data-cover-id="${id}"]`)?.remove();
   if (activeTabId === id) activateTab(tabs[tabs.length - 1].id);
-  else syncUnsavedState();
+  else { syncUnsavedState(); renderProjectScriptsNavigator(); }
 }
 
 function getActivePanel() {
@@ -35100,8 +35168,15 @@ function syncUnsavedState() {
 
 function markUnsaved() {
   const active = tabs.find(tab => tab.id === activeTabId);
-  if (active) { active.dirty = true; active.saved = false; }
+  if (active) {
+    active.dirty = true; active.saved = false;
+    if (active.collectionId) {
+      const record = projectCollections.get(active.collectionId);
+      if (record) record.dirty = true;
+    }
+  }
   syncUnsavedState();
+  renderProjectScriptsNavigator();
   scheduleRecoverySoon();
 }
 
@@ -35109,6 +35184,7 @@ function markSaved() {
   const active = tabs.find(tab => tab.id === activeTabId);
   if (active) { active.dirty = false; active.saved = true; }
   syncUnsavedState();
+  renderProjectScriptsNavigator();
   if (typeof histSnapshot    === 'function') histSnapshot();
   if (typeof collabPushScript === 'function') collabPushScript();
 }
@@ -35118,6 +35194,7 @@ function onTitleChange(tabId, val) {
   if (tab) tab.title = val;
   const tabEl = document.querySelector(`.tab[data-id="${tabId}"] .tab-title`);
   if (tabEl) tabEl.textContent = val || 'Untitled';
+  renderProjectScriptsNavigator();
   markUnsaved();
 }
 
@@ -35126,6 +35203,7 @@ function onCoverTitleChange(tabId, val) {
   if (tab) tab.title = val;
   const tabEl = document.querySelector(`.tab[data-id="${tabId}"] .tab-title`);
   if (tabEl) tabEl.textContent = val || 'Untitled';
+  renderProjectScriptsNavigator();
   markUnsaved();
 }
 
@@ -35172,7 +35250,7 @@ function sfApiUrl(path) {
 const SKRIPT_PROJECT_SCHEMA = 'com.skript.project';
 const SKRIPT_PROJECT_VERSION = 6;
 const SKRIPT_PROJECT_COLLECTION_SCHEMA = 'com.skript.project-collection';
-const SKRIPT_PROJECT_COLLECTION_VERSION = 1;
+const SKRIPT_PROJECT_COLLECTION_VERSION = 2;
 const SKRIPT_LINE_TYPES = new Set([
   'scene', 'subheading', 'action', 'character', 'dialogue', 'parenthetical',
   'transition', 'notes', 'cold-open', 'act-break', 'act', 'stage-direction',
@@ -35209,6 +35287,65 @@ function projectFingerprint(project) {
 function attachProjectIntegrity(project) {
   project.integrity = { algorithm: 'fnv1a32', hash: projectFingerprint(project) };
   return project;
+}
+
+function emptySharedProjectData() {
+  return { storyboard: null, callSheets: null, production: null, workspaceMode: 'writing' };
+}
+
+function captureSharedProjectData() {
+  let storyboard = null;
+  try {
+    const raw = localStorage.getItem('sf-storyboard');
+    if (raw) storyboard = JSON.parse(raw);
+  } catch (_) {}
+  return {
+    storyboard: cloneProjectValue(storyboard, null),
+    callSheets: typeof getCallSheetData === 'function' ? cloneProjectValue(getCallSheetData(), null) : null,
+    production: typeof getProductionData === 'function' ? cloneProjectValue(getProductionData(), null) : null,
+    workspaceMode: typeof workspaceMode === 'string' ? workspaceMode : 'writing',
+  };
+}
+
+function applySharedProjectData(value) {
+  const shared = { ...emptySharedProjectData(), ...(value && typeof value === 'object' ? value : {}) };
+  try {
+    if (shared.storyboard) localStorage.setItem('sf-storyboard', JSON.stringify(shared.storyboard));
+    else localStorage.removeItem('sf-storyboard');
+  } catch (_) {}
+  if (typeof setCallSheetData === 'function') setCallSheetData(cloneProjectValue(shared.callSheets, null));
+  if (typeof setProductionData === 'function') setProductionData(cloneProjectValue(shared.production, null));
+  if (typeof setWorkspaceMode === 'function') setWorkspaceMode(shared.workspaceMode || 'writing', true);
+  if (typeof loadStoryboardFromStorage === 'function') loadStoryboardFromStorage();
+}
+
+function projectContextKey(tab) {
+  return tab?.collectionId ? `collection:${tab.collectionId}` : (tab ? `script:${tab.id}` : '');
+}
+
+function getSharedProjectData(tab, captureActive = false) {
+  if (!tab) return emptySharedProjectData();
+  if (captureActive && tab.id === activeTabId) {
+    const captured = captureSharedProjectData();
+    if (tab.collectionId) {
+      const record = projectCollections.get(tab.collectionId);
+      if (record) record.shared = captured;
+    } else tab._sharedProjectState = captured;
+    return captured;
+  }
+  if (tab.collectionId) return cloneProjectValue(projectCollections.get(tab.collectionId)?.shared, emptySharedProjectData());
+  return cloneProjectValue(tab._sharedProjectState, emptySharedProjectData());
+}
+
+function normaliseCollectionShared(input, scripts) {
+  const first = Array.isArray(scripts) ? scripts[0] : null;
+  const source = input?.shared && typeof input.shared === 'object' ? input.shared : input;
+  return {
+    storyboard: cloneProjectValue(source?.storyboard ?? first?.storyboard, null),
+    callSheets: cloneProjectValue(source?.callSheets ?? first?.callSheets, null),
+    production: cloneProjectValue(source?.production ?? first?.production, null),
+    workspaceMode: String(source?.workspaceMode || first?.workspaceMode || 'writing'),
+  };
 }
 
 function normaliseShotListData(value) {
@@ -35320,6 +35457,7 @@ function readProjectCollectionData(input) {
       title: '',
       scripts: [input],
       isCollection: false,
+      shared: normaliseCollectionShared(input, [input]),
     };
   }
 
@@ -35336,9 +35474,252 @@ function readProjectCollectionData(input) {
     title: String(input.title || 'Untitled Project').trim() || 'Untitled Project',
     scripts: input.scripts,
     isCollection: true,
+    version,
+    createdAt: input.createdAt || input.savedAt || new Date().toISOString(),
+    updatedAt: input.updatedAt || input.savedAt || new Date().toISOString(),
+    activeScriptId: String(input.activeScriptId || ''),
+    shared: normaliseCollectionShared(input, input.scripts),
   };
 }
 window.readProjectCollectionData = readProjectCollectionData;
+
+function collectionTabs(collectionId) {
+  return tabs.filter(tab => tab.collectionId === collectionId);
+}
+
+function ensureCollectionForTab(tab = tabs.find(item => item.id === activeTabId)) {
+  if (!tab) return null;
+  if (tab.collectionId && projectCollections.has(tab.collectionId)) return projectCollections.get(tab.collectionId);
+  const collectionId = newProjectId('collection');
+  const title = String(tab.title || 'Untitled Project').trim() || 'Untitled Project';
+  const record = {
+    id: collectionId,
+    title,
+    filePath: '',
+    fileHandle: null,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    shared: getSharedProjectData(tab, tab.id === activeTabId),
+    dirty: true,
+  };
+  projectCollections.set(collectionId, record);
+  tab.collectionId = collectionId;
+  tab.collectionTitle = title;
+  tab.filePath = '';
+  tab.fileHandle = null;
+  tab.dirty = true;
+  tab.saved = false;
+  activeProjectContextKey = projectContextKey(tab);
+  renderProjectScriptsNavigator();
+  syncUnsavedState();
+  scheduleRecoverySoon();
+  return record;
+}
+
+function captureActiveTabProjectState() {
+  const tab = tabs.find(item => item.id === activeTabId);
+  if (!tab) return;
+  if (typeof shotListData !== 'undefined') tab._shotListSnapshot = cloneProjectValue(shotListData, {});
+  try { if (typeof SL !== 'undefined' && SL.getData) tab._studioShotListSnapshot = SL.getData(); } catch (_) {}
+  if (typeof bdData !== 'undefined') tab._bdSnapshot = cloneProjectValue(bdData, {});
+  if (typeof beatData !== 'undefined') tab._beatDataSnapshot = cloneProjectValue(beatData, {});
+  tab._notesSnapshot = cloneProjectValue(appState.notes, []);
+  getSharedProjectData(tab, true);
+}
+
+function buildProjectCollectionData(collectionId, { recoverySnapshot = false } = {}) {
+  const record = projectCollections.get(collectionId);
+  const members = collectionTabs(collectionId);
+  if (!record || !members.length) throw new Error('This multi-script project is no longer available.');
+  captureActiveTabProjectState();
+  const now = new Date().toISOString();
+  record.updatedAt = now;
+  const active = members.find(tab => tab.id === activeTabId) || members[0];
+  return attachProjectIntegrity({
+    schema: SKRIPT_PROJECT_COLLECTION_SCHEMA,
+    version: SKRIPT_PROJECT_COLLECTION_VERSION,
+    projectId: collectionId,
+    title: record.title || 'Untitled Project',
+    createdAt: record.createdAt || now,
+    updatedAt: now,
+    savedAt: now,
+    activeScriptId: active?.projectId || members[0].projectId,
+    shared: cloneProjectValue(record.shared, emptySharedProjectData()),
+    recoverySnapshot: !!recoverySnapshot,
+    scripts: members.map(tab => buildProjectData({ tabId: tab.id, recoverySnapshot, includeShared: false })),
+  });
+}
+
+function markCollectionSaved(collectionId, path = '', fileHandle = null) {
+  const record = projectCollections.get(collectionId);
+  if (record) {
+    if (path) record.filePath = path;
+    if (fileHandle) record.fileHandle = fileHandle;
+    record.dirty = false;
+  }
+  collectionTabs(collectionId).forEach(tab => {
+    tab.dirty = false;
+    tab.saved = true;
+    tab.filePath = record?.filePath || path || tab.filePath || '';
+  });
+  syncUnsavedState();
+  renderProjectScriptsNavigator();
+}
+
+function renameActiveProject(nextTitle) {
+  const tab = tabs.find(item => item.id === activeTabId);
+  const record = ensureCollectionForTab(tab);
+  if (!record) return;
+  const apply = value => {
+    const title = String(value || '').trim();
+    if (!title) return;
+    record.title = title;
+    record.dirty = true;
+    collectionTabs(record.id).forEach(item => { item.collectionTitle = title; item.dirty = true; item.saved = false; });
+    renderProjectScriptsNavigator(); syncUnsavedState(); scheduleRecoverySoon();
+  };
+  if (nextTitle !== undefined) apply(nextTitle);
+  else openModal('Rename Project', 'Name the complete multi-script project.', record.title, apply);
+}
+
+function addScriptToActiveProject(title = 'UNTITLED SCRIPT') {
+  const current = tabs.find(item => item.id === activeTabId);
+  const record = ensureCollectionForTab(current);
+  if (!record) return null;
+  record.shared = getSharedProjectData(current, true);
+  createTab(String(title || 'UNTITLED SCRIPT'));
+  const tab = tabs.find(item => item.id === activeTabId);
+  tab.collectionId = record.id;
+  tab.collectionTitle = record.title;
+  tab._sharedProjectState = null;
+  record.dirty = true;
+  applySharedProjectData(record.shared);
+  activeProjectContextKey = projectContextKey(tab);
+  markUnsaved();
+  renderProjectScriptsNavigator();
+  return tab;
+}
+
+function renameProjectScript(tabId, nextTitle) {
+  const tab = tabs.find(item => item.id === Number(tabId));
+  if (!tab) return;
+  const apply = value => {
+    const title = String(value || '').trim();
+    if (!title) return;
+    tab.title = title;
+    const coverTitle = document.querySelector(`.cover-view[data-cover-id="${tab.id}"] .cover-title-input`);
+    if (coverTitle) coverTitle.value = title;
+    const tabTitle = document.querySelector(`.tab[data-id="${tab.id}"] .tab-title`);
+    if (tabTitle) tabTitle.textContent = title;
+    tab.dirty = true; tab.saved = false;
+    const record = projectCollections.get(tab.collectionId); if (record) record.dirty = true;
+    syncUnsavedState(); renderProjectScriptsNavigator(); scheduleRecoverySoon();
+  };
+  if (nextTitle !== undefined) apply(nextTitle);
+  else openModal('Rename Script', 'Change this script document name.', tab.title, apply);
+}
+
+function moveProjectScript(tabId, delta) {
+  const tab = tabs.find(item => item.id === Number(tabId));
+  if (!tab?.collectionId) return false;
+  const members = collectionTabs(tab.collectionId);
+  const index = members.indexOf(tab);
+  const target = members[index + Number(delta)];
+  if (!target) return false;
+  const from = tabs.indexOf(tab), to = tabs.indexOf(target);
+  [tabs[from], tabs[to]] = [tabs[to], tabs[from]];
+  const tabEl = document.querySelector(`.tab[data-id="${tab.id}"]`);
+  const targetEl = document.querySelector(`.tab[data-id="${target.id}"]`);
+  if (tabEl && targetEl) {
+    if (delta < 0) targetEl.before(tabEl); else targetEl.after(tabEl);
+  }
+  const record = projectCollections.get(tab.collectionId); if (record) record.dirty = true;
+  collectionTabs(tab.collectionId).forEach(item => { item.dirty = true; item.saved = false; });
+  syncUnsavedState(); renderProjectScriptsNavigator(); scheduleRecoverySoon();
+  return true;
+}
+
+function cloneScriptWithFreshIds(data, title) {
+  const copy = cloneProjectValue(data, {});
+  copy.projectId = newProjectId();
+  copy.createdAt = new Date().toISOString();
+  copy.title = title;
+  copy.cover = { ...(copy.cover || {}), title };
+  const renew = line => {
+    line.lineId = newProjectId('line');
+    (line.columns || []).forEach(column => (column || []).forEach(renew));
+  };
+  (copy.lines || []).forEach(renew);
+  delete copy.integrity;
+  return copy;
+}
+
+function duplicateProjectScript(tabId) {
+  const source = tabs.find(item => item.id === Number(tabId));
+  if (!source) return null;
+  const record = ensureCollectionForTab(source);
+  const copyTitle = `${source.title || 'Untitled'} COPY`;
+  const data = cloneScriptWithFreshIds(buildProjectData({ tabId: source.id, includeShared: false }), copyTitle);
+  importTabFromData(data, { collectionId: record.id, collectionTitle: record.title });
+  const copy = tabs.find(item => item.id === activeTabId);
+  copy.collectionId = record.id; copy.collectionTitle = record.title; copy.filePath = '';
+  copy.dirty = true; copy.saved = false;
+  record.dirty = true;
+  renderProjectScriptsNavigator(); syncUnsavedState(); scheduleRecoverySoon();
+  return copy;
+}
+
+function removeProjectScript(tabId, force = false) {
+  const tab = tabs.find(item => item.id === Number(tabId));
+  if (!tab?.collectionId) return false;
+  const members = collectionTabs(tab.collectionId);
+  if (members.length <= 1) { showToast('A project must contain at least one script.'); return false; }
+  if (!force && !window.confirm(`Remove “${tab.title}” from this project?`)) return false;
+  const record = projectCollections.get(tab.collectionId);
+  tabs = tabs.filter(item => item.id !== tab.id);
+  document.querySelector(`.tab[data-id="${tab.id}"]`)?.remove();
+  document.querySelector(`.script-panel[data-tab-id="${tab.id}"]`)?.remove();
+  document.querySelector(`.cover-view[data-cover-id="${tab.id}"]`)?.remove();
+  if (record) record.dirty = true;
+  collectionTabs(tab.collectionId).forEach(item => { item.dirty = true; item.saved = false; });
+  if (activeTabId === tab.id) activateTab(collectionTabs(tab.collectionId)[Math.max(0, members.indexOf(tab) - 1)]?.id || tabs[0]?.id);
+  else { syncUnsavedState(); renderProjectScriptsNavigator(); }
+  scheduleRecoverySoon();
+  return true;
+}
+
+function renderProjectScriptsNavigator() {
+  const host = document.getElementById('project-scripts-navigator');
+  if (!host) return;
+  const active = tabs.find(tab => tab.id === activeTabId);
+  if (!active) { host.innerHTML = '<div class="project-scripts-empty">No script is open.</div>'; return; }
+  const record = active.collectionId ? projectCollections.get(active.collectionId) : null;
+  const members = record ? collectionTabs(record.id) : [active];
+  const title = record?.title || active.title || 'Untitled Project';
+  host.innerHTML = `<div class="project-scripts-summary">
+    <button class="project-scripts-name" onclick="renameActiveProject()" title="Rename project">${escHtml(title)}</button>
+    <button class="project-scripts-add" onclick="addScriptToActiveProject()" title="Add script to project" aria-label="Add script to project">+</button>
+  </div>`;
+  members.forEach((tab, index) => {
+    const row = document.createElement('div');
+    row.className = `project-script-row${tab.id === activeTabId ? ' active' : ''}`;
+    row.dataset.projectScriptId = tab.id;
+    row.innerHTML = `<button class="project-script-open" title="Open ${escHtml(tab.title)}">${escHtml(tab.title || 'Untitled')}<span class="project-script-dirty">${tab.dirty ? ' •' : ''}</span></button>
+      <button class="project-script-action" title="Move up" aria-label="Move script up" ${index === 0 ? 'disabled' : ''}>↑</button>
+      <button class="project-script-action" title="Move down" aria-label="Move script down" ${index === members.length - 1 ? 'disabled' : ''}>↓</button>
+      <button class="project-script-action" title="Duplicate script" aria-label="Duplicate script">⧉</button>
+      <button class="project-script-action" title="Rename script" aria-label="Rename script">✎</button>
+      <button class="project-script-action" title="Remove script" aria-label="Remove script" ${members.length === 1 ? 'disabled' : ''}>×</button>`;
+    const buttons = row.querySelectorAll('button');
+    buttons[0].onclick = () => activateTab(tab.id);
+    buttons[1].onclick = () => moveProjectScript(tab.id, -1);
+    buttons[2].onclick = () => moveProjectScript(tab.id, 1);
+    buttons[3].onclick = () => duplicateProjectScript(tab.id);
+    buttons[4].onclick = () => renameProjectScript(tab.id);
+    buttons[5].onclick = () => removeProjectScript(tab.id);
+    host.appendChild(row);
+  });
+}
 
 function _importLineMetadata(line) {
   try { return JSON.parse(line?.dataset?.importMeta || '{}'); } catch (_) { return {}; }
@@ -35376,7 +35757,7 @@ function collectProjectLines(tabId) {
   return lines;
 }
 
-function buildProjectData({ tabId = activeTabId, recoverySnapshot = false } = {}) {
+function buildProjectData({ tabId = activeTabId, recoverySnapshot = false, includeShared = true } = {}) {
   const tab = tabs.find(item => item.id === tabId);
   const cover = getCoverData(tabId);
   const now = new Date().toISOString();
@@ -35386,11 +35767,7 @@ function buildProjectData({ tabId = activeTabId, recoverySnapshot = false } = {}
     tab.format ||= activeFormat || 'film';
   }
 
-  let storyboardData = null;
-  try {
-    const raw = localStorage.getItem('sf-storyboard');
-    if (raw) storyboardData = JSON.parse(raw);
-  } catch (_) {}
+  const shared = getSharedProjectData(tab, isActiveTab(tabId));
 
   const isActive = tabId === activeTabId;
   const legacyShotList = isActive && typeof shotListData !== 'undefined'
@@ -35400,7 +35777,7 @@ function buildProjectData({ tabId = activeTabId, recoverySnapshot = false } = {}
   const breakdown = isActive && typeof bdData !== 'undefined' ? bdData : (tab?._bdSnapshot || {});
   const beats = isActive && typeof beatData !== 'undefined' ? beatData : (tab?._beatDataSnapshot || {});
 
-  return attachProjectIntegrity({
+  const data = {
     schema: SKRIPT_PROJECT_SCHEMA,
     version: SKRIPT_PROJECT_VERSION,
     projectId: tab?.projectId || newProjectId(),
@@ -35410,22 +35787,22 @@ function buildProjectData({ tabId = activeTabId, recoverySnapshot = false } = {}
     title: cover.title || tab?.title || 'Untitled',
     format: tab?.format || activeFormat || 'film',
     cover,
-    notes: cloneProjectValue(appState.notes, []),
+    notes: cloneProjectValue(isActive ? appState.notes : tab?._notesSnapshot, []),
     collabNotes: typeof COLLAB !== 'undefined' ? cloneProjectValue(COLLAB.notes, []) : [],
-    storyboard: cloneProjectValue(storyboardData, null),
     shotList: normaliseShotListData({ legacy: legacyShotList, studio: studioShotList }),
     breakdown: cloneProjectValue(breakdown, {}),
     beatData: cloneProjectValue(beats, {}),
     synopsisDraft: cloneProjectValue(tab?.synopsisDraft, null),
-    callSheets: typeof getCallSheetData === 'function' ? cloneProjectValue(getCallSheetData(), null) : null,
-    production: typeof getProductionData === 'function' ? cloneProjectValue(getProductionData(), null) : null,
-    workspaceMode: typeof workspaceMode === 'string' ? workspaceMode : 'writing',
     fdx: cloneProjectValue(tab?.fdx, null),
     importProfile: cloneProjectValue(tab?.importProfile, null),
     recoverySnapshot: !!recoverySnapshot,
     lines: collectProjectLines(tabId),
-  });
+  };
+  if (includeShared) Object.assign(data, cloneProjectValue(shared, emptySharedProjectData()));
+  return attachProjectIntegrity(data);
 }
+
+function isActiveTab(tabId) { return tabId === activeTabId; }
 
 async function sfApiFetch(path, options = {}) {
   const preferred = sfApiUrl(path);
@@ -35528,7 +35905,7 @@ async function saveAndCloseDesktop() {
   desktopCloseBusy = true;
   const status = document.getElementById('desktop-close-status');
   const originalTabId = activeTabId;
-  const pending = tabs.filter(tab => tab.dirty && tabHasAuthoredContent(tab));
+  const pending = dirtyProjectRepresentatives();
   for (let index = 0; index < pending.length; index++) {
     const tab = pending[index];
     if (status) status.textContent = `Saving ${index + 1} of ${pending.length}: ${tab.title || 'Untitled project'}…`;
@@ -35545,6 +35922,31 @@ async function saveAndCloseDesktop() {
   desktopDiscardOnClose = false;
   if (status) status.textContent = 'Saved. Closing Skript…';
   await desktopWindowAction('close');
+}
+
+function dirtyProjectRepresentatives() {
+  const seenCollections = new Set();
+  return tabs.filter(tab => {
+    if (!tabHasAuthoredContent(tab)) return false;
+    if (!tab.collectionId) return tab.dirty;
+    const record = projectCollections.get(tab.collectionId);
+    if (!(record?.dirty || collectionTabs(tab.collectionId).some(item => item.dirty))) return false;
+    if (seenCollections.has(tab.collectionId)) return false;
+    seenCollections.add(tab.collectionId);
+    return true;
+  });
+}
+
+async function autosaveAllDirtyProjects() {
+  const originalTabId = activeTabId;
+  const pending = dirtyProjectRepresentatives();
+  let saved = 0;
+  for (const tab of pending) {
+    activateTab(tab.id);
+    if (await saveScript(true)) saved += 1;
+  }
+  if (tabs.some(tab => tab.id === originalTabId)) activateTab(originalTabId);
+  return { saved, total: pending.length };
 }
 
 let nativeWindowEventSeq = 0;
@@ -35583,7 +35985,7 @@ async function sfSaveWithBrowserPicker(json, title) {
       const writable = await handle.createWritable();
       await writable.write(blob);
       await writable.close();
-      return true;
+      return handle;
     } catch (error) {
       if (error.name === 'AbortError') return false;
       throw error;
@@ -35600,19 +36002,31 @@ async function sfSaveWithBrowserPicker(json, title) {
 async function saveScript(silent = false) {
   const container = getLinesContainer(activeTabId);
   if (!container) return false;
-  const data = buildProjectData();
-
-  const json = JSON.stringify(data, null, 2);
   const currentTab = tabs.find(tab => tab.id === activeTabId);
+  const forceSaveDialog = !!window._saveWithDialog;
+  window._saveWithDialog = false;
+  const collection = currentTab?.collectionId ? projectCollections.get(currentTab.collectionId) : null;
+  const data = collection ? buildProjectCollectionData(collection.id) : buildProjectData();
+  const json = JSON.stringify(data, null, 2);
+  const savePath = collection?.filePath || currentTab?.filePath || '';
+  const saveHandle = collection?.fileHandle || currentTab?.fileHandle || null;
+  const completeSave = (path = '', handle = null) => {
+    if (collection) markCollectionSaved(collection.id, path, handle);
+    else {
+      if (path) currentTab.filePath = path;
+      if (handle) currentTab.fileHandle = handle;
+      markSaved();
+    }
+  };
 
   // Files opened with the browser's local picker retain a writable handle, so
   // ordinary Save updates that same file instead of creating a detached copy.
-  if (currentTab?.fileHandle && !window._saveWithDialog) {
+  if (saveHandle && !forceSaveDialog) {
     try {
-      const writable = await currentTab.fileHandle.createWritable();
+      const writable = await saveHandle.createWritable();
       await writable.write(json);
       await writable.close();
-      markSaved();
+      completeSave('', saveHandle);
       return true;
     } catch (error) {
       if (!silent) showToast('Save error: ' + error.message, 7000);
@@ -35624,30 +36038,28 @@ async function saveScript(silent = false) {
   if (window._SF_PORT) {
     try {
       // Use save-auto (no dialog, saves directly to scripts folder)
-      const endpoint = window._saveWithDialog ? '/api/save' : '/api/save-auto';
-      window._saveWithDialog = false; // reset after use
+      const endpoint = forceSaveDialog ? '/api/save' : '/api/save-auto';
       const resp = await sfApiFetch(endpoint, {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({
           content: json,
           title: data.title,
-          path: tabs.find(tab => tab.id === activeTabId)?.filePath || ''
+          path: savePath
         })
       });
       const result = await resp.json();
       if (result && result.ok) {
-        const tab = tabs.find(item => item.id === activeTabId);
-        if (tab && result.path) tab.filePath = result.path;
-        markSaved();
+        completeSave(result.path || '');
         if (!silent) showToast('✓ Saved — ' + (result.path || ''));
         refreshRecentScripts();
         return true;
       } else if (result && result.cancelled) {
         // user cancelled dialog
       } else if (result && result.dialogUnavailable) {
-        if (await sfSaveWithBrowserPicker(json, data.title)) {
-          markSaved();
+        const handle = await sfSaveWithBrowserPicker(json, data.title);
+        if (handle) {
+          completeSave('', handle === true ? null : handle);
           if (!silent) showToast('✓ Saved');
           return true;
         }
@@ -35657,8 +36069,9 @@ async function saveScript(silent = false) {
     } catch(e) {
       if (!silent) {
         try {
-          if (await sfSaveWithBrowserPicker(json, data.title)) {
-            markSaved();
+          const handle = await sfSaveWithBrowserPicker(json, data.title);
+          if (handle) {
+            completeSave('', handle === true ? null : handle);
             showToast('✓ Saved using the local file picker');
             return true;
           }
@@ -35675,14 +36088,14 @@ async function saveScript(silent = false) {
     const filename = (data.title.replace(/[^a-z0-9 ]/gi,'_').trim() || 'Untitled') + '.script';
     const result = await window._native_script_save(filename, json);
     if (result && result.ok) {
-      markSaved();
-      return;
+      completeSave(result.path || '');
+      return true;
     }
     if (result && result.cancelled) return; // user cancelled
   }
   // Browser fallback — only reached in non-desktop browser context
   // (window._SF_PORT always causes an early return above in the desktop app)
-  if (window._SF_PORT) { markSaved(); return; } // safety guard
+  if (window._SF_PORT) { completeSave(); return true; } // safety guard
   const blob = new Blob([json], { type: 'application/json' });
   const fname = `${data.title.replace(/[^a-z0-9]/gi,'_') || 'Untitled'}.script`;
   // Use File System Access API if available — opens a proper save dialog
@@ -35696,9 +36109,9 @@ async function saveScript(silent = false) {
       const w = await fh.createWritable();
       await w.write(blob);
       await w.close();
-      markSaved();
+      completeSave('', fh);
       if (typeof csAutoSync === 'function') csAutoSync();
-      return;
+      return true;
     } catch(e) { if (e.name === 'AbortError') return; /* user cancelled */ }
   }
   // Absolute last resort (older browsers, no download indicator suppression possible)
@@ -35709,9 +36122,10 @@ async function saveScript(silent = false) {
     a.click();
     URL.revokeObjectURL(a.href);
   }
-  markSaved();
+  completeSave();
   // Backup folder — mirror to a chosen local folder if enabled
   if (typeof csAutoSync === 'function') csAutoSync();
+  return true;
 }
 
 function saveScriptAs() {
@@ -35745,20 +36159,7 @@ async function handleFileLoad(e) {
   for (const file of files) {
     try {
       const parsed = JSON.parse(await readLocalTextFile(file));
-      const collection = readProjectCollectionData(parsed);
-      collection.scripts.forEach((script, index) => {
-        importTabFromData(script, {
-          collectionId: collection.projectId,
-          collectionTitle: collection.title,
-          sourcePath: collection.isCollection && index > 0 ? '' : (file.path || ''),
-        });
-        const importedTab = tabs.find(tab => tab.id === activeTabId);
-        if (importedTab && collection.isCollection) {
-          importedTab.collectionId = collection.projectId;
-          importedTab.collectionTitle = collection.title;
-        }
-        imported += 1;
-      });
+      imported += openProjectPayload(parsed, { sourcePath: file.path || '' });
     } catch (error) {
       failures.push(`${file.name || 'Project'}: ${error?.message || 'Invalid project file'}`);
     }
@@ -35773,6 +36174,61 @@ async function handleFileLoad(e) {
     showToast(failures[0] || 'No valid Skript projects were found.', 7000);
   }
   if (failures.length) console.warn('Skript import failures:', failures);
+}
+
+function openProjectPayload(input, { sourcePath = '', fileHandle = null, recovered = false } = {}) {
+  const collection = readProjectCollectionData(input);
+  if (!collection.isCollection) {
+    importTabFromData(collection.scripts[0], { sourcePath });
+    const tab = tabs.find(item => item.id === activeTabId);
+    if (tab) {
+      tab.fileHandle = fileHandle || null;
+      tab._sharedProjectState = normaliseCollectionShared(input, [input]);
+      applySharedProjectData(tab._sharedProjectState);
+      activeProjectContextKey = projectContextKey(tab);
+      if (recovered) { tab.filePath = ''; tab.fileHandle = null; tab.dirty = true; tab.saved = false; }
+    }
+    renderProjectScriptsNavigator();
+    return 1;
+  }
+
+  const record = {
+    id: recovered ? newProjectId('collection-recovered') : collection.projectId,
+    title: collection.title,
+    filePath: recovered ? '' : sourcePath,
+    fileHandle: recovered ? null : fileHandle,
+    createdAt: collection.createdAt,
+    updatedAt: collection.updatedAt,
+    shared: cloneProjectValue(collection.shared, emptySharedProjectData()),
+    dirty: !!recovered,
+  };
+  projectCollections.set(record.id, record);
+  const opened = [];
+  collection.scripts.forEach(script => {
+    importTabFromData(script, {
+      collectionId: record.id,
+      collectionTitle: record.title,
+      sourcePath: record.filePath,
+    });
+    const tab = tabs.find(item => item.id === activeTabId);
+    if (tab) {
+      tab.collectionId = record.id;
+      tab.collectionTitle = record.title;
+      tab.filePath = record.filePath;
+      tab.fileHandle = null;
+      tab.dirty = !!recovered;
+      tab.saved = !recovered;
+      opened.push(tab);
+    }
+  });
+  const preferred = opened.find(tab => tab.projectId === collection.activeScriptId) || opened[0];
+  if (preferred) activateTab(preferred.id);
+  applySharedProjectData(record.shared);
+  activeProjectContextKey = projectContextKey(preferred);
+  if (recovered) opened.forEach(tab => { tab.dirty = true; tab.saved = false; });
+  syncUnsavedState();
+  renderProjectScriptsNavigator();
+  return opened.length;
 }
 
 function _removeEmptyActiveTabForImport() {
@@ -35818,6 +36274,8 @@ function createTabFromData(data, options = {}) {
     fdx: cloneProjectValue(data.fdx, null),
     importProfile: cloneProjectValue(data.importProfile, null)
   };
+  tab._notesSnapshot = cloneProjectValue(data.notes, []);
+  tab._sharedProjectState = options.collectionId ? null : normaliseCollectionShared(data, [data]);
   tabs.push(tab);
 
   // ── Tab element ──
@@ -35895,9 +36353,7 @@ function createTabFromData(data, options = {}) {
   }
 
   // Restore notes
-  if (data.notes?.length) {
-    appState.notes = data.notes;
-  }
+  appState.notes = cloneProjectValue(data.notes, []);
   // Restore collaboration notes if present in save file
   if (data.collabNotes?.length && typeof COLLAB !== 'undefined') {
     COLLAB.notes = data.collabNotes;
@@ -37198,7 +37654,7 @@ function setAutosaveInterval(mins) {
 function startAutosave() {
   appState.autosaveTimer = setInterval(async () => {
     const wasUnsaved = unsaved;
-    await saveScript(true);
+    await autosaveAllDirtyProjects();
     if (wasUnsaved && !unsaved) showAutosaveToast();
   }, appState.autosaveInterval * 60 * 1000);
 }
@@ -37344,7 +37800,11 @@ function importTabFromData(data, options = {}) {
     sourcePath: options.sourcePath || '',
   });
   const tab = tabs.find(item => item.id === activeTabId);
-  if (tab && options.sourcePath) tab.filePath = options.sourcePath;
+  if (tab) {
+    tab.collectionId = options.collectionId || tab.collectionId || '';
+    tab.collectionTitle = options.collectionTitle || tab.collectionTitle || '';
+    if (options.sourcePath) tab.filePath = options.sourcePath;
+  }
   if (migration.migrated && !data.source) {
     showToast(`Project upgraded from format v${migration.sourceVersion} to v${SKRIPT_PROJECT_VERSION}.`, 6000);
   }
@@ -44413,10 +44873,10 @@ async function loadRecentScript(path) {
     const result = await resp.json();
     if (result.ok && result.content) {
       const data = JSON.parse(result.content);
-      importTabFromData(data, { sourcePath: result.path || path });
+      const count = openProjectPayload(data, { sourcePath: result.path || path });
       closeRecentScriptsModal();
       closeWizard();
-      showToast('✓ Opened — ' + (data.title || 'Project'));
+      showToast(`✓ Opened — ${data.title || 'Project'}${count > 1 ? ` (${count} scripts)` : ''}`);
     } else {
       // File not found or other server error
       showRecentLoadError(
@@ -44868,15 +45328,27 @@ function serializeRecoveryWorkspace() {
     if (typeof bdData !== 'undefined') activeTab._bdSnapshot = cloneProjectValue(bdData, {});
     if (typeof beatData !== 'undefined') activeTab._beatDataSnapshot = cloneProjectValue(beatData, {});
   }
-  const projects = tabs
-    .filter(tab => getLinesContainer(tab.id))
-    .map(tab => ({ ...buildProjectData({ tabId: tab.id, recoverySnapshot: true }), recoveryPath: tab.filePath || '' }));
+  const projects = [];
+  const seenCollections = new Set();
+  tabs.filter(tab => getLinesContainer(tab.id)).forEach(tab => {
+    if (tab.collectionId) {
+      if (seenCollections.has(tab.collectionId)) return;
+      seenCollections.add(tab.collectionId);
+      const record = projectCollections.get(tab.collectionId);
+      projects.push({
+        ...buildProjectCollectionData(tab.collectionId, { recoverySnapshot: true }),
+        recoveryPath: record?.filePath || '',
+      });
+    } else {
+      projects.push({ ...buildProjectData({ tabId: tab.id, recoverySnapshot: true }), recoveryPath: tab.filePath || '' });
+    }
+  });
   if (!projects.length) return null;
   return attachProjectIntegrity({
     schema: 'com.skript.workspace-recovery',
     version: 1,
     capturedAt: new Date().toISOString(),
-    activeProjectId: activeTab?.projectId || projects[0].projectId,
+    activeProjectId: activeTab?.collectionId || activeTab?.projectId || projects[0].projectId,
     projects,
   });
 }
@@ -44898,7 +45370,11 @@ async function sendHeartbeat() {
   if (!window._SF_PORT || recovery.pending) return;
   try {
     const data = serializeRecoveryWorkspace();
-    if (!data || data.projects.every(project => project.lines.length === 0)) return;
+    if (!data || data.projects.every(project => (
+      project.schema === SKRIPT_PROJECT_COLLECTION_SCHEMA
+        ? !Array.isArray(project.scripts) || project.scripts.every(script => !Array.isArray(script.lines) || script.lines.length === 0)
+        : !Array.isArray(project.lines) || project.lines.length === 0
+    ))) return;
 
     // Hash check — only send if content actually changed since last beat
     const json = JSON.stringify(data);
@@ -45030,12 +45506,22 @@ function restoreRecoveryPayload(data) {
   };
   if (data.schema === 'com.skript.workspace-recovery' && Array.isArray(data.projects)) {
     data.projects.forEach(project => {
-      const restored = prepareRecoveredProject(project);
-      importTabFromData(restored, { sourcePath: '' });
+      if (project.schema === SKRIPT_PROJECT_COLLECTION_SCHEMA) {
+        const restored = cloneProjectValue(project, {});
+        restored.title = `${restored.title || 'Untitled Project'} (Recovered)`;
+        openProjectPayload(restored, { recovered: true });
+      } else {
+        const restored = prepareRecoveredProject(project);
+        openProjectPayload(restored, { recovered: true });
+      }
     });
+  } else if (data.schema === SKRIPT_PROJECT_COLLECTION_SCHEMA) {
+    const restored = cloneProjectValue(data, {});
+    restored.title = `${restored.title || 'Untitled Project'} (Recovered)`;
+    openProjectPayload(restored, { recovered: true });
   } else {
     const restored = prepareRecoveredProject(data);
-    importTabFromData(restored, { sourcePath: '' });
+    openProjectPayload(restored, { recovered: true });
   }
   const restoredTabs = tabs.filter(tab => !existingIds.has(tab.id));
   restoredTabs.forEach(tab => { tab.filePath = ''; tab.dirty = true; tab.saved = false; });
@@ -48514,8 +49000,8 @@ saveScript = async function(silent = false) {
 const _origGetSaveData = window.getSaveData; // may not exist — use a different approach
 // Instead, hook into createTabFromData to restore on load
 const _origCreateTabFromData = createTabFromData;
-createTabFromData = function(data) {
-  _origCreateTabFromData(data);
+createTabFromData = function(data, options = {}) {
+  _origCreateTabFromData(data, options);
   // Restore beat data
   if (data.beatData) {
     Object.keys(beatData).forEach(k => delete beatData[k]); // clear
@@ -52483,8 +52969,8 @@ saveScript = async function(silent = false) {
 };
 
 const _origCreateTabSL = createTabFromData;
-createTabFromData = function(data) {
-  _origCreateTabSL(data);
+createTabFromData = function(data, options = {}) {
+  _origCreateTabSL(data, options);
   if (data.shotList) {
     shotListData = {};
     Object.assign(shotListData, normaliseShotListData(data.shotList).legacy);
@@ -52911,8 +53397,8 @@ saveScript = async function(silent = false) {
 };
 
 const _origCreateTabBD = createTabFromData;
-createTabFromData = function(data) {
-  _origCreateTabBD(data);
+createTabFromData = function(data, options = {}) {
+  _origCreateTabBD(data, options);
   if (data.breakdown) {
     bdData = {};
     Object.assign(bdData, data.breakdown);

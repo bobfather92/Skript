@@ -112,6 +112,26 @@ with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as temp_dir:
         loaded = post("/api/load-script", {"path": saved["path"]})
         assert loaded["ok"] is True
         assert json.loads(loaded["content"])["title"] == "API Test"
+
+        collection = {
+            "schema": "com.skript.project-collection",
+            "version": 2,
+            "projectId": "collection-api",
+            "title": "API Series",
+            "shared": {"storyboard": {"boards": []}, "production": {"catalogue": []}},
+            "scripts": [
+                {**script, "projectId": "episode-one", "title": "Episode One"},
+                {**script, "projectId": "episode-two", "title": "Episode Two"},
+            ],
+        }
+        saved_collection = post(
+            "/api/save-auto",
+            {"title": "API Series", "content": json.dumps(collection)},
+        )
+        assert saved_collection["ok"] is True
+        loaded_collection = post("/api/load-script", {"path": saved_collection["path"]})
+        assert loaded_collection["ok"] is True
+        assert len(json.loads(loaded_collection["content"])["scripts"]) == 2
         recent_before_clear = post("/api/recent-scripts", {})
         assert recent_before_clear["ok"] is True and recent_before_clear["scripts"]
         assert post("/api/clear-recent", {})["ok"] is True
@@ -154,6 +174,15 @@ with tempfile.TemporaryDirectory(dir=ROOT / "tmp") as temp_dir:
             "activeProjectId": "project-api",
             "projects": [{**script, "projectId": "project-api"}],
         }
+        collection_recovery = {
+            **recovery_workspace,
+            "activeProjectId": "collection-api",
+            "projects": [collection],
+        }
+        _, validated_collection_recovery = module._validate_project_bytes(
+            json.dumps(collection_recovery)
+        )
+        assert validated_collection_recovery["projects"][0]["scripts"][1]["title"] == "Episode Two"
         blocked_userdata = base / "blocked-history-userdata"
         blocked_scripts = base / "blocked-history-scripts"
         blocked_userdata.mkdir()

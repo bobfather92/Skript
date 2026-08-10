@@ -35,7 +35,7 @@ The same source checks and browser workflows run automatically for Windows relea
 
 ## Version 1.1 development
 
-Version 1.1 is being developed on the `feature/1.1` branch. The first work covers multi-file import and the foundation for projects containing multiple script documents. Storyboard Editor improvements and richer spelling, grammar and script-flow suggestions follow in the staged [1.1 roadmap](ROADMAP_1.1.md).
+Version 1.1 is being developed on the `feature/1.1` branch. It now includes complete multi-script projects, WriterDuet import and major Storyboard Studio improvements. Richer spelling, grammar and script-flow suggestions continue in the staged [1.1 roadmap](ROADMAP_1.1.md).
 
 ## Building
 
