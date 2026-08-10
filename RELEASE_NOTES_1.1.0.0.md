@@ -66,6 +66,7 @@ This is the first local development package on the road to Skript 1.1. It is int
 - Apply Save As, timed autosave, Save and exit, Recent Projects and crash recovery to the complete project rather than only the active script.
 - Keep ordinary Skript 1.0 `.script` files readable and writable as standalone documents.
 - Cancel or confirm script and project renaming reliably from the Project Scripts Navigator, with the current name prefilled and a clearly labelled Rename action.
+- Duplicate project scripts directly from the Navigator without losing an empty source document; every copy receives fresh script and line identities.
 - Keep Recovery Centre keyboard focus reliable when it opens over the startup recovery prompt.
 
 ## Reliability and safety

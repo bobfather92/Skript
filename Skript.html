@@ -32813,6 +32813,7 @@ body #sb-toolbar > * { flex:0 0 auto; }
             <div class="opt-section"><strong>Frame and card management</strong><div class="opt-note" style="margin-top:5px;">Copy, paste, duplicate, delete and drag-reorder storyboard cards without separating their artwork, captions or script links.</div></div>
             <div class="opt-section"><strong>Complete multi-script projects</strong><div class="opt-note" style="margin-top:5px;">Add, rename, reorder, duplicate and remove scripts in one project; save and reopen the complete collection with shared storyboards, media and production documents; and recover or Save As the whole project safely.</div></div>
             <div class="opt-section"><strong>Reliable script renaming</strong><div class="opt-note" style="margin-top:5px;">The Project Scripts rename window now supports both Cancel and Rename correctly, prefills the current name and cannot be overridden by another editor dialog.</div></div>
+            <div class="opt-section"><strong>Reliable script duplication</strong><div class="opt-note" style="margin-top:5px;">Duplicating a project script now always retains the source and creates a separately identified copy, including when the original script is still empty.</div></div>
             <div class="opt-section"><strong>Safer batch handling</strong><div class="opt-note" style="margin-top:5px;">A damaged or invalid file no longer prevents other valid files in the same selection from opening.</div></div>
             <div class="opt-section"><strong>Recovery accessibility</strong><div class="opt-note" style="margin-top:5px;">Keeps keyboard focus inside the Recovery Centre when it is opened over the startup recovery prompt.</div></div>
             <div class="opt-section"><strong>Development verification</strong><div class="opt-note" style="margin-top:5px;">Source and browser regression checks cover desktop, compact-touch, storyboard arranging, deletion and history restoration.</div></div>
@@ -35667,12 +35668,17 @@ function duplicateProjectScript(tabId) {
   const record = ensureCollectionForTab(source);
   const copyTitle = `${source.title || 'Untitled'} COPY`;
   const data = cloneScriptWithFreshIds(buildProjectData({ tabId: source.id, includeShared: false }), copyTitle);
-  importTabFromData(data, { collectionId: record.id, collectionTitle: record.title });
+  importTabFromData(data, {
+    collectionId: record.id,
+    collectionTitle: record.title,
+    preserveActiveTab: true,
+  });
   const copy = tabs.find(item => item.id === activeTabId);
   copy.collectionId = record.id; copy.collectionTitle = record.title; copy.filePath = '';
   copy.dirty = true; copy.saved = false;
   record.dirty = true;
   renderProjectScriptsNavigator(); syncUnsavedState(); scheduleRecoverySoon();
+  showToast(`Duplicated ${source.title || 'Untitled'}`);
   return copy;
 }
 
@@ -37812,7 +37818,9 @@ function switchRibbonTab(panelId) {
 
 function importTabFromData(data, options = {}) {
   const migration = migrateProjectData(data);
-  _removeEmptyActiveTabForImport();
+  // File import may replace the initial blank document. Internal operations
+  // such as Duplicate must always retain the source, even when it is empty.
+  if (!options.preserveActiveTab) _removeEmptyActiveTabForImport();
   createTabFromData(migration.data, {
     collectionId: options.collectionId || '',
     collectionTitle: options.collectionTitle || '',

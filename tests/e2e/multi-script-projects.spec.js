@@ -195,3 +195,20 @@ test('script rename dialog can be cancelled or confirmed', async ({ page, skript
   await expect(page.locator('.tab.active .tab-title')).toHaveText('EPISODE THREE');
   await expect(page.locator('#project-scripts-navigator .project-script-row.active .project-script-open')).toContainText('EPISODE THREE');
 });
+
+test('Navigator duplicate button copies an empty project script', async ({ page, skript }) => {
+  await page.evaluate(() => addScriptToActiveProject('EMPTY EPISODE'));
+  await expect(page.locator('#project-scripts-navigator .project-script-row')).toHaveCount(2);
+
+  await page.locator('#project-scripts-navigator .project-script-row.active').getByTitle('Duplicate script').click();
+
+  await expect(page.locator('#project-scripts-navigator .project-script-row')).toHaveCount(3);
+  await expect(page.locator('#tabs-container .tab-title')).toHaveText([
+    'UNTITLED SCRIPT',
+    'EMPTY EPISODE',
+    'EMPTY EPISODE COPY',
+  ]);
+  await expect(page.locator('.tab.active .tab-title')).toHaveText('EMPTY EPISODE COPY');
+  await expect(page.locator('#sf-toast')).toContainText('Duplicated');
+  expect(await page.evaluate(() => new Set(tabs.map(tab => tab.projectId)).size)).toBe(3);
+});
