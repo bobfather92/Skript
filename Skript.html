@@ -25100,6 +25100,7 @@ var __async = (__this, __arguments, generator) => {
   body.storyboard-workspace-active .ribbon-tab[data-panel="export"],
   body.storyboard-workspace-active .ribbon-panel[data-panel="export"],
   body.storyboard-workspace-active #workspace-mode-switch { display:none!important; }
+  body.title-page-workspace-active #acts-rg { display:none!important; }
   body.storyboard-workspace-active .storyboard-ribbon-group { display:flex; }
   body.storyboard-workspace-active .storyboard-workspace-tab { display:flex!important; }
   body.storyboard-workspace-active .storyboard-workspace-panel.active { display:flex!important; }
@@ -26597,10 +26598,15 @@ var __async = (__this, __arguments, generator) => {
     letter-spacing: .7px; text-transform: uppercase;
   }
   .wiz-recent-head-actions { display:flex; align-items:center; gap:8px; }
+  .wiz-recent-head-actions > span,
   .wiz-recent-clear {
-    border:0; padding:2px 5px; border-radius:4px; background:transparent;
-    color:var(--text-3); font:700 9px/1.2 inherit; letter-spacing:.2px;
-    text-transform:none; cursor:pointer;
+    box-sizing:border-box; min-height:20px; display:inline-flex; align-items:center;
+    color:var(--text-3); font-family:inherit; font-size:9px; font-weight:700;
+    line-height:1.2; letter-spacing:.7px; text-transform:uppercase;
+  }
+  .wiz-recent-clear {
+    border:0; padding:0 6px; border-radius:4px; background:transparent;
+    cursor:pointer;
   }
   .wiz-recent-clear:hover:not(:disabled) { background:var(--surface3); color:var(--text); }
   .wiz-recent-clear:disabled { opacity:.35; cursor:default; }
@@ -29673,10 +29679,17 @@ body.focus-mode .virtual-page-break::after {
   display: none !important;
 }
 
-/* Break view keeps every logical A4 sheet at full height, including a short
-   final page and pages ended early by an imported Act boundary. */
-[data-page-view="break"] .script-page {
-  min-height: var(--paginated-min-height, 1123px);
+/* Break view fills only the unused portion of the final logical A4 sheet.
+   Earlier sheets are completed by their own virtual-page-break fill. Keeping
+   these separate prevents an imported final page being counted twice. */
+[data-page-view="break"] .script-page .lines-container::after {
+  content: '';
+  display: block;
+  height: var(--final-page-fill, 0px);
+  pointer-events: none;
+}
+@media print {
+  [data-page-view="break"] .script-page .lines-container::after { display:none!important; }
 }
 
 /* Side-by-side mode — CSS columns approach */
@@ -30783,6 +30796,9 @@ html.sf-touch .sf-modal-close,
 html.sf-touch .frp-btn,
 html.sf-touch .char-item,
 html.sf-touch .sn-item {
+  min-height: 44px !important;
+}
+html.sf-touch .wiz-recent-head-actions > span {
   min-height: 44px !important;
 }
 html.sf-touch button[aria-label]:empty,
@@ -33940,9 +33956,15 @@ function activateTab(id) {
   }
   activeTabId = id;
   const activeTab = tabs.find(t => t.id === id);
+  document.body.classList.toggle('title-page-workspace-active', activeTab?.view === 'cover');
   syncUnsavedState();
   if (activeTab?.format && activeTab.format !== activeFormat && typeof switchFormat === 'function') {
     switchFormat(activeTab.format, true);
+  }
+  const contextActsGroup = document.getElementById('acts-rg');
+  if (contextActsGroup) {
+    if (activeTab?.view === 'cover') contextActsGroup.style.display = 'none';
+    else if (activeTab?.view === 'script') contextActsGroup.style.removeProperty('display');
   }
   if (typeof resetSuggestionsForActiveTab === 'function') resetSuggestionsForActiveTab();
 
@@ -34061,6 +34083,7 @@ function switchView(e, tabId, view) {
   if (elemRg) elemRg.style.display = (view === 'cover') ? 'none' : '';
 
   const actsRg = document.getElementById('acts-rg');
+  if (view === 'cover' && actsRg) actsRg.style.display = 'none';
   // acts-rg visibility is managed by switchFormat; only restore when in script view
   if (view === 'script' && actsRg) {
     // switchFormat will re-apply correct visibility
@@ -37471,6 +37494,7 @@ function updateNavActiveState(view) {
 
 function _activateDocumentWorkspace(view) {
   document.body.classList.toggle('storyboard-workspace-active',view === 'storyboard');
+  document.body.classList.toggle('title-page-workspace-active', view === 'cover');
   const classViews = [
     ['storyboard', 'storyboard-area'],
     ['beat', 'beat-sheet-area'],
@@ -47088,9 +47112,8 @@ function showNavigatorDialogueFlyout(anchor, name, container) {
       text.textContent = entry.text;
       button.append(scene, text);
       button.addEventListener('click', () => {
-        entry.line.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        entry.line.focus();
         closeNavigatorDialogueFlyout();
+        jumpToNavigatorScriptLine(entry.line);
       });
       list.appendChild(button);
     });
@@ -47099,6 +47122,21 @@ function showNavigatorDialogueFlyout(anchor, name, container) {
   flyout.hidden = false;
   flyout.dataset.character = name;
   positionNavigatorDialogueFlyout(flyout, anchor);
+}
+
+function jumpToNavigatorScriptLine(line) {
+  if (!line?.isConnected) return;
+  const tab = tabs.find(item => item.id === activeTabId);
+  if (tab?.view === 'cover') switchActiveView('script');
+  const focusLine = () => {
+    if (!line.isConnected) return;
+    line.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    line.focus();
+  };
+  requestAnimationFrame(() => requestAnimationFrame(focusLine));
+  // activateTab has its own deferred focus restoration. Reassert the selected
+  // speech after that hand-off so Title Page navigation always wins.
+  setTimeout(focusLine, 75);
 }
 
 function scheduleNavigatorDialogueClose() {
@@ -47158,7 +47196,7 @@ function updateCharTracker() {
       const lines = container.querySelectorAll('.script-line[data-type="character"]');
       for (const ln of lines) {
         const n = navNormalizeCharacterName(ln.textContent);
-        if (n === name) { ln.scrollIntoView({ behavior: 'smooth', block: 'center' }); ln.focus(); break; }
+        if (n === name) { jumpToNavigatorScriptLine(ln); break; }
       }
     });
     list.appendChild(el);
@@ -48690,7 +48728,8 @@ function updateContdMore() {
   const pageSurface = typeof container.closest === 'function' ? container.closest('.script-page') : null;
   if (pageSurface) {
     pageSurface.dataset.pageCount = '1';
-    pageSurface.style.setProperty('--paginated-min-height','1123px');
+    pageSurface.dataset.finalPageFillUnits = '0';
+    pageSurface.style.setProperty('--final-page-fill','0px');
   }
 
   container.querySelectorAll('.dialogue-pagination-source').forEach(line => {
@@ -48900,7 +48939,9 @@ function updateContdMore() {
   }
   if (pageSurface) {
     pageSurface.dataset.pageCount = String(pageNum);
-    pageSurface.style.setProperty('--paginated-min-height',`${pageNum * 1123 + Math.max(0,pageNum - 1) * 52}px`);
+    const finalPageFillUnits = Math.max(0, PAGE_LINES - Math.min(PAGE_LINES, runningLines));
+    pageSurface.dataset.finalPageFillUnits = String(finalPageFillUnits);
+    pageSurface.style.setProperty('--final-page-fill', `${finalPageFillUnits * lineH}px`);
   }
 }
 

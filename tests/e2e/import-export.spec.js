@@ -228,13 +228,16 @@ test('a WriterDuet project imports every script from its WDZ archive', async ({ 
       fillUnits: Number(pageBreak?.dataset.pageFillUnits || 0),
       breakMarginTop: parseFloat(getComputedStyle(pageBreak).marginTop) || 0,
       pageCount: Number(page?.dataset.pageCount || 0),
-      pageMinHeight: parseFloat(getComputedStyle(page).minHeight) || 0,
+      finalFillUnits: Number(page?.dataset.finalPageFillUnits || 0),
+      pageHeight: page?.getBoundingClientRect().height || 0,
     };
   });
   expect(importedPageLayout.fillUnits).toBeGreaterThan(20);
   expect(importedPageLayout.breakMarginTop).toBeGreaterThan(380);
   expect(importedPageLayout.pageCount).toBe(2);
-  expect(importedPageLayout.pageMinHeight).toBeGreaterThanOrEqual(2298);
+  expect(importedPageLayout.finalFillUnits).toBeGreaterThan(20);
+  expect(importedPageLayout.pageHeight).toBeGreaterThan(2000);
+  expect(importedPageLayout.pageHeight).toBeLessThan(2550);
   await expect.poll(() => page.evaluate(() => migrateProjectData({
     version: 2,
     title: 'Reopened WriterDuet Import',

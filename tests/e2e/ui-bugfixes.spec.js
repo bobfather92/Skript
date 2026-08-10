@@ -69,10 +69,16 @@ test('Welcome icon and Recent Projects align with the action cards', async ({ pa
     recent: landing.querySelector('.wiz-recent-window').getBoundingClientRect().width,
     recentCount: landing.querySelectorAll('.wiz-recent-item').length,
     recentOverflow: getComputedStyle(landing.querySelector('#wiz-recent-list')).overflowY,
+    openQuicklyHeight: landing.querySelector('.wiz-recent-head-actions > span').getBoundingClientRect().height,
+    clearHeight: landing.querySelector('#wiz-clear-recent').getBoundingClientRect().height,
+    openQuicklyFontSize: getComputedStyle(landing.querySelector('.wiz-recent-head-actions > span')).fontSize,
+    clearFontSize: getComputedStyle(landing.querySelector('#wiz-clear-recent')).fontSize,
   }));
   expect(Math.abs(widths.action - widths.recent)).toBeLessThanOrEqual(1);
   expect(widths.recentCount).toBe(3);
   expect(widths.recentOverflow).toBe('visible');
+  expect(widths.clearHeight).toBe(widths.openQuicklyHeight);
+  expect(widths.clearFontSize).toBe(widths.openQuicklyFontSize);
 });
 
 test('Recent Projects can be cleared without deleting saved files', async ({ page, skript }) => {
@@ -275,11 +281,16 @@ test('Navigator long scenes wrap and character hover highlights script cues', as
   expect(navStyles.overflow).toBe('visible');
   expect(navStyles.height).toBeGreaterThan(12);
 
+  await page.evaluate(() => switchActiveView('cover'));
+  await expect(page.locator('.cover-view.active')).toBeVisible();
+  await expect(page.locator('#acts-rg')).toBeHidden();
+  const authoredLines = page.locator('.script-panel[data-tab-id] .script-line');
+
   const pageErrors = [];
   page.on('pageerror', error => pageErrors.push(error.message));
   await page.locator('#char-tracker-list .char-item', { hasText: 'MAYA' }).hover();
   expect(pageErrors).toEqual([]);
-  await expect(lines.nth(1)).toHaveClass(/char-nav-highlight/);
+  await expect(authoredLines.nth(1)).toHaveClass(/char-nav-highlight/);
   const dialogueFlyout = page.locator('#char-dialogue-flyout');
   await expect(dialogueFlyout).toBeVisible();
   await expect(dialogueFlyout.locator('.char-dialogue-title')).toHaveText('MAYA');
@@ -288,10 +299,13 @@ test('Navigator long scenes wrap and character hover highlights script cues', as
   await expect(dialogueFlyout.locator('.char-dialogue-text')).toHaveText('We are still here.');
 
   await dialogueFlyout.locator('.char-dialogue-entry').click();
+  await expect(page.locator('.script-panel.active')).toBeVisible();
+  await expect(page.locator('body')).not.toHaveClass(/title-page-workspace-active/);
+  expect(await page.locator('#acts-rg').evaluate(element => element.style.display)).not.toBe('none');
   await expect(lines.nth(2)).toBeFocused();
   await expect(dialogueFlyout).toBeHidden();
   await page.locator('#sidebar-header').hover();
-  await expect(lines.nth(1)).not.toHaveClass(/char-nav-highlight/);
+  await expect(authoredLines.nth(1)).not.toHaveClass(/char-nav-highlight/);
 });
 
 test('Navigator can be resized wider or narrower by dragging its edge', async ({ page, skript }) => {

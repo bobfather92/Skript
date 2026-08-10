@@ -28,6 +28,10 @@ This is the first local development package on the road to Skript 1.1. It is int
 - Use the Skript host's genuine Windows titlebar exclusively, removing the separate foreground overlay and duplicate in-page titlebar.
 - Enter the reduced-memory performance profile when Windows reports severe memory pressure, even on a computer with otherwise capable hardware.
 - Clear the Recent Projects history from either the welcome screen or Recent Projects window without deleting saved project files.
+- Match the Welcome screen's Clear action typography and height to the adjacent Open Quickly label.
+- Keep imported WriterDuet final pages at the same complete A4 sheet size as every preceding page, without double-extending short final pages.
+- Hide New Act and End Act controls while the Title Page is active, then restore them automatically when returning to the script.
+- Open the script and focus the selected speech when a dialogue preview is chosen from the character Navigator while viewing the Title Page.
 - Select several storyboard cards or frame-editor objects using Shift-click, Ctrl-click, Select All, or a drag-selection box.
 - Add and remove storyboard cards directly with their selection controls while keeping the Cards count accurate for every multi-card selection.
 - Snap storyboard objects to the canvas, other object edges and centres, with live smart guides and an optional visible grid.
