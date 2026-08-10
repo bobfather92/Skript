@@ -28561,7 +28561,7 @@ body.focus-mode #act-overlay { display: none !important; }
   display: block;
   border: none;
   /* Pull outside the script-page padding on all sides (96px right, 144px left) */
-  margin: 60px -96px 60px -144px;
+  margin: calc(60px + var(--page-fill, 0px)) -96px 60px -144px;
   /* Height = simulated bottom margin of prev page + gap band + top margin of next page */
   padding: 0;
   position: relative;
@@ -29671,6 +29671,12 @@ body.focus-mode .virtual-page-break::after {
 [data-page-view="continuous"] .more-mark,
 [data-page-view="continuous"] .contd-mark {
   display: none !important;
+}
+
+/* Break view keeps every logical A4 sheet at full height, including a short
+   final page and pages ended early by an imported Act boundary. */
+[data-page-view="break"] .script-page {
+  min-height: var(--paginated-min-height, 1123px);
 }
 
 /* Side-by-side mode — CSS columns approach */
@@ -30952,7 +30958,13 @@ button.primary:hover,
 .sb-inspector-preview { width:100%; aspect-ratio:var(--sb-frame-aspect,16/9); margin-bottom:12px; border:1px solid var(--border2); border-radius:6px; object-fit:contain; background:#fff; }
 .sb-inspector-placeholder { width:100%; aspect-ratio:16/9; margin-bottom:12px; display:flex; align-items:center; justify-content:center; border:1px dashed var(--border2); border-radius:6px; color:var(--text-3); }
 .sb-inspector-section { margin-bottom:13px; padding-bottom:12px; border-bottom:1px solid var(--border); }
-.sb-inspector-section-title { margin-bottom:8px; font-size:9px; font-weight:700; letter-spacing:.7px; text-transform:uppercase; color:var(--text-3); }
+.sb-inspector-section-title { margin:0; list-style:none; display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:9px; font-weight:700; letter-spacing:.7px; text-transform:uppercase; color:var(--text-3); cursor:pointer; user-select:none; }
+.sb-inspector-section-title::-webkit-details-marker { display:none; }
+.sb-inspector-section-title::after { content:'›'; font-size:15px; line-height:1; color:var(--text-3); transform:rotate(0deg); transition:transform .14s ease,color .14s ease; }
+.sb-inspector-section[open] > .sb-inspector-section-title { margin-bottom:8px; color:var(--text-2); }
+.sb-inspector-section[open] > .sb-inspector-section-title::after { transform:rotate(90deg); color:var(--brand-purple); }
+.sb-inspector-section-title:hover { color:var(--text); }
+.sb-inspector-section-content { min-width:0; }
 .sb-inspector-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
 .sb-inspector-fields .wide { grid-column:1/-1; }
 .sb-inspector-fields label { display:grid; gap:4px; min-width:0; color:var(--text-3); font-size:9px; }
@@ -37677,6 +37689,7 @@ const sb = {
   inspectorCollapsed: false,
   inspectorWidth: 310,
   inspectorTab: 'frame',
+  inspectorSections: {},
   dockCollapsed: false,
   dockTab: 'preview',
   mobilePane: 'board',
@@ -39311,6 +39324,22 @@ function storyboardStudioSetInspectorTab(tab) {
   renderStoryboard();
 }
 
+function storyboardStudioSetInspectorSection(key, open) {
+  if (!key) return;
+  if (!sb.inspectorSections || typeof sb.inspectorSections !== 'object') sb.inspectorSections = {};
+  sb.inspectorSections[key] = !!open;
+}
+
+function storyboardStudioInspectorSection(key, title, content, openByDefault = false) {
+  const stored = sb.inspectorSections && Object.prototype.hasOwnProperty.call(sb.inspectorSections,key)
+    ? sb.inspectorSections[key]
+    : openByDefault;
+  return `<details class="sb-inspector-section" ${stored ? 'open' : ''} ontoggle="storyboardStudioSetInspectorSection('${key}',this.open)">
+    <summary class="sb-inspector-section-title">${escHtml(title)}</summary>
+    <div class="sb-inspector-section-content">${content}</div>
+  </details>`;
+}
+
 function storyboardStudioSetDockTab(tab) {
   if (!['preview','animatic','timeline','references'].includes(tab)) return;
   sb.dockTab = tab;
@@ -39379,21 +39408,19 @@ function storyboardStudioFrameField(frameId, field, value) {
 function storyboardStudioInspectorHtml(board, activeEntry, activeGroup) {
   const tab = sb.inspectorTab || 'frame';
   if (tab === 'board') return `
-    <div class="sb-inspector-section"><div class="sb-inspector-section-title">Board overview</div>
-      <div class="sb-inspector-fields"><label class="wide">Name<input value="${escHtml(board.name || '')}" disabled></label>
+    ${storyboardStudioInspectorSection('board:overview','Board overview',`<div class="sb-inspector-fields"><label class="wide">Name<input value="${escHtml(board.name || '')}" disabled></label>
       <label>Status<input value="${escHtml(board.status || 'Draft')}" disabled></label><label>Template<input value="${escHtml(STORYBOARD_TEMPLATES[board.template]?.label || board.template || 'Custom')}" disabled></label>
-      <label class="wide">Description<textarea disabled>${escHtml(board.description || '')}</textarea></label></div></div>
-    <div class="sb-inspector-section"><div class="sb-inspector-section-title">Layout</div><div class="sb-inspector-help">${escHtml(board.aspectRatio || '16:9')} frames · ${escHtml(board.orientation || 'portrait')} · ${board.cols || 2} columns<br>${board.titleSafe ? 'Title safe on' : 'Title safe off'} · ${board.actionSafe ? 'Action safe on' : 'Action safe off'}</div></div>
-    <button class="sb-inspector-action" onclick="openStoryboardSettings()">Open complete board settings</button>`;
+      <label class="wide">Description<textarea disabled>${escHtml(board.description || '')}</textarea></label></div>`,true)}
+    ${storyboardStudioInspectorSection('board:layout','Layout',`<div class="sb-inspector-help">${escHtml(board.aspectRatio || '16:9')} frames · ${escHtml(board.orientation || 'portrait')} · ${board.cols || 2} columns<br>${board.titleSafe ? 'Title safe on' : 'Title safe off'} · ${board.actionSafe ? 'Action safe on' : 'Action safe off'}</div>
+      <button class="sb-inspector-action" style="margin-top:9px" onclick="openStoryboardSettings()">Open complete board settings</button>`,true)}`;
   if (tab === 'scene') {
     const group = activeGroup || storyboardStudioGroups(board).find(item => item.id === sb.studioScene);
     const characters = group?.scene ? Array.from(storyboardStudioSceneCharacters().get(group.scene.lineId) || []) : [];
     const duration = (group?.frames || []).map(item => parseFloat(item.frame.duration) || 0).reduce((a,b) => a+b,0);
-    return `<div class="sb-inspector-section"><div class="sb-inspector-section-title">Scene information</div>
-      <div class="sb-inspector-fields"><label class="wide">Scene<input value="${escHtml(group?.title || 'No scene selected')}" disabled></label>
+    return storyboardStudioInspectorSection('scene:information','Scene information',`<div class="sb-inspector-fields"><label class="wide">Scene<input value="${escHtml(group?.title || 'No scene selected')}" disabled></label>
       <label>Frames<input value="${group?.frames?.length || 0}" disabled></label><label>Duration<input value="${duration ? `${duration.toFixed(1)} sec` : 'Not timed'}" disabled></label>
-      <label class="wide">Characters<textarea disabled>${escHtml(characters.join(', ') || 'No characters detected')}</textarea></label></div></div>
-      <div class="sb-inspector-help">Scene headings and characters come from the linked script. Edit them in the script workspace; storyboard frame and camera details remain editable here.</div>`;
+      <label class="wide">Characters<textarea disabled>${escHtml(characters.join(', ') || 'No characters detected')}</textarea></label></div>
+      <div class="sb-inspector-help" style="margin-top:8px">Scene headings and characters come from the linked script. Edit them in the script workspace; storyboard frame and camera details remain editable here.</div>`,true);
   }
   const frame = activeEntry?.frame;
   if (!frame) return `<div class="sb-inspector-placeholder">Select a frame</div><div class="sb-inspector-help">Choose a storyboard card to inspect its production information. Use Ctrl or Shift to keep multiple cards selected.</div>`;
@@ -39407,17 +39434,18 @@ function storyboardStudioInspectorHtml(board, activeEntry, activeGroup) {
   const shotOptions = availableShots.map(shot => `<option value="${escHtml(shot.id)}" ${shot.id === frame.shotId ? 'selected' : ''}>${escHtml(storyboardShotLabel(shot,context.shots))}</option>`).join('');
   return `
     ${frame.imageData ? `<img class="sb-inspector-preview" style="--sb-frame-aspect:${aspect}" src="${frame.imageData}" alt="Selected frame preview">` : `<div class="sb-inspector-placeholder" style="aspect-ratio:${aspect}">No artwork</div>`}
-    <div class="sb-inspector-section"><div class="sb-inspector-section-title">Frame</div><div class="sb-inspector-fields">
+    <button class="sb-inspector-action" style="margin-bottom:12px" onclick="openFrameEditor(${activeEntry.index},${board.id})">Open artwork and layer editor</button>
+    ${storyboardStudioInspectorSection('frame:details','Frame',`<div class="sb-inspector-fields">
       <label class="wide">Label<input value="${escHtml(frame.label)}" onchange="storyboardStudioFrameField('${frame.id}','label',this.value)"></label>
       <label>Shot number<input value="${escHtml(frame.shotNumber)}" onchange="storyboardStudioFrameField('${frame.id}','shotNumber',this.value)"></label>
       <label>Duration<input value="${escHtml(frame.duration)}" placeholder="00:00:07" onchange="storyboardStudioFrameField('${frame.id}','duration',this.value)"></label>
       <label class="wide">Status<select onchange="storyboardStudioFrameField('${frame.id}','status',this.value)">${sbStudioOptions(SB_STUDIO_OPTIONS.status,frame.status)}</select></label>
-    </div></div>
-    <div class="sb-inspector-section"><div class="sb-inspector-section-title">Script connection</div><div class="sb-inspector-fields">
+    </div>`,true)}
+    ${storyboardStudioInspectorSection('frame:connection','Script connection',`<div class="sb-inspector-fields">
       <label class="wide">Scene<select aria-label="Scene link" onchange="setStoryboardFrameScene(${board.id},${activeEntry.index},this.value)"><option value="">Unlinked</option>${sceneOptions}</select></label>
       <label class="wide">Shot List entry<select aria-label="Shot List link" onchange="setStoryboardFrameShot(${board.id},${activeEntry.index},this.value)"><option value="">No Shot List entry</option>${shotOptions}</select></label>
-    </div><div class="sb-inspector-help" style="margin-top:7px">Scene and Shot List connections are managed here so storyboard cards stay clean.</div></div>
-    <div class="sb-inspector-section"><div class="sb-inspector-section-title">Camera and shot list</div><div class="sb-inspector-fields">
+    </div><div class="sb-inspector-help" style="margin-top:7px">Scene and Shot List connections are managed here so storyboard cards stay clean.</div>`,false)}
+    ${storyboardStudioInspectorSection('frame:camera','Camera and shot list',`<div class="sb-inspector-fields">
       <label>Shot size<select onchange="storyboardStudioFrameField('${frame.id}','shotSize',this.value)">${sbStudioOptions(SB_STUDIO_OPTIONS.shotSize,frame.shotSize || context.shot?.size || '')}</select></label>
       <label>Movement<select onchange="storyboardStudioFrameField('${frame.id}','movement',this.value)">${sbStudioOptions(SB_STUDIO_OPTIONS.movement,frame.movement || context.shot?.movement || '')}</select></label>
       <label>Angle<select onchange="storyboardStudioFrameField('${frame.id}','angle',this.value)">${sbStudioOptions(SB_STUDIO_OPTIONS.angle,frame.angle || context.shot?.angle || '')}</select></label>
@@ -39425,16 +39453,15 @@ function storyboardStudioInspectorHtml(board, activeEntry, activeGroup) {
       <label>Camera<input value="${escHtml(frame.camera)}" onchange="storyboardStudioFrameField('${frame.id}','camera',this.value)"></label>
       <label>Location<input value="${escHtml(frame.location || context.shot?.location || '')}" onchange="storyboardStudioFrameField('${frame.id}','location',this.value)"></label>
       <label class="wide">Time / light<input value="${escHtml(frame.timeOfDay)}" placeholder="Day / Night / Dawn" onchange="storyboardStudioFrameField('${frame.id}','timeOfDay',this.value)"></label>
-    </div>${frame.shotId ? '<div class="sb-inspector-help" style="margin-top:7px">Changes to shared camera fields are synchronized with the linked Shot List entry.</div>' : ''}</div>
-    <div class="sb-inspector-section"><div class="sb-inspector-section-title">Notes</div><div class="sb-inspector-fields">
+    </div>${frame.shotId ? '<div class="sb-inspector-help" style="margin-top:7px">Changes to shared camera fields are synchronized with the linked Shot List entry.</div>' : ''}`,false)}
+    ${storyboardStudioInspectorSection('frame:notes','Notes',`<div class="sb-inspector-fields">
       <label class="wide">Action / description<textarea class="sb-inspector-primary-note" onchange="storyboardStudioFrameField('${frame.id}','actionNotes',this.value)">${escHtml(frame.actionNotes)}</textarea></label>
       <label class="wide">Dialogue / sound<textarea class="sb-inspector-primary-note" onchange="storyboardStudioFrameField('${frame.id}','dialogueNotes',this.value)">${escHtml(frame.dialogueNotes)}</textarea></label>
       <label class="wide">Camera<textarea onchange="storyboardStudioFrameField('${frame.id}','cameraNotes',this.value)">${escHtml(frame.cameraNotes)}</textarea></label>
       <label class="wide">Lighting<textarea onchange="storyboardStudioFrameField('${frame.id}','lightingNotes',this.value)">${escHtml(frame.lightingNotes)}</textarea></label>
       <label class="wide">Transition<textarea onchange="storyboardStudioFrameField('${frame.id}','transitionNotes',this.value)">${escHtml(frame.transitionNotes)}</textarea></label>
       <label class="wide">Tags<input value="${escHtml((frame.tags || []).join(', '))}" placeholder="establishing, exterior" onchange="storyboardStudioFrameField('${frame.id}','tags',this.value)"></label>
-    </div></div>
-    <button class="sb-inspector-action" onclick="openFrameEditor(${activeEntry.index},${board.id})">Open artwork and layer editor</button>`;
+    </div>`,false)}`;
 }
 
 function storyboardStudioDockHtml(board, activeEntry) {
@@ -39762,15 +39789,9 @@ function buildFrameEl(frame, idx, boardId) {
     <button type="button" class="sb-frame-select${isSelected ? ' active' : ''}"
       aria-pressed="${isSelected}" aria-label="${isSelected ? 'Remove frame from selection' : 'Select frame'}"
       title="${isSelected ? 'Remove from selection' : 'Select frame'}"
-      onclick="event.stopPropagation();sbToggleFrameSelection(${boardId},'${frameId}',event.shiftKey||event.ctrlKey||event.metaKey)">
+      onclick="event.stopPropagation();sbToggleFrameSelection(${boardId},'${frameId}',true)">
       <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
         <rect x="3" y="3" width="14" height="14" rx="3"/>${isSelected ? '<path d="m6.5 10 2.2 2.3 4.8-5" stroke-linecap="round" stroke-linejoin="round"/>' : ''}
-      </svg>
-    </button>
-    <button class="sb-frame-edit-icon" onclick="event.stopPropagation();openFrameEditor(${idx},${boardId})" title="Open frame editor">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 20h9"/>
-        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
       </svg>
     </button>
     <div class="sb-canvas-wrap widescreen" id="sb-wrap-${idx}" role="button" tabindex="0" style="--sb-frame-aspect:${aspect};"
@@ -39781,6 +39802,12 @@ function buildFrameEl(frame, idx, boardId) {
       <canvas class="sb-canvas sb-canvas-thumbnail" id="sb-canvas-${idx}"
         width="${THUMB_W}" height="${THUMB_H}"></canvas>
       ${board.actionSafe || board.titleSafe ? `<div class="sb-safe-overlay">${board.actionSafe ? '<div class="action-safe"></div>' : ''}${board.titleSafe ? '<div class="title-safe"></div>' : ''}</div>` : ''}
+      <button class="sb-frame-edit-icon" onclick="event.stopPropagation();openFrameEditor(${idx},${boardId})" title="Open frame editor" aria-label="Open frame editor">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 20h9"/>
+          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
+        </svg>
+      </button>
     </div>
     <div class="sb-frame-metadata">
       ${frame.shotNumber ? `<span class="sb-meta-pill">Shot ${escHtml(frame.shotNumber)}</span>` : ''}
@@ -48660,6 +48687,11 @@ function _legacyUpdateContdMore() {
 function updateContdMore() {
   const container = getLinesContainer(activeTabId);
   if (!container) return;
+  const pageSurface = typeof container.closest === 'function' ? container.closest('.script-page') : null;
+  if (pageSurface) {
+    pageSurface.dataset.pageCount = '1';
+    pageSurface.style.setProperty('--paginated-min-height','1123px');
+  }
 
   container.querySelectorAll('.dialogue-pagination-source').forEach(line => {
     if (line.dataset.paginationFullText != null) line.innerText = line.dataset.paginationFullText;
@@ -48742,7 +48774,7 @@ function updateContdMore() {
     return '';
   }
 
-  function insertBreakBefore(line, page, characterName = '', withMore = false) {
+  function insertBreakBefore(line, page, characterName = '', withMore = false, usedUnits = 0) {
     const nodes = [];
     if (withMore) {
       const moreMark = document.createElement('span');
@@ -48755,6 +48787,9 @@ function updateContdMore() {
     const pbr = document.createElement('span');
     pbr.className = 'virtual-page-break';
     pbr.dataset.page = `Page ${page}`;
+    const remainingUnits = Math.max(0, PAGE_LINES - Math.min(PAGE_LINES, usedUnits));
+    pbr.dataset.pageFillUnits = String(remainingUnits);
+    pbr.style?.setProperty?.('--page-fill', `${remainingUnits * lineH}px`);
     pbr.setAttribute('aria-hidden', 'true');
     nodes.push(pbr);
 
@@ -48800,7 +48835,7 @@ function updateContdMore() {
       && (type === 'act' || (type === 'scene' && !['act', 'new-act'].includes(previousType)));
     if ((type === 'new-act' || isStageBoundary) && runningLines > 0) {
       pageNum++;
-      insertBreakBefore(line, pageNum);
+      insertBreakBefore(line, pageNum, '', false, runningLines);
       runningLines = 0;
       dialogueUnitsOnPage = 0;
     }
@@ -48822,7 +48857,7 @@ function updateContdMore() {
     if (runningLines > 0 && (type === 'scene' || type === 'character')
         && runningLines + keepUnits > PAGE_LINES) {
       pageNum++;
-      insertBreakBefore(line, pageNum);
+      insertBreakBefore(line, pageNum, '', false, runningLines);
       runningLines = 0;
       dialogueUnitsOnPage = 0;
     }
@@ -48848,9 +48883,9 @@ function updateContdMore() {
 
       pageNum++;
       if (canContinueDialogue) {
-        insertBreakBefore(line, pageNum, characterName, true);
+        insertBreakBefore(line, pageNum, characterName, true, runningLines);
       } else {
-        insertBreakBefore(line, pageNum);
+        insertBreakBefore(line, pageNum, '', false, runningLines);
       }
       runningLines = 0;
       dialogueUnitsOnPage = 0;
@@ -48862,6 +48897,10 @@ function updateContdMore() {
     } else if (type !== 'parenthetical' && type !== 'character') {
       dialogueUnitsOnPage = 0;
     }
+  }
+  if (pageSurface) {
+    pageSurface.dataset.pageCount = String(pageNum);
+    pageSurface.style.setProperty('--paginated-min-height',`${pageNum * 1123 + Math.max(0,pageNum - 1) * 52}px`);
   }
 }
 

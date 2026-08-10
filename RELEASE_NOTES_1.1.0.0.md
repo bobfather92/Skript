@@ -8,6 +8,7 @@ This is the first local development package on the road to Skript 1.1. It is int
 - Import native WriterDuet `.wdz` checkpoint projects and WriterDuet JSON exports, including projects containing multiple script documents.
 - Remove WriterDuet’s hidden character-name markers and recombine consecutive native dialogue fragments into one editable speech.
 - Normalise imported Scene Headings to uppercase and show Storyboard scenes as a single professional `INT./EXT. LOCATION — TIME` title beside the existing number, without repeating `Scene 1`.
+- Preserve a complete A4 canvas for every imported WriterDuet page, including short pages ended early by a New Act and a partially filled final page.
 - Right-align screenplay transitions and import WriterDuet Act records as visible New Act elements that always begin a fresh page.
 - Keep long imported dialogue as one selectable and editable Skript paragraph, including Word soft line breaks and dialogue that visually extends past a page.
 - Export WriterDuet scripts with BBC-style A4 margins and 12-point spacing, proper continuation pages, top-right page headers, no browser-generated footers, and clean Act page breaks.
@@ -28,6 +29,7 @@ This is the first local development package on the road to Skript 1.1. It is int
 - Enter the reduced-memory performance profile when Windows reports severe memory pressure, even on a computer with otherwise capable hardware.
 - Clear the Recent Projects history from either the welcome screen or Recent Projects window without deleting saved project files.
 - Select several storyboard cards or frame-editor objects using Shift-click, Ctrl-click, Select All, or a drag-selection box.
+- Add and remove storyboard cards directly with their selection controls while keeping the Cards count accurate for every multi-card selection.
 - Snap storyboard objects to the canvas, other object edges and centres, with live smart guides and an optional visible grid.
 - Align selected objects to the left, centre, right, top, middle or bottom, and distribute three or more objects evenly.
 - Undo and redo drawing, object, layer, arranging and storyboard-card changes with toolbar buttons or standard keyboard shortcuts.
@@ -37,6 +39,7 @@ This is the first local development package on the road to Skript 1.1. It is int
 - Configure each storyboard after creation, including its name, description, status, orientation, columns, captions, action-safe/title-safe guides, templates and 16:9, 4:3, 2.39:1, 1:1, 9:16 or custom frame ratios.
 - Create storyboards through a four-stage Template, Frame, Layout and Review wizard that matches the New Script Wizard, including progress indicators, production template cards and a final settings summary that fits without internal scrollbars at supported window sizes.
 - Work in the new Storyboard Studio without leaving Skript's ribbon and Navigator, using a collapsible scene browser, Grid, Compact and List card views, and a resizable Frame, Scene and Board inspector.
+- Collapse individual Frame, Script Connection, Camera and Notes inspector groups so essential settings remain accessible on shorter displays, and open the artwork editor from the centre of each frame image.
 - Find frames by scene, status, tag, character, location or shot type, with a dedicated Unlinked Frames section for artwork not yet connected to the script.
 - Use a collapsible production dock for the larger preview, animatic, timeline and reusable references, without duplicating editable inspector fields.
 - Keep camera, lens, movement, angle, shot size, location and duration information synchronized with linked Shot List entries.

@@ -49,6 +49,20 @@ test('storyboard studio provides linked panes, views, filters, inspector sync an
   await expect(page.locator('#sb-storyboard-scenes-nav .sb-storyboard-scene-item', { hasText:'Unlinked frames' }).locator('.sb-storyboard-scene-count')).toHaveText('1');
   await expect(page.locator('.sb-studio-group')).toHaveCount(2);
   await expect(page.locator('.sb-frame')).toHaveCount(3);
+  const firstFrame = page.locator('.sb-frame').first();
+  const frameEditorButton = firstFrame.locator('.sb-canvas-wrap > .sb-frame-edit-icon');
+  await expect(frameEditorButton).toHaveCount(1);
+  expect(await firstFrame.evaluate(frame => {
+    const canvas = frame.querySelector('.sb-canvas-wrap');
+    const editor = canvas?.querySelector(':scope > .sb-frame-edit-icon');
+    const details = frame.querySelector('.sb-frame-info-btn');
+    if (!canvas || !editor || !details) return false;
+    const canvasRect = canvas.getBoundingClientRect();
+    const editorRect = editor.getBoundingClientRect();
+    const centred = Math.abs((editorRect.left + editorRect.width / 2) - (canvasRect.left + canvasRect.width / 2)) < 2
+      && Math.abs((editorRect.top + editorRect.height / 2) - (canvasRect.top + canvasRect.height / 2)) < 2;
+    return centred && !!(editor.compareDocumentPosition(details) & Node.DOCUMENT_POSITION_FOLLOWING);
+  })).toBe(true);
   await expect(page.locator('.sb-frame-link-controls')).toHaveCount(0);
   await expect(page.locator('.sb-frame-link-summary')).toHaveCount(0);
   await expect(page.locator('.sb-frame-metadata .sb-meta-pill[title="Frame label"]')).toHaveCount(0);
@@ -84,6 +98,13 @@ test('storyboard studio provides linked panes, views, filters, inspector sync an
 
   if (compactAtStart) await page.evaluate(() => storyboardStudioTogglePane('inspector'));
   await expect(page.locator('.sb-studio-inspector').getByLabel('Label')).toHaveValue('City Establishing');
+  const inspectorSections = page.locator('.sb-studio-inspector .sb-inspector-section');
+  await expect(inspectorSections).toHaveCount(4);
+  await expect(inspectorSections.nth(0)).toHaveAttribute('open','');
+  await expect(inspectorSections.nth(1)).not.toHaveAttribute('open','');
+  await expect(inspectorSections.nth(2)).not.toHaveAttribute('open','');
+  await expect(inspectorSections.nth(3)).not.toHaveAttribute('open','');
+  await inspectorSections.nth(2).locator('summary').click();
   await expect(page.locator('.sb-inspector-primary-note')).toHaveCount(2);
   await expect(page.locator('.sb-inspector-primary-note').first()).toHaveCSS('min-height', '104px');
   await page.locator('.sb-studio-inspector').getByLabel('Shot size').selectOption('Close-Up');
@@ -92,6 +113,9 @@ test('storyboard studio provides linked panes, views, filters, inspector sync an
     shot: SL.getData().shots.find(item => item.id === 'sl901').size
   }));
   expect(synced).toEqual({ frame:'Close-Up', shot:'Close-Up' });
+  const notesSection = page.locator('.sb-studio-inspector .sb-inspector-section').nth(3);
+  await notesSection.locator('summary').click();
+  await expect(notesSection.locator('.sb-inspector-primary-note').first()).toBeVisible();
   if (compactAtStart) await page.evaluate(() => storyboardStudioClosePane('inspector'));
 
   await page.getByRole('button', { name:'Timeline', exact:true }).click();

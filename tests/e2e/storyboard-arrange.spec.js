@@ -29,8 +29,12 @@ test('storyboard cards support multi-select, duplicate, reorder, delete, undo an
   await expect(cards.nth(0).locator('.sb-frame-drag-handle svg')).toBeVisible();
   await expect(cards.nth(0).locator('.sb-frame-num-badge')).toHaveText('01');
   await cards.nth(0).locator('.sb-frame-select').click();
-  await cards.nth(1).locator('.sb-frame-select').click({ modifiers: ['Shift'] });
+  await cards.nth(1).locator('.sb-frame-select').click();
   await expect(page.locator('.sb-frame-selected')).toHaveCount(2);
+  await expect(page.locator('#sb-ribbon-selection-count')).toHaveText('(2 selected)');
+  await cards.nth(2).locator('.sb-frame-select').click();
+  await expect(page.locator('#sb-ribbon-selection-count')).toHaveText('(3 selected)');
+  await cards.nth(2).locator('.sb-frame-select').click();
   await expect(page.locator('#sb-ribbon-selection-count')).toHaveText('(2 selected)');
 
   await page.evaluate(() => sbDuplicateSelectedFrames());

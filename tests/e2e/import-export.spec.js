@@ -221,6 +221,20 @@ test('a WriterDuet project imports every script from its WDZ archive', async ({ 
   await expect.poll(() => importedNewAct.evaluate(line =>
     line.previousElementSibling?.previousElementSibling?.classList.contains('virtual-page-break') || false
   )).toBe(true);
+  const importedPageLayout = await importedNewAct.evaluate(line => {
+    const pageBreak = line.previousElementSibling?.previousElementSibling;
+    const page = line.closest('.script-page');
+    return {
+      fillUnits: Number(pageBreak?.dataset.pageFillUnits || 0),
+      breakMarginTop: parseFloat(getComputedStyle(pageBreak).marginTop) || 0,
+      pageCount: Number(page?.dataset.pageCount || 0),
+      pageMinHeight: parseFloat(getComputedStyle(page).minHeight) || 0,
+    };
+  });
+  expect(importedPageLayout.fillUnits).toBeGreaterThan(20);
+  expect(importedPageLayout.breakMarginTop).toBeGreaterThan(380);
+  expect(importedPageLayout.pageCount).toBe(2);
+  expect(importedPageLayout.pageMinHeight).toBeGreaterThanOrEqual(2298);
   await expect.poll(() => page.evaluate(() => migrateProjectData({
     version: 2,
     title: 'Reopened WriterDuet Import',
