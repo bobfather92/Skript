@@ -4,7 +4,7 @@ import { test, expect } from './support/fixtures.js';
 test('storyboard studio provides linked panes, views, filters, inspector sync and responsive navigation', async ({ page, skript }) => {
   await page.evaluate(() => {
     const sceneLine = document.querySelector('.script-panel.active .script-line[data-type="scene"]');
-    sceneLine.textContent = 'EXT. CITY SQUARE - DAY';
+    sceneLine.textContent = 'Scene 1: int./ext. City Square - day';
     const sceneLineId = ensureScriptLineId(sceneLine);
     SL.setData({
       shots: [{
@@ -37,6 +37,10 @@ test('storyboard studio provides linked panes, views, filters, inspector sync an
   await expect(page.locator('.sb-studio')).toBeVisible();
   await expect(page.locator('.sb-studio-scenes')).toHaveCount(0);
   await expect(page.locator('#sb-storyboard-scenes-nav')).toBeVisible();
+  const linkedScene = page.locator('#sb-storyboard-scenes-nav .sb-storyboard-scene-item').filter({ hasText:'INT./EXT. CITY SQUARE' });
+  await expect(linkedScene.locator('.sb-storyboard-scene-index')).toHaveText('1');
+  await expect(linkedScene.locator('.sb-storyboard-scene-name')).toHaveText('INT./EXT. CITY SQUARE — DAY');
+  await expect(linkedScene.locator('.sb-storyboard-scene-name')).not.toContainText('Scene 1');
   if (compactAtStart) {
     await expect(page.locator('.sb-studio-inspector')).toBeHidden();
   } else {

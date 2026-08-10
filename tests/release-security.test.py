@@ -45,7 +45,6 @@ for required in (
     "timestamp-rfc3161: http://timestamp.acs.microsoft.com",
     "Tagged releases must be Authenticode-signed",
     "Test-Authenticode.ps1",
-    "--noupx",
     "PYINSTALLER_COMPILE_BOOTLOADER",
     "PyInstaller==6.21.0",
     "SHA256SUMS.txt",

@@ -79,7 +79,7 @@ const nativeCheckpoint = {
     data: {
       'native-line-a': {
         type: 'Slugline',
-        cache: { t: 'INT. NATIVE WRITERDUET PROJECT - DAY', l: 1700000000001 },
+        cache: { t: 'int. Native WriterDuet Project - day', l: 1700000000001 },
       },
       'native-line-b': {
         type: 'Action',

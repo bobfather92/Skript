@@ -7,6 +7,7 @@ This is the first local development package on the road to Skript 1.1. It is int
 - Select several `.script`, `.sfg` or compatible JSON project files in one import operation.
 - Import native WriterDuet `.wdz` checkpoint projects and WriterDuet JSON exports, including projects containing multiple script documents.
 - Remove WriterDuet’s hidden character-name markers and recombine consecutive native dialogue fragments into one editable speech.
+- Normalise imported Scene Headings to uppercase and show Storyboard scenes as a single professional `INT./EXT. LOCATION — TIME` title beside the existing number, without repeating `Scene 1`.
 - Right-align screenplay transitions and import WriterDuet Act records as visible New Act elements that always begin a fresh page.
 - Keep long imported dialogue as one selectable and editable Skript paragraph, including Word soft line breaks and dialogue that visually extends past a page.
 - Export WriterDuet scripts with BBC-style A4 margins and 12-point spacing, proper continuation pages, top-right page headers, no browser-generated footers, and clean Act page breaks.

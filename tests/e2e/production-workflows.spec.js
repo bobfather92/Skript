@@ -32,8 +32,11 @@ test('a new storyboard starts linked and can import only selected scenes', async
   await expect(picks).toHaveCount(2);
   await picks.nth(1).uncheck();
   await page.locator('#sb-link-modal').getByRole('button', { name: 'Done' }).click();
-  await expect(page.locator('#sb-storyboard-scenes-nav .sb-storyboard-scene-item', { hasText:'Scene 1' }).locator('.sb-storyboard-scene-count')).toHaveText('6');
-  await expect(page.locator('#sb-storyboard-scenes-nav .sb-storyboard-scene-item', { hasText:'Scene 2' }).locator('.sb-storyboard-scene-count')).toHaveText('0');
+  const storyboardScenes = page.locator('#sb-storyboard-scenes-nav .sb-storyboard-scene-item');
+  await expect(storyboardScenes.nth(1).locator('.sb-storyboard-scene-index')).toHaveText('1');
+  await expect(storyboardScenes.nth(1).locator('.sb-storyboard-scene-count')).toHaveText('6');
+  await expect(storyboardScenes.nth(2).locator('.sb-storyboard-scene-index')).toHaveText('2');
+  await expect(storyboardScenes.nth(2).locator('.sb-storyboard-scene-count')).toHaveText('0');
 
   await page.locator('#storyboard-board-rg').getByRole('button', { name: 'Link Shots' }).click();
   await page.getByRole('button', { name: 'Clear all' }).click();

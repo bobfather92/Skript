@@ -131,7 +131,7 @@ test('a WriterDuet project imports every script from its WDZ archive', async ({ 
         filename: 'native-pilot-checkpoint',
         branchId: 'pilot-branch',
         lines: [
-          ['wd-e2e-1', 'Slugline', 'INT. WRITERDUET ROOM - DAY'],
+          ['wd-e2e-1', 'Slugline', 'int./ext. WriterDuet Room - day'],
           ['wd-e2e-2', 'Action', 'Two scripts wait on the screen.'],
           ['wd-e2e-3', 'EditDialogName', '\ue5e5\u0005MAYA\u0006\ue5e6'],
           ['wd-e2e-4', 'EditDialogContent', 'Bring them both\nin and keep this'],
@@ -144,7 +144,7 @@ test('a WriterDuet project imports every script from its WDZ archive', async ({ 
         filename: 'native-episode-two-checkpoint',
         branchId: 'episode-two-branch',
         lines: [
-          ['wd-e2e-5', 'Slugline', 'EXT. WRITERDUET STREET - NIGHT'],
+          ['wd-e2e-5', 'Slugline', 'ext. WriterDuet Street - night'],
           ['wd-e2e-6', 'Action', 'The second story begins.'],
         ],
       },
@@ -189,7 +189,7 @@ test('a WriterDuet project imports every script from its WDZ archive', async ({ 
 
   await expect(page.locator('#tabs-container .tab-title')).toHaveText(['Pilot', 'Episode Two']);
   await expect(page.locator('.script-panel:not(.active) .script-line')).toHaveText([
-    'INT. WRITERDUET ROOM - DAY',
+    'INT./EXT. WRITERDUET ROOM - DAY',
     'Two scripts wait on the screen.',
     'MAYA',
     'Bring them both in and keep this speech together.',

@@ -35218,7 +35218,8 @@ function migrateProjectData(input) {
     const lineId = requestedId && !seenLineIds.has(requestedId) ? requestedId : newProjectId(`line-${index + 1}`);
     seenLineIds.add(lineId);
     const type = SKRIPT_LINE_TYPES.has(line.type) ? line.type : 'action';
-    const migrated = { type, text: String(line.text ?? ''), lineId };
+    const sourceText = String(line.text ?? '');
+    const migrated = { type, text: type === 'scene' ? normaliseImportedSceneHeading(sourceText) : sourceText, lineId };
     if (line.rev) migrated.rev = String(line.rev);
     if (line.fdx && typeof line.fdx === 'object') migrated.fdx = cloneProjectValue(line.fdx, {});
     if (line.importMeta && typeof line.importMeta === 'object') migrated.importMeta = cloneProjectValue(line.importMeta, {});
@@ -37511,18 +37512,37 @@ function switchActiveView(view) {
 //  SCENE NAVIGATOR UPDATE
 // ═══════════════════════════════════════
 function parseSceneHeading(text) {
-  // Parse: "INT. COFFEE SHOP - DAY" or "EXT. STREET - NIGHT" etc.
-  const fmt = appState.sceneNavFormat || 'full';
-  const raw = text.trim().toUpperCase();
-  const intextMatch = raw.match(/^(INT|EXT|INT\/EXT|EXT\/INT)[\.\s]/i);
-  const intExt = intextMatch ? intextMatch[1].toUpperCase() : null;
-  const timeMatch = raw.match(/[-–—]\s*(DAY|NIGHT|DAWN|DUSK|MORNING|AFTERNOON|EVENING|CONTINUOUS|LATER|MOMENTS LATER|FLASHBACK)\s*$/i);
+  // Parse and normalise professional slug lines such as
+  // "INT./EXT. COFFEE SHOP - DAY" without inventing missing information.
+  const raw = String(text || '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim().toUpperCase();
+  const prefixMatch = raw.match(/^(INT\.?\s*\/\s*EXT\.?|EXT\.?\s*\/\s*INT\.?|I\s*\/\s*E|INTERIOR|EXTERIOR|INT|EXT)\.?\s+/i);
+  const prefixKey = String(prefixMatch?.[1] || '').replace(/[.\s]/g, '').toUpperCase();
+  const intExt = ({'INT/EXT':'INT/EXT','EXT/INT':'EXT/INT','I/E':'INT/EXT',INTERIOR:'INT',EXTERIOR:'EXT',INT:'INT',EXT:'EXT'})[prefixKey] || null;
+  const timeMatch = raw.match(/\s+[-–—]\s*(DAY|NIGHT|DAWN|DUSK|SUNRISE|SUNSET|MORNING|AFTERNOON|EVENING|CONTINUOUS|LATER|MOMENTS LATER|FLASHBACK|MAGIC HOUR)\s*$/i);
   const timeOfDay = timeMatch ? timeMatch[1].toUpperCase() : null;
-  // Scene name: between INT/EXT. and the dash
-  let name = raw;
-  if (intExt) name = name.replace(/^(INT\/EXT|EXT\/INT|INT|EXT)[\.\s]*/i, '').trim();
-  if (timeOfDay) name = name.replace(/[-–—]\s*\w[\w\s]*$/, '').trim();
+  const start = prefixMatch ? prefixMatch[0].length : 0;
+  const end = timeMatch && typeof timeMatch.index === 'number' ? timeMatch.index : raw.length;
+  const name = raw.slice(start, end).trim();
   return { intExt, name, timeOfDay, raw };
+}
+
+function normaliseImportedSceneHeading(text) {
+  return String(text || '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim().toUpperCase();
+}
+
+function formatStoryboardSceneHeading(text, fallback = 'UNTITLED SCENE') {
+  let raw = normaliseImportedSceneHeading(text);
+  // Some source files put a scene number inside the heading as well as in their
+  // scene-number field. Storyboard renders its own number badge, so remove only
+  // an explicit leading "SCENE N" label here.
+  raw = raw.replace(/^SCENE\s+(?:\d+[A-Z]?|[IVXLCDM]+|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN)\s*(?:[.:\-–—]\s*)?/i, '').trim();
+  if (!raw) return fallback;
+  const parsed = parseSceneHeading(raw);
+  if (!parsed.intExt) return raw.replace(/\s*[-–—]\s*/g, ' — ');
+  const prefix = ({INT:'INT.',EXT:'EXT.','INT/EXT':'INT./EXT.','EXT/INT':'EXT./INT.'})[parsed.intExt];
+  const location = parsed.name.replace(/\s*[-–—]\s*/g, ' — ').trim();
+  const heading = [prefix, location].filter(Boolean).join(' ');
+  return parsed.timeOfDay ? `${heading} — ${parsed.timeOfDay}` : heading;
 }
 
 function formatSceneLabel(parsed, num) {
@@ -37677,7 +37697,8 @@ function getStoryboardSceneRefs() {
   return Array.from(container.querySelectorAll('.script-line[data-type="scene"]')).map((line, index) => ({
     idx: index + 1,
     lineId: ensureScriptLineId(line),
-    text: line.textContent.trim() || `Scene ${index + 1}`
+    text: normaliseImportedSceneHeading(line.textContent) || 'UNTITLED SCENE',
+    displayTitle: formatStoryboardSceneHeading(line.textContent)
   }));
 }
 
@@ -39189,7 +39210,7 @@ function storyboardStudioGroups(board) {
   const valid = new Set(scenes.map(scene => scene.lineId));
   const groups = scenes.map(scene => ({
     id: scene.lineId,
-    title: scene.text.toLowerCase() === `scene ${scene.idx}`.toLowerCase() ? `Scene ${scene.idx}` : `Scene ${scene.idx} · ${scene.text}`,
+    title: scene.displayTitle || formatStoryboardSceneHeading(scene.text),
     scene,
     frames: board.frames.map((frame,index) => ({frame,index})).filter(item => item.frame.sceneLineId === scene.lineId)
   }));
@@ -39379,7 +39400,7 @@ function storyboardStudioInspectorHtml(board, activeEntry, activeGroup) {
   const context = getStoryboardFrameContext(frame);
   const aspect = getStoryboardAspect(board);
   const sceneOptions = context.scenes.map(scene => {
-    const label = scene.text.toLowerCase() === `scene ${scene.idx}`.toLowerCase() ? `Scene ${scene.idx}` : `Scene ${scene.idx} · ${scene.text}`;
+    const label = scene.displayTitle || formatStoryboardSceneHeading(scene.text);
     return `<option value="${escHtml(scene.lineId)}" ${scene.lineId === frame.sceneLineId ? 'selected' : ''}>${escHtml(label)}</option>`;
   }).join('');
   const availableShots = context.shots.filter(shot => !context.scene || (shot.sceneLineId ? shot.sceneLineId === context.scene.lineId : shot.sceneIdx === context.scene.idx));
@@ -39423,7 +39444,7 @@ function storyboardStudioDockHtml(board, activeEntry) {
   if (sb.dockTab === 'references') return sb.mediaLibrary.length ? `<div class="sb-dock-media-grid">${sb.mediaLibrary.map(item => `<img src="${item.data || item.src || ''}" alt="${escHtml(item.name || 'Project media')}">`).join('')}</div>` : '<div class="sb-studio-empty"><strong>No project references yet</strong><span>Reusable images added in the frame editor appear here.</span></div>';
   if (!frame) return '<div class="sb-studio-empty"><strong>Select a frame to preview</strong><span>The larger artwork preview and frame summary will appear here.</span></div>';
   const context = getStoryboardFrameContext(frame);
-  return `<div class="sb-dock-preview"><div class="sb-dock-preview-media">${frame.imageData ? `<img src="${frame.imageData}" alt="${escHtml(frame.label || 'Selected frame')}">` : 'No artwork'}</div><div class="sb-dock-preview-copy"><strong>${escHtml(frame.label || frame.shotNumber || 'Selected frame')}</strong><span>${escHtml(frame.caption || frame.actionNotes || 'No action description')}</span><span>${escHtml(context.scene ? `Scene ${context.scene.idx} · ${context.scene.text}` : 'Unlinked frame')}</span><span>${escHtml([frame.shotSize || context.shot?.size,frame.movement || context.shot?.movement,frame.lens || context.shot?.lens,frame.duration].filter(Boolean).join(' · ') || 'Camera details not set')}</span></div></div>`;
+  return `<div class="sb-dock-preview"><div class="sb-dock-preview-media">${frame.imageData ? `<img src="${frame.imageData}" alt="${escHtml(frame.label || 'Selected frame')}">` : 'No artwork'}</div><div class="sb-dock-preview-copy"><strong>${escHtml(frame.label || frame.shotNumber || 'Selected frame')}</strong><span>${escHtml(frame.caption || frame.actionNotes || 'No action description')}</span><span>${escHtml(context.scene ? (context.scene.displayTitle || formatStoryboardSceneHeading(context.scene.text)) : 'Unlinked frame')}</span><span>${escHtml([frame.shotSize || context.shot?.size,frame.movement || context.shot?.movement,frame.lens || context.shot?.lens,frame.duration].filter(Boolean).join(' · ') || 'Camera details not set')}</span></div></div>`;
 }
 
 function buildStoryboardPrintDocument(board, title) {
@@ -44015,8 +44036,9 @@ function importFormattedLines(title, lines) {
     if (!item.text?.trim()) return;
     const line = addLine(id, item.type || 'action');
     if (line) {
-      line.textContent = item.text.trim();
-      tab.lines.push({ type: item.type, text: item.text.trim() });
+      const text = item.type === 'scene' ? normaliseImportedSceneHeading(item.text) : item.text.trim();
+      line.textContent = text;
+      tab.lines.push({ type: item.type, text });
     }
   });
 
@@ -49349,7 +49371,9 @@ function _writerDuetNormaliseImportedLines(sourceLines) {
     const line = {
       ...rawLine,
       type: rawLine.type === 'act' ? 'new-act' : rawLine.type,
-      text: _writerDuetCleanText(rawLine.text),
+      text: rawLine.type === 'scene'
+        ? _writerDuetCleanText(rawLine.text).toUpperCase()
+        : _writerDuetCleanText(rawLine.text),
       ...(rawLine.importMeta && typeof rawLine.importMeta === 'object'
         ? { importMeta: { ...rawLine.importMeta } }
         : {}),
