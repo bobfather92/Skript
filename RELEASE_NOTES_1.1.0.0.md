@@ -65,6 +65,7 @@ This is the first local development package on the road to Skript 1.1. It is int
 - Save and reopen every script as one reliable project file while keeping storyboards, reusable media, call sheets and production documents shared once at project level.
 - Apply Save As, timed autosave, Save and exit, Recent Projects and crash recovery to the complete project rather than only the active script.
 - Keep ordinary Skript 1.0 `.script` files readable and writable as standalone documents.
+- Cancel or confirm script and project renaming reliably from the Project Scripts Navigator, with the current name prefilled and a clearly labelled Rename action.
 - Keep Recovery Centre keyboard focus reliable when it opens over the startup recovery prompt.
 
 ## Reliability and safety
@@ -86,7 +87,7 @@ Python and the supported PDF, OCR and Word engines are included in the Windows d
 
 - 12 JavaScript regression suites passed.
 - 9 Python regression suites passed.
-- Complete browser workflow: 127 passed, 11 intentionally skipped, 0 failed across desktop and compact-touch configurations, including multi-script project management, whole-project Save As/autosave/recovery, the guided storyboard setup, arrangement, history, linking, rich frame information, board settings and media editing coverage.
+- Complete browser workflow: 129 passed, 11 intentionally skipped, 0 failed across desktop and compact-touch configurations, including multi-script project management, rename confirmation/cancellation, whole-project Save As/autosave/recovery, the guided storyboard setup, arrangement, history, linking, rich frame information, board settings and media editing coverage.
 - Packaged Windows desktop-shell smoke test confirmed that `Skript.exe` owns the top-level window, with native caption controls, correct renderer sizing and normal application switching.
 - Python compilation and embedded HTML syntax checks passed.
 

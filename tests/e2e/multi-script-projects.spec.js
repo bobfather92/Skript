@@ -174,3 +174,24 @@ test('Save As and autosave each write the complete collection once', async ({ pa
   expect(result.paths).toEqual(['C:\\Projects\\Series.script', 'C:\\Projects\\Series.script']);
   expect(result.dirty).toEqual([false, false]);
 });
+
+test('script rename dialog can be cancelled or confirmed', async ({ page, skript }) => {
+  await page.evaluate(() => addScriptToActiveProject('EPISODE TWO'));
+  const activeRow = page.locator('#project-scripts-navigator .project-script-row.active');
+
+  await activeRow.getByTitle('Rename script').click();
+  await expect(page.locator('#modal')).toHaveClass(/open/);
+  await expect(page.locator('#modal-input')).toHaveValue('EPISODE TWO');
+  await expect(page.locator('#modal-confirm-btn')).toHaveText('Rename script');
+  await page.locator('#modal-input').fill('CANCELLED NAME');
+  await page.locator('#modal-cancel-btn').click();
+  await expect(page.locator('#modal')).not.toHaveClass(/open/);
+  await expect(page.locator('.tab.active .tab-title')).toHaveText('EPISODE TWO');
+
+  await activeRow.getByTitle('Rename script').click();
+  await page.locator('#modal-input').fill('EPISODE THREE');
+  await page.locator('#modal-confirm-btn').click();
+  await expect(page.locator('#modal')).not.toHaveClass(/open/);
+  await expect(page.locator('.tab.active .tab-title')).toHaveText('EPISODE THREE');
+  await expect(page.locator('#project-scripts-navigator .project-script-row.active .project-script-open')).toContainText('EPISODE THREE');
+});

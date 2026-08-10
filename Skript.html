@@ -32687,14 +32687,14 @@ body #sb-toolbar > * { flex:0 0 auto; }
 <div id="autosave-toast">✓ Project auto-saved</div>
 
 <!-- ══ MODAL ══ -->
-<div class="modal-overlay" id="modal">
+<div class="modal-overlay" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
   <div class="modal">
     <h2 id="modal-title">New Script</h2>
     <p id="modal-desc">Give your script a title to get started.</p>
     <input class="modal-input" id="modal-input" type="text" placeholder="SCRIPT TITLE" />
     <div class="modal-btns">
-      <button class="top-btn" onclick="closeModal()">Cancel</button>
-      <button class="top-btn primary" onclick="confirmModal()">Create</button>
+      <button class="top-btn" id="modal-cancel-btn" type="button" onclick="closeTextEntryModal()">Cancel</button>
+      <button class="top-btn primary" id="modal-confirm-btn" type="button" onclick="confirmTextEntryModal()">Create</button>
     </div>
   </div>
 </div>
@@ -32812,6 +32812,7 @@ body #sb-toolbar > * { flex:0 0 auto; }
             <div class="opt-section"><strong>Storyboard Undo and Redo</strong><div class="opt-note" style="margin-top:5px;">Undo and redo drawing, object, layer, card deletion, duplication and reordering changes with toolbar buttons or standard keyboard shortcuts.</div></div>
             <div class="opt-section"><strong>Frame and card management</strong><div class="opt-note" style="margin-top:5px;">Copy, paste, duplicate, delete and drag-reorder storyboard cards without separating their artwork, captions or script links.</div></div>
             <div class="opt-section"><strong>Complete multi-script projects</strong><div class="opt-note" style="margin-top:5px;">Add, rename, reorder, duplicate and remove scripts in one project; save and reopen the complete collection with shared storyboards, media and production documents; and recover or Save As the whole project safely.</div></div>
+            <div class="opt-section"><strong>Reliable script renaming</strong><div class="opt-note" style="margin-top:5px;">The Project Scripts rename window now supports both Cancel and Rename correctly, prefills the current name and cannot be overridden by another editor dialog.</div></div>
             <div class="opt-section"><strong>Safer batch handling</strong><div class="opt-note" style="margin-top:5px;">A damaged or invalid file no longer prevents other valid files in the same selection from opening.</div></div>
             <div class="opt-section"><strong>Recovery accessibility</strong><div class="opt-note" style="margin-top:5px;">Keeps keyboard focus inside the Recovery Centre when it is opened over the startup recovery prompt.</div></div>
             <div class="opt-section"><strong>Development verification</strong><div class="opt-note" style="margin-top:5px;">Source and browser regression checks cover desktop, compact-touch, storyboard arranging, deletion and history restoration.</div></div>
@@ -33617,7 +33618,7 @@ document.addEventListener('contextmenu', function(e) {
 let activeTabId = null;
 let tabCounter = 0;
 let focusedLine = null;
-let modalCallback = null;
+let textEntryModalCallback = null;
 let unsaved = false;
 const wmState = { enabled: false, text: 'DRAFT', size: 64, opacity: 20 };
 const diagnosticState = { errors: [], server: null, startedAt: new Date().toISOString() };
@@ -35579,7 +35580,10 @@ function renameActiveProject(nextTitle) {
     renderProjectScriptsNavigator(); syncUnsavedState(); scheduleRecoverySoon();
   };
   if (nextTitle !== undefined) apply(nextTitle);
-  else openModal('Rename Project', 'Name the complete multi-script project.', record.title, apply);
+  else openTextEntryModal('Rename Project', 'Name the complete multi-script project.', 'PROJECT NAME', apply, {
+    initialValue: record.title,
+    confirmLabel: 'Rename project',
+  });
 }
 
 function addScriptToActiveProject(title = 'UNTITLED SCRIPT') {
@@ -35616,7 +35620,10 @@ function renameProjectScript(tabId, nextTitle) {
     syncUnsavedState(); renderProjectScriptsNavigator(); scheduleRecoverySoon();
   };
   if (nextTitle !== undefined) apply(nextTitle);
-  else openModal('Rename Script', 'Change this script document name.', tab.title, apply);
+  else openTextEntryModal('Rename Script', 'Change this script document name.', 'SCRIPT NAME', apply, {
+    initialValue: tab.title,
+    confirmLabel: 'Rename script',
+  });
 }
 
 function moveProjectScript(tabId, delta) {
@@ -36429,31 +36436,43 @@ function exportPDF() { showExportPDFModal(); }
 // ═══════════════════════════════════════
 //  MODAL
 // ═══════════════════════════════════════
-function openModal(title, desc, placeholder, callback) {
+function openTextEntryModal(title, desc, placeholder, callback, options = {}) {
   document.getElementById('modal-title').textContent = title;
   document.getElementById('modal-desc').textContent = desc;
   const input = document.getElementById('modal-input');
   input.placeholder = placeholder;
-  input.value = '';
+  input.value = String(options.initialValue || '');
+  const confirmButton = document.getElementById('modal-confirm-btn');
+  if (confirmButton) confirmButton.textContent = options.confirmLabel || 'Create';
   document.getElementById('modal')?.classList.add('open');
-  modalCallback = callback;
-  setTimeout(() => input.focus(), 50);
-  input.onkeydown = (e) => { if (e.key === 'Enter') confirmModal(); if (e.key === 'Escape') closeModal(); };
+  textEntryModalCallback = callback;
+  setTimeout(() => { input.focus(); input.select(); }, 50);
+  input.onkeydown = (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); confirmTextEntryModal(); }
+    if (e.key === 'Escape') { e.preventDefault(); closeTextEntryModal(); }
+  };
 }
 
-function confirmModal() {
+function confirmTextEntryModal() {
   const val = document.getElementById('modal-input').value.trim().toUpperCase();
-  closeModal();
-  modalCallback?.(val);
+  const callback = textEntryModalCallback;
+  if (!val) {
+    document.getElementById('modal-input')?.focus();
+    return;
+  }
+  closeTextEntryModal();
+  callback?.(val);
 }
 
-function closeModal() {
+function closeTextEntryModal() {
   document.getElementById('modal')?.classList.remove('open');
-  modalCallback = null;
+  textEntryModalCallback = null;
+  const confirmButton = document.getElementById('modal-confirm-btn');
+  if (confirmButton) confirmButton.textContent = 'Create';
 }
 
 document.getElementById('modal')?.addEventListener('click', (e) => {
-  if (e.target === document.getElementById('modal')) closeModal();
+  if (e.target === document.getElementById('modal')) closeTextEntryModal();
 });
 
 // ═══════════════════════════════════════
